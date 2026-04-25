@@ -1,0 +1,98 @@
+# Endpoint ingestion contract for Financial Modeling Prep (FMP)
+# Adjust path strings to your licensed plan and endpoint versions.
+
+domains:
+  reference:
+    schedule: "0 1 * * *"
+    endpoints:
+      - name: stock_list
+        path: "/api/v3/stock/list"
+        target_table: "ref.symbol"
+        key: ["symbol"]
+        mode: full_refresh
+      - name: actively_trading
+        path: "/api/v3/actively-trading-list"
+        target_table: "ref.symbol"
+        key: ["symbol"]
+        mode: full_refresh
+      - name: profile
+        path: "/api/v3/profile/{symbol}"
+        target_table: "ref.company"
+        key: ["symbol"]
+        mode: snapshot
+      - name: symbol_change
+        path: "/api/v4/symbol_change"
+        target_table: "ref.symbol_change"
+        key: ["old_symbol", "new_symbol", "change_date"]
+        mode: incremental
+        watermark_field: "change_date"
+
+  prices:
+    schedule: "15 22 * * 1-5"
+    endpoints:
+      - name: historical_price_full
+        path: "/api/v3/historical-price-full/{symbol}"
+        target_table: "core.price_daily"
+        key: ["symbol", "date"]
+        mode: incremental
+        watermark_field: "date"
+
+  fundamentals:
+    schedule: "0 2 * * *"
+    endpoints:
+      - name: income_statement
+        path: "/api/v3/income-statement/{symbol}"
+        target_table: "core.income_statement"
+        key: ["symbol", "period_end", "period_type"]
+        mode: incremental
+        watermark_field: "filing_date"
+      - name: balance_sheet_statement
+        path: "/api/v3/balance-sheet-statement/{symbol}"
+        target_table: "core.balance_sheet"
+        key: ["symbol", "period_end", "period_type"]
+        mode: incremental
+        watermark_field: "filing_date"
+      - name: cash_flow_statement
+        path: "/api/v3/cash-flow-statement/{symbol}"
+        target_table: "core.cash_flow"
+        key: ["symbol", "period_end", "period_type"]
+        mode: incremental
+        watermark_field: "filing_date"
+
+  events:
+    schedule: "0 */4 * * 1-5"
+    endpoints:
+      - name: earnings_calendar
+        path: "/api/v3/earning_calendar"
+        target_table: "core.earnings_calendar"
+        key: ["symbol", "event_date"]
+        mode: incremental
+        watermark_field: "event_date"
+      - name: historical_dividend
+        path: "/api/v3/historical-price-full/stock_dividend/{symbol}"
+        target_table: "core.dividends"
+        key: ["symbol", "ex_date"]
+        mode: incremental
+        watermark_field: "ex_date"
+      - name: historical_split
+        path: "/api/v3/historical-price-full/stock_split/{symbol}"
+        target_table: "core.splits"
+        key: ["symbol", "split_date"]
+        mode: incremental
+        watermark_field: "split_date"
+
+  analyst:
+    schedule: "30 3 * * *"
+    endpoints:
+      - name: analyst_estimates
+        path: "/api/v3/analyst-estimates/{symbol}"
+        target_table: "core.analyst_estimates"
+        key: ["symbol", "period_end", "period_type"]
+        mode: incremental
+        watermark_field: "period_end"
+      - name: price_target
+        path: "/api/v4/price-target"
+        target_table: "core.price_targets"
+        key: ["symbol", "published_date", "analyst_name", "publisher"]
+        mode: incremental
+        watermark_field: "published_date"
