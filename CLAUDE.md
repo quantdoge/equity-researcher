@@ -15,19 +15,47 @@ Always develop on `claude/multi-agent-equity-research-DOiTR`.
 
 ```
 equity_mcp/
-├── server.py          # FastMCP app — all ~70 tools registered here with role tags
-├── roles.py           # Canonical tag sets per agent role
-├── agent_factory.py   # Filters tools by role, runs Claude API tool-use loop
-├── orchestrator.py    # Pipeline runner: 6 sequential stages, parallel within stages
+├── server.py              # FastMCP app — all ~70 tools registered here with role tags
+├── roles.py               # Canonical tag sets per agent role
+├── langchain_bridge.py    # Bridges FastMCP tools → LangChain StructuredTool (by role)
+├── deep_agent_factory.py  # Builds 12 subagents + master via create_deep_agent
+├── agent_factory.py       # Legacy: Anthropic-SDK tool-use loop (--legacy fallback)
+├── orchestrator.py        # CLI entry — deepagents default, --legacy flag for fallback
 ├── tools/
-│   ├── db.py          # Supabase query wrappers (uses existing schema)
-│   ├── web.py         # web_search + fetch_page
-│   ├── calculations/  # valuation, risk, quant, forensics (pure Python)
-│   └── external/      # fred, sec_edgar, news, alt_data (external APIs)
-└── prompts/           # System prompt .md file per agent role
+│   ├── db.py              # Supabase query wrappers (uses existing schema)
+│   ├── web.py             # web_search + fetch_page
+│   ├── calculations/      # valuation, risk, quant, forensics (pure Python)
+│   └── external/          # fred, sec_edgar, news, alt_data (external APIs)
+└── prompts/               # System prompt .md file per agent role
 ```
 
-## Agent Pipeline Order
+## Orchestration: deepagents (default)
+
+The Head of Research is a `create_deep_agent` master agent with 12 specialist
+subagents. It autonomously plans its research task breakdown via deepagents'
+built-in `write_todos` planning tool, then delegates to each specialist.
+Each subagent receives only the FastMCP tools tagged for its role via
+`langchain_bridge.get_langchain_tools_for_role`.
+
+```
+Master: Head of Research  (create_deep_agent)
+  └── subagents (12 specialists, each with role-filtered tools):
+        sector_researcher  |  geo_legal_researcher  |  macro_researcher
+        value_researcher   |  growth_researcher     |  fin_risk_analyst
+        nonfin_risk_analyst|  quant_analyst          |  short_analyst
+        esg_analyst        |  alt_data_analyst       |  portfolio_strategist
+```
+
+## Legacy Pipeline (--legacy flag)
+
+The original 6-stage sequential+parallel pipeline using the raw Anthropic SDK
+is preserved in `agent_factory.py`:
+
+```bash
+python -m equity_mcp.orchestrator --symbol AAPL --legacy
+```
+
+## Agent Pipeline Order (legacy)
 
 Stages run sequentially; agents within each stage run in parallel:
 1. Alt Data + Quant (fast signals)
