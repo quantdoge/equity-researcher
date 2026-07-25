@@ -20,11 +20,21 @@ names, so each function here re-shapes them into the exact snake_case row shape
 (FastMCP runs sync tools in worker threads). ``asyncio.run`` is not safe here —
 it raises if the calling thread already drives a loop — so this module owns one
 daemon event loop on a background thread and marshals every call onto it.
+
+That loop outlives the main thread, which is the one hazard worth knowing about.
+CPython sets ``concurrent.futures.thread._shutdown`` the moment the main thread
+finishes, and everything downstream of a connect — right down to the
+``run_in_executor`` that resolves DNS — refuses to schedule after that. A call
+started in that window used to die as an opaque ``cannot schedule new futures
+after interpreter shutdown``; ``call_tools`` now detects the window and raises
+``FmpShuttingDown`` instead, which ``db.py`` logs as the benign teardown race it
+is rather than a data failure.
 """
 
 from __future__ import annotations
 
 import asyncio
+import atexit
 import json
 import logging
 import os
@@ -42,33 +52,110 @@ _CALL_TIMEOUT = 90.0
 _EXTRA_CALL_TIMEOUT = 15.0
 _MAX_BATCH_TIMEOUT = 600.0
 
+# Margin the calling thread allows on top of the loop's own deadline, so the
+# in-loop timeout is what normally fires and the session unwinds cleanly.
+_TIMEOUT_GRACE = 10.0
+
+# How long exit waits for the loop thread to stop before giving up on it.
+_SHUTDOWN_JOIN_TIMEOUT = 2.0
+
 # Screener page size when enumerating a sector, and how many of those
 # constituents (largest first) get aggregated by get_sector_financials.
 _SCREENER_LIMIT = 1000
 _SECTOR_SAMPLE = 25
+
+# FMP reports subscription limits in prose rather than as a status code.
+_PLAN_DENIED_MARKERS = ("access denied", "requires a higher plan", "upgrade your")
 
 
 class FmpError(RuntimeError):
     """The FMP MCP server was unreachable, refused the key, or returned junk."""
 
 
+class FmpPlanDenied(FmpError):
+    """The endpoint exists but the account's FMP subscription doesn't cover it."""
+
+
+class FmpShuttingDown(FmpError):
+    """The interpreter is tearing down; no new FMP work can be scheduled."""
+
+
+def _is_plan_denied(text: str) -> bool:
+    lowered = text.lower()
+    return any(marker in lowered for marker in _PLAN_DENIED_MARKERS)
+
+
+def _is_shutdown_error(exc: BaseException) -> bool:
+    """True for the executor's refusal to schedule once the main thread has gone."""
+    return "cannot schedule new futures" in str(exc)
+
+
+def _shutting_down() -> bool:
+    """
+    True once the main thread has finished.
+
+    ``threading._shutdown`` runs ``concurrent.futures``' exit hook *before* it
+    stops the main thread, so this trails the real flag by a hair — the
+    ``_is_shutdown_error`` conversion in ``call_tools`` covers that gap. Both are
+    public-API checks; the private ``_shutdown`` globals move between versions.
+    """
+    return _closed or not threading.main_thread().is_alive()
+
+
 # ── Background event loop ─────────────────────────────────────────────────────
 
 _loop: asyncio.AbstractEventLoop | None = None
+_loop_thread: threading.Thread | None = None
 _loop_lock = threading.Lock()
+_closed = False
 
 
 def _background_loop() -> asyncio.AbstractEventLoop:
     """Return the module's event loop, starting its daemon thread on first use."""
-    global _loop
+    global _loop, _loop_thread
     with _loop_lock:
         if _loop is None or _loop.is_closed():
             loop = asyncio.new_event_loop()
-            threading.Thread(
+            thread = threading.Thread(
                 target=loop.run_forever, name="fmp-mcp-loop", daemon=True
-            ).start()
-            _loop = loop
+            )
+            thread.start()
+            _loop, _loop_thread = loop, thread
         return _loop
+
+
+@atexit.register
+def _shutdown_loop() -> None:
+    """
+    Stop the background loop at exit so nothing is left mid-flight.
+
+    Ordering matters here: CPython runs ``threading._shutdown()`` — and with it
+    the flag that breaks scheduling — *before* atexit callbacks, so this is
+    cleanup rather than prevention. Its real job is cancelling the reconnect
+    timers the MCP streamable-HTTP transport arms after a session closes
+    ("GET stream disconnected, reconnecting in 1000ms"), which would otherwise
+    fire into a half-torn-down interpreter. The join is bounded so a wedged
+    session can never hang the process on the way out.
+    """
+    global _closed
+    _closed = True
+
+    with _loop_lock:
+        loop, thread = _loop, _loop_thread
+    if loop is None or loop.is_closed():
+        return
+
+    def _stop() -> None:
+        for task in asyncio.all_tasks(loop):
+            task.cancel()
+        loop.stop()
+
+    try:
+        loop.call_soon_threadsafe(_stop)
+    except RuntimeError:
+        return  # loop already closed underneath us
+    if thread is not None:
+        thread.join(timeout=_SHUTDOWN_JOIN_TIMEOUT)
 
 
 def _server_url() -> str:
@@ -100,6 +187,8 @@ def _coerce(value: Any) -> Any:
         return json.loads(text)
     except json.JSONDecodeError as exc:
         # FMP reports auth/plan failures as plain prose, not JSON.
+        if _is_plan_denied(text):
+            raise FmpPlanDenied(text[:200]) from exc
         raise FmpError(f"FMP MCP returned non-JSON payload: {text[:200]}") from exc
 
 
@@ -122,20 +211,47 @@ def _unwrap(result: Any) -> Any:
     return _coerce("\n".join(texts))
 
 
-async def _acall_many(calls: Sequence[tuple[str, dict]], skip_errors: bool) -> list[Any]:
+async def _acall_many(
+    calls: Sequence[tuple[str, dict]], skip_errors: bool, timeout: float
+) -> list[Any]:
+    """
+    Run every call over one session, under a deadline the loop itself enforces.
+
+    Holding the timeout here rather than on the calling thread is what makes it
+    cancel: ``Future.cancel()`` cannot stop a coroutine that has already started,
+    so the old arrangement left ``Client`` sessions open and reconnecting long
+    after the caller had given up. An ``asyncio.timeout`` unwinds the ``async
+    with`` instead, closing the session on the way out.
+    """
     from fastmcp import Client
 
     results: list[Any] = []
-    async with Client(_server_url()) as client:
-        for name, arguments in calls:
-            args = {k: v for k, v in arguments.items() if v is not None}
-            try:
-                results.append(_unwrap(await client.call_tool(name, args)))
-            except Exception as exc:
-                if not skip_errors:
-                    raise FmpError(f"FMP MCP tool {name}{args} failed: {exc}") from exc
-                _log.warning("FMP MCP tool %s%s failed: %s", name, args, exc)
-                results.append(None)
+    async with asyncio.timeout(timeout):
+        # Connecting is inside the try so a failure here carries the same context
+        # as a tool failure, rather than escaping raw to call_tools.
+        try:
+            async with Client(_server_url()) as client:
+                for name, arguments in calls:
+                    args = {k: v for k, v in arguments.items() if v is not None}
+                    try:
+                        results.append(_unwrap(await client.call_tool(name, args)))
+                    except FmpError:
+                        raise
+                    except Exception as exc:
+                        if _is_plan_denied(str(exc)):
+                            raise FmpPlanDenied(str(exc)) from exc
+                        if not skip_errors:
+                            raise FmpError(
+                                f"FMP MCP tool {name}{args} failed: {exc}"
+                            ) from exc
+                        _log.warning("FMP MCP tool %s%s failed: %s", name, args, exc)
+                        results.append(None)
+        except FmpError:
+            raise
+        except Exception as exc:
+            if _is_shutdown_error(exc):
+                raise FmpShuttingDown(str(exc)) from exc
+            raise FmpError(f"FMP MCP session failed: {exc}") from exc
     return results
 
 
@@ -149,23 +265,41 @@ def call_tools(
     failing call yields ``None`` instead of aborting the whole batch — used by
     the fan-out in get_sector_financials, where a few unavailable symbols
     shouldn't sink the aggregate.
+
+    Raises ``FmpShuttingDown`` rather than attempting a doomed connect once the
+    interpreter is on its way out.
     """
     calls = list(calls)
     if not calls:
         return []
 
+    if _shutting_down():
+        raise FmpShuttingDown("interpreter is shutting down")
+
     timeout = min(
         _CALL_TIMEOUT + _EXTRA_CALL_TIMEOUT * (len(calls) - 1), _MAX_BATCH_TIMEOUT
     )
-    future = asyncio.run_coroutine_threadsafe(
-        _acall_many(calls, skip_errors), _background_loop()
-    )
     try:
-        return future.result(timeout=timeout)
+        future = asyncio.run_coroutine_threadsafe(
+            _acall_many(calls, skip_errors, timeout), _background_loop()
+        )
+    except RuntimeError as exc:
+        # The loop shut down between the guard above and scheduling.
+        raise FmpShuttingDown(str(exc)) from exc
+
+    try:
+        # The loop's own deadline should fire first; this is only a backstop for
+        # a loop that has stopped servicing work altogether.
+        return future.result(timeout=timeout + _TIMEOUT_GRACE)
     except FmpError:
         raise
+    except TimeoutError as exc:
+        future.cancel()
+        raise FmpError(f"FMP MCP call exceeded {timeout:g}s") from exc
     except Exception as exc:
         future.cancel()
+        if _is_shutdown_error(exc) or _shutting_down():
+            raise FmpShuttingDown(str(exc)) from exc
         raise FmpError(f"FMP MCP call failed: {exc}") from exc
 
 

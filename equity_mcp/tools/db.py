@@ -28,6 +28,11 @@ from equity_mcp.tools import fmp_mcp
 
 _log = logging.getLogger(__name__)
 
+# Tools already warned about a subscription limit. A plan denial is a standing
+# account fact, not an incident, and a 12-agent run would otherwise repeat the
+# same warning hundreds of times.
+_plan_warned: set[str] = set()
+
 
 @contextmanager
 def _conn():
@@ -58,6 +63,10 @@ def _fmp_fallback(fmp_fn: Callable[..., Any], on_failure: Callable[[], Any] = li
     ingestion pipeline hasn't backfilled is worth fetching from FMP, same as an
     unreachable host. If FMP fails too, ``on_failure`` supplies the neutral
     return value (``[]``, or ``None`` for the single-row lookups).
+
+    Two FMP outcomes are logged apart from a genuine failure, because reading
+    either as a bug sends you chasing the wrong thing: a subscription limit is a
+    standing account fact, and a shutdown race is benign teardown noise.
     """
 
     def decorate(fn):
@@ -77,6 +86,23 @@ def _fmp_fallback(fmp_fn: Callable[..., Any], on_failure: Callable[[], Any] = li
 
             try:
                 return fmp_fn(*args, **kwargs)
+            except fmp_mcp.FmpPlanDenied as exc:
+                if fn.__name__ not in _plan_warned:
+                    _plan_warned.add(fn.__name__)
+                    _log.warning(
+                        "%s: FMP subscription does not cover this data (%s). "
+                        "Returning empty — upgrade the FMP plan or backfill the "
+                        "database to populate it.",
+                        fn.__name__,
+                        exc,
+                    )
+                return on_failure()
+            except fmp_mcp.FmpShuttingDown:
+                _log.info(
+                    "%s: skipped FMP fallback, interpreter is shutting down",
+                    fn.__name__,
+                )
+                return on_failure()
             except Exception as exc:
                 _log.error("%s: FMP fallback failed: %s", fn.__name__, exc)
                 return on_failure()

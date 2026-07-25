@@ -137,6 +137,25 @@ Wiring is one decorator; the FMP function must mirror the SQL signature and shap
 def get_income_statement(symbol, period_type="annual", n_periods=8): ...
 ```
 
+Three FMP outcomes are logged apart, because reading any of them as a generic
+failure sends you chasing the wrong thing:
+
+- `FmpPlanDenied` — the endpoint exists but the account's plan doesn't cover it.
+  FMP reports this in prose (`ACCESS DENIED: … requires a higher plan`), not as a
+  status code. Logged at WARNING **once per tool**, then `[]`.
+- `FmpShuttingDown` — an FMP call started after the main thread finished, when
+  `concurrent.futures` refuses to schedule (`cannot schedule new futures after
+  interpreter shutdown`). Benign teardown noise; logged at INFO, then `[]`.
+- anything else — a real failure, logged at ERROR.
+
+`fmp_mcp.py`'s daemon loop is what makes the second case possible: it outlives the
+main thread. `call_tools` guards on `threading.main_thread().is_alive()` *and*
+converts the executor's RuntimeError, since CPython trips the scheduling flag
+just before it stops the main thread and neither signal alone covers that gap.
+The per-batch timeout lives inside the loop as `asyncio.timeout` so an expiry
+cancels the coroutine and closes the session — `Future.cancel()` cannot stop a
+coroutine that has already started, which used to leak reconnecting sessions.
+
 Two fallbacks are deliberately lossy, since the MCP server has no equivalent:
 `get_price_targets` uses `analyst/grades`, so `target_price` is always null;
 `get_sector_financials` aggregates the top 25 sector constituents by market cap
