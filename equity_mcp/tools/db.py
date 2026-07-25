@@ -1,19 +1,32 @@
 """
-Supabase / PostgreSQL query tools.
+Supabase / PostgreSQL query tools, with Financial Modeling Prep as a fallback.
 
 All functions connect using DATABASE_URL from the environment and return plain
 dicts / lists so they are easily JSON-serialised by FastMCP.
+
+Every ``get_*`` tool tries Supabase first. If the connection or query raises, or
+if the query succeeds but returns nothing, it falls through to the same-named
+function in ``fmp_mcp``, which sources the data from FMP's official remote MCP
+server and re-shapes it into the identical row shape. Callers cannot tell which
+path served a given response; failures are logged, never raised, so a dead
+database degrades an agent's data rather than crashing its tool loop.
 """
 
 from __future__ import annotations
 
+import functools
+import logging
 import os
 from contextlib import contextmanager
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Callable
 
 import psycopg
 from psycopg.rows import dict_row
+
+from equity_mcp.tools import fmp_mcp
+
+_log = logging.getLogger(__name__)
 
 
 @contextmanager
@@ -36,9 +49,47 @@ def _serialize(rows: list[dict]) -> list[dict]:
     return out
 
 
+def _fmp_fallback(fmp_fn: Callable[..., Any], on_failure: Callable[[], Any] = list):
+    """
+    Route a SQL query through FMP's MCP server when the database can't serve it.
+
+    ``fmp_fn`` must accept the same arguments as the decorated function and
+    return the same row shape. An empty result counts as a miss — a symbol the
+    ingestion pipeline hasn't backfilled is worth fetching from FMP, same as an
+    unreachable host. If FMP fails too, ``on_failure`` supplies the neutral
+    return value (``[]``, or ``None`` for the single-row lookups).
+    """
+
+    def decorate(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            try:
+                result = fn(*args, **kwargs)
+                if result:
+                    return result
+                _log.info("%s: no rows in database, falling back to FMP", fn.__name__)
+            except Exception as exc:
+                _log.warning(
+                    "%s: database query failed (%s), falling back to FMP",
+                    fn.__name__,
+                    exc,
+                )
+
+            try:
+                return fmp_fn(*args, **kwargs)
+            except Exception as exc:
+                _log.error("%s: FMP fallback failed: %s", fn.__name__, exc)
+                return on_failure()
+
+        return wrapper
+
+    return decorate
+
+
 # ── Universe / Reference ──────────────────────────────────────────────────────
 
 
+@_fmp_fallback(fmp_mcp.get_research_universe)
 def get_research_universe() -> list[dict]:
     """Return all actively trading symbols from the reference schema."""
     with _conn() as conn:
@@ -50,6 +101,7 @@ def get_research_universe() -> list[dict]:
             return _serialize(cur.fetchall())
 
 
+@_fmp_fallback(fmp_mcp.get_company_profile, on_failure=lambda: None)
 def get_company_profile(symbol: str) -> dict | None:
     """
     Return company profile including sector, industry, geography and description.
@@ -73,6 +125,7 @@ def get_company_profile(symbol: str) -> dict | None:
             return _serialize([row])[0] if row else None
 
 
+@_fmp_fallback(fmp_mcp.get_sector_peers)
 def get_sector_peers(symbol: str) -> list[dict]:
     """Return all tickers in the same sector as the given symbol."""
     with _conn() as conn:
@@ -99,6 +152,7 @@ def get_sector_peers(symbol: str) -> list[dict]:
 # ── Price Data ────────────────────────────────────────────────────────────────
 
 
+@_fmp_fallback(fmp_mcp.get_price_history)
 def get_price_history(symbol: str, from_date: str, to_date: str) -> list[dict]:
     """
     Return daily OHLCV + adj_close rows for symbol between from_date and to_date.
@@ -121,6 +175,7 @@ def get_price_history(symbol: str, from_date: str, to_date: str) -> list[dict]:
 # ── Fundamental Data ──────────────────────────────────────────────────────────
 
 
+@_fmp_fallback(fmp_mcp.get_income_statement)
 def get_income_statement(
     symbol: str, period_type: str = "annual", n_periods: int = 8
 ) -> list[dict]:
@@ -145,6 +200,7 @@ def get_income_statement(
             return _serialize(cur.fetchall())
 
 
+@_fmp_fallback(fmp_mcp.get_balance_sheet)
 def get_balance_sheet(
     symbol: str, period_type: str = "annual", n_periods: int = 8
 ) -> list[dict]:
@@ -166,6 +222,7 @@ def get_balance_sheet(
             return _serialize(cur.fetchall())
 
 
+@_fmp_fallback(fmp_mcp.get_cash_flow)
 def get_cash_flow(
     symbol: str, period_type: str = "annual", n_periods: int = 8
 ) -> list[dict]:
@@ -189,6 +246,7 @@ def get_cash_flow(
 # ── Events & Analyst Data ─────────────────────────────────────────────────────
 
 
+@_fmp_fallback(fmp_mcp.get_earnings_calendar)
 def get_earnings_calendar(symbol: str, n_events: int = 12) -> list[dict]:
     """Return earnings events ordered newest first, including EPS/revenue vs estimates."""
     with _conn() as conn:
@@ -207,6 +265,7 @@ def get_earnings_calendar(symbol: str, n_events: int = 12) -> list[dict]:
             return _serialize(cur.fetchall())
 
 
+@_fmp_fallback(fmp_mcp.get_dividends)
 def get_dividends(symbol: str, n_years: int = 10) -> list[dict]:
     """Return dividend history for the past n_years."""
     with _conn() as conn:
@@ -225,6 +284,7 @@ def get_dividends(symbol: str, n_years: int = 10) -> list[dict]:
             return _serialize(cur.fetchall())
 
 
+@_fmp_fallback(fmp_mcp.get_analyst_estimates)
 def get_analyst_estimates(
     symbol: str, period_type: str = "annual", n_periods: int = 4
 ) -> list[dict]:
@@ -245,6 +305,7 @@ def get_analyst_estimates(
             return _serialize(cur.fetchall())
 
 
+@_fmp_fallback(fmp_mcp.get_price_targets)
 def get_price_targets(symbol: str, n_recent: int = 20) -> list[dict]:
     """Return recent analyst price targets and ratings, newest first."""
     with _conn() as conn:
@@ -263,6 +324,7 @@ def get_price_targets(symbol: str, n_recent: int = 20) -> list[dict]:
             return _serialize(cur.fetchall())
 
 
+@_fmp_fallback(fmp_mcp.get_sector_financials)
 def get_sector_financials(sector: str, n_periods: int = 4) -> list[dict]:
     """
     Return aggregated revenue, gross profit and net income across all companies

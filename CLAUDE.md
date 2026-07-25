@@ -22,7 +22,8 @@ equity_mcp/
 ├── agent_factory.py       # Legacy: Anthropic-SDK tool-use loop (--legacy fallback)
 ├── orchestrator.py        # CLI entry — deepagents default, --legacy flag for fallback
 ├── tools/
-│   ├── db.py              # Supabase query wrappers (uses existing schema)
+│   ├── db.py              # Supabase query wrappers (falls back to fmp_mcp)
+│   ├── fmp_mcp.py         # FMP MCP client — fallback source for every db tool
 │   ├── web.py             # web_search + fetch_page
 │   ├── calculations/      # valuation, risk, quant, forensics (pure Python)
 │   └── external/          # fred, sec_edgar, news, alt_data (external APIs)
@@ -103,6 +104,27 @@ literally cannot see or call tools it isn't given.
 A tool tagged `VALUE | SHARED` is visible to the value researcher AND all
 agents (since every agent's tag includes `"shared"`).
 
+**Database-first, FMP-second** — every `get_*` tool in `db.py` queries Supabase,
+then falls through to the same-named function in `fmp_mcp.py` if the query
+raises *or* returns zero rows (an un-backfilled symbol is treated as a cache
+miss, not as "no data"). The fallback calls FMP's official remote MCP server at
+`https://financialmodelingprep.com/mcp?apikey=$FMP_API_KEY` and re-shapes the
+camelCase response into the exact snake_case row shape the SQL returns, so
+callers can't tell which path served them. If both sources fail the tool logs
+and returns `[]` / `None` — a dead database degrades an agent, never crashes it.
+
+Wiring is one decorator; the FMP function must mirror the SQL signature and shape:
+
+```python
+@_fmp_fallback(fmp_mcp.get_income_statement)
+def get_income_statement(symbol, period_type="annual", n_periods=8): ...
+```
+
+Two fallbacks are deliberately lossy, since the MCP server has no equivalent:
+`get_price_targets` uses `analyst/grades`, so `target_price` is always null;
+`get_sector_financials` aggregates the top 25 sector constituents by market cap
+and buckets by fiscal year rather than exact `period_end`.
+
 ## Adding a New Tool
 
 1. Implement the function in the appropriate `tools/` module
@@ -128,7 +150,7 @@ agents (since every agent's tag includes `"shared"`).
 | SEC EDGAR | `SEC_USER_AGENT` | Recommended | No key; just set a user-agent |
 | NewsAPI | `NEWS_API_KEY` | Optional | Falls back to web search |
 | Brave Search | `BRAVE_API_KEY` | Optional | Falls back to DuckDuckGo |
-| FMP | `FMP_API_KEY` | Existing | For data pipeline only |
+| FMP | `FMP_API_KEY` | Recommended | Data pipeline **and** the live fallback for every `db.py` tool |
 
 ## Data Proxies
 

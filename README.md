@@ -139,7 +139,8 @@ equity_mcp/
 ├── agent_factory.py       # Legacy: Anthropic-SDK tool-use loop (--legacy fallback)
 ├── orchestrator.py        # CLI entry — deepagents default, --legacy flag available
 ├── tools/
-│   ├── db.py              # Supabase query wrappers
+│   ├── db.py              # Supabase query wrappers (falls back to fmp_mcp)
+│   ├── fmp_mcp.py         # FMP MCP client — fallback source for every db tool
 │   ├── web.py             # Web search + page fetch
 │   ├── calculations/      # Valuation, risk, quant, forensics (pure Python)
 │   └── external/          # FRED, SEC EDGAR, News, Alt Data
