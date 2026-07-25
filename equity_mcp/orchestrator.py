@@ -67,7 +67,7 @@ async def _run_deepagents(symbol: str, focus: str, output_dir: Path | None) -> d
     return result
 
 
-# ── Legacy pipeline (Anthropic SDK direct) ────────────────────────────────────
+# ── Legacy pipeline (hard-coded stages) ───────────────────────────────────────
 
 
 async def _run_legacy(symbol: str, agents: list[str] | None, output_dir: Path | None) -> dict:
@@ -162,7 +162,7 @@ async def _run_legacy(symbol: str, agents: list[str] | None, output_dir: Path | 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Equity research pipeline — deepagents (default) or legacy Anthropic SDK"
+        description="Equity research pipeline — deepagents (default) or legacy staged pipeline"
     )
     parser.add_argument("--symbol", required=True, help="Ticker symbol, e.g. AAPL")
     parser.add_argument(
@@ -176,7 +176,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--legacy", action="store_true",
-        help="Use the legacy Anthropic-SDK pipeline instead of deepagents",
+        help="Use the legacy hard-coded staged pipeline instead of deepagents",
     )
     parser.add_argument(
         "--agents", nargs="*",

@@ -1,11 +1,14 @@
 """
-Canonical tag sets for each agent role.
+Canonical tag sets and model assignments for each agent role.
 
 Every tag set includes "shared" so that tools tagged {"shared"} are
 automatically visible to all agents.  The agent_factory filters the MCP
 tool list by checking whether the agent's role tag OR "shared" appears in
 each tool's tags — so a tool tagged SHARED is universally visible while a
 tool tagged VALUE is only visible to the value researcher.
+
+This module is also the single source of truth for which model each agent
+runs on — see DEFAULT_MODEL, AGENT_MODELS and model_for_role at the bottom.
 """
 
 SHARED: set[str] = {"shared"}
@@ -54,3 +57,42 @@ ALL_ROLES: list[str] = [
     ROLE_ALT_DATA,
     ROLE_PORTFOLIO,
 ]
+
+# ── Model selection ───────────────────────────────────────────────────────────
+# Every agent runs on OpenRouter.  DEFAULT_MODEL applies to any role with no
+# entry in AGENT_MODELS.  Values are bare OpenRouter slugs; model_for_role()
+# adds the "openrouter:" provider prefix that LangChain's init_chat_model wants.
+
+DEFAULT_MODEL: str = "anthropic/claude-sonnet-5"
+
+# Per-agent overrides.  role string -> OpenRouter slug.  Empty by default —
+# uncomment or add entries to point individual specialists at cheaper or
+# stronger models without touching any other file.
+AGENT_MODELS: dict[str, str] = {
+    # ROLE_QUANT:    "openai/gpt-5.1",
+    # ROLE_ALT_DATA: "google/gemini-2.5-flash",
+}
+
+
+def model_for_role(role: str) -> str:
+    """
+    Return the LangChain model spec for *role*.
+
+    Looks up AGENT_MODELS, falling back to DEFAULT_MODEL, then prefixes the
+    slug with the "openrouter:" provider so init_chat_model routes it through
+    ChatOpenRouter.  A value that already carries a "<provider>:" prefix is
+    passed through untouched, so a role can be pinned to a non-OpenRouter
+    provider when needed.
+    """
+    if role not in ALL_ROLES:
+        raise ValueError(f"Unknown role '{role}'. Valid roles: {ALL_ROLES}")
+
+    slug = AGENT_MODELS.get(role, DEFAULT_MODEL)
+
+    # A provider name never contains "/", but OpenRouter variant suffixes
+    # ("...:free", "...:nitro") always come after one — that's how the two
+    # meanings of ":" are told apart.
+    head, sep, _ = slug.partition(":")
+    if sep and "/" not in head:
+        return slug
+    return f"openrouter:{slug}"

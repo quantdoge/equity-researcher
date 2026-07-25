@@ -5,7 +5,9 @@ Builds 12 specialist subagents (one per role) and wraps them under a master
 Head of Research agent using LangChain's create_deep_agent.
 
 Each subagent receives only the LangChain tools whose FastMCP tags include
-its role — the same access-control logic as the Anthropic-SDK agent_factory.
+its role — the same access-control logic as the legacy agent_factory.  Each
+also runs on the model roles.model_for_role assigns to it, so specialists can
+be pointed at different OpenRouter models independently of the master.
 The master agent uses deepagents' built-in planning loop to autonomously
 decide which specialists to delegate to and synthesise a final Investment Memo.
 
@@ -28,11 +30,10 @@ from deepagents import create_deep_agent
 from dotenv import load_dotenv
 
 from equity_mcp.langchain_bridge import get_langchain_tools_for_role
-from equity_mcp.roles import ALL_ROLES, ROLE_HEAD_OF_RESEARCH
+from equity_mcp.roles import ALL_ROLES, ROLE_HEAD_OF_RESEARCH, model_for_role
 
 load_dotenv()
 
-_MODEL      = "anthropic:claude-sonnet-4-6"
 _PROMPTS    = Path(__file__).parent / "prompts"
 
 # One-line capability description shown to the master agent for each subagent.
@@ -68,7 +69,7 @@ async def _build_subagent(role: str) -> dict[str, Any]:
         "description":   _DESCRIPTIONS.get(role, role),
         "system_prompt": _load_prompt(role),
         "tools":         tools,
-        "model":         _MODEL,
+        "model":         model_for_role(role),
     }
 
 
@@ -89,7 +90,7 @@ async def build_master_agent():
     master_tools = await get_langchain_tools_for_role(ROLE_HEAD_OF_RESEARCH)
 
     master = create_deep_agent(
-        model=_MODEL,
+        model=model_for_role(ROLE_HEAD_OF_RESEARCH),
         system_prompt=_load_prompt(ROLE_HEAD_OF_RESEARCH),
         tools=master_tools,
         subagents=list(subagents),
@@ -143,7 +144,9 @@ async def run_research(symbol: str, extra_instructions: str = "") -> dict[str, A
     final_text = ""
     if messages:
         last = messages[-1]
-        final_text = last.content if hasattr(last, "content") else str(last)
+        # .text flattens block-list content, which non-Anthropic providers on
+        # OpenRouter are more likely to return than a plain string.
+        final_text = str(last.text) if hasattr(last, "text") else str(last)
 
     return {
         "symbol":          symbol,

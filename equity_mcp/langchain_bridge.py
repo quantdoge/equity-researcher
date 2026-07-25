@@ -3,9 +3,9 @@ Bridges the FastMCP tool registry to LangChain StructuredTool format.
 
 Uses the in-process FastMCP client to list all registered tools with their
 role tags, then wraps each matching tool as a LangChain StructuredTool whose
-coroutine calls back into the same in-process MCP server.  This lets deepagents
-subagents use exactly the same tool implementations as the original Anthropic
-tool-use loop — nothing in equity_mcp/tools/ changes.
+coroutine calls back into the same in-process MCP server.  Both the deepagents
+subagents and the legacy agent_factory loop consume this same list, so they run
+on identical tool implementations — nothing in equity_mcp/tools/ changes.
 """
 
 from __future__ import annotations
@@ -53,6 +53,21 @@ def _schema_to_pydantic(schema: dict, tool_name: str):
     return create_model(f"{tool_name}_input", **fields)
 
 
+def _tool_tags(tool: Any) -> set[str]:
+    """
+    Extract the FastMCP role tags from a tool returned by client.list_tools().
+
+    The MCP wire type (mcp.types.Tool) has no .tags attribute — FastMCP carries
+    them through as meta["fastmcp"]["tags"].  Older FastMCP versions exposed a
+    .tags attribute directly, so that is checked as a fallback.
+    """
+    meta = getattr(tool, "meta", None) or {}
+    tags = (meta.get("fastmcp") or {}).get("tags")
+    if tags is None:
+        tags = getattr(tool, "tags", None) or ()
+    return set(tags)
+
+
 def _make_async_caller(tool_name: str):
     """
     Return an async function that calls the named MCP tool via the in-process
@@ -84,15 +99,15 @@ async def get_langchain_tools_for_role(role: str) -> list[StructuredTool]:
     Return LangChain StructuredTool instances for every FastMCP tool whose
     tags include *role* or the universal "shared" tag.
 
-    The tag check mirrors agent_factory._list_agent_tools exactly so both
-    execution paths enforce the same access control.
+    This is the single enforcement point for per-agent tool access — both the
+    deepagents subagents and the legacy agent_factory loop go through it.
     """
     async with Client(mcp) as client:
         all_tools = await client.list_tools()
 
     role_tools = [
         t for t in all_tools
-        if role in (t.tags or set()) or "shared" in (t.tags or set())
+        if {role, "shared"} & _tool_tags(t)
     ]
 
     lc_tools: list[StructuredTool] = []

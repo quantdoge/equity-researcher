@@ -32,12 +32,12 @@ orchestrator.py  (CLI entry)
 deep_agent_factory.run_research(symbol)
        ↓
 create_deep_agent(
-    model = claude-sonnet-4-6
+    model = roles.model_for_role("head_of_research")
     system_prompt = head_of_research.md
     subagents = [
-        { name: sector_researcher,    tools: role-filtered LangChain tools },
-        { name: value_researcher,     tools: role-filtered LangChain tools },
-        { name: quant_analyst,        tools: role-filtered LangChain tools },
+        { name: sector_researcher, model: per-role, tools: role-filtered LangChain tools },
+        { name: value_researcher,  model: per-role, tools: role-filtered LangChain tools },
+        { name: quant_analyst,     model: per-role, tools: role-filtered LangChain tools },
         ... 9 more specialists
     ]
 )
@@ -53,7 +53,7 @@ The master agent uses deepagents' built-in `write_todos` planning tool to decomp
 
 ### FastMCP → LangChain Tool Bridge
 
-A single **FastMCP server** (`server.py`) registers all ~70 tools, each tagged with the set of agent roles that may use it. The `langchain_bridge` module connects to the in-process FastMCP server, filters tools by role tag, and wraps each as a LangChain `StructuredTool` — so both the deepagents path and the legacy Anthropic SDK path enforce identical access control via the same tag system.
+A single **FastMCP server** (`server.py`) registers all ~70 tools, each tagged with the set of agent roles that may use it. The `langchain_bridge` module connects to the in-process FastMCP server, filters tools by role tag, and wraps each as a LangChain `StructuredTool` — so both the deepagents path and the legacy pipeline enforce identical access control via the same tag system.
 
 ```
 FastMCP Server (all ~70 tools, role-tagged)
@@ -61,9 +61,25 @@ FastMCP Server (all ~70 tools, role-tagged)
 LangChain StructuredTool list (~15 tools)  →  passed to value_researcher subagent
 ```
 
+### Model Selection (OpenRouter)
+
+Every agent runs on [OpenRouter](https://openrouter.ai). `roles.py` is the single source of truth for which model each of the 13 roles uses — `DEFAULT_MODEL` covers every role, and `AGENT_MODELS` overrides individual ones:
+
+```python
+# equity_mcp/roles.py
+DEFAULT_MODEL: str = "anthropic/claude-sonnet-5"
+
+AGENT_MODELS: dict[str, str] = {
+    ROLE_QUANT:    "openai/gpt-5.1",           # heavy numeric reasoning
+    ROLE_ALT_DATA: "google/gemini-2.5-flash",  # cheap, high-volume scraping
+}
+```
+
+`model_for_role()` prefixes the slug with `openrouter:` for LangChain's `init_chat_model`, so both the deepagents path and the legacy pipeline pick up the same assignment. Variant slugs (`...:free`, `...:nitro`) work as written.
+
 ### Legacy Pipeline (--legacy flag)
 
-The original hard-coded 6-stage pipeline using the raw Anthropic SDK is preserved in `agent_factory.py`. Stages run sequentially; agents within each stage run in parallel:
+The original hard-coded 6-stage pipeline is preserved in `agent_factory.py`. Stages run sequentially; agents within each stage run in parallel:
 
 ```
 Stage 1: Alt Data + Quant              (fast signals)
@@ -85,7 +101,7 @@ Stage 6: Head of Research              (final memo)
 **External APIs called live by agents:**
 - FRED (macro series — free)
 - SEC EDGAR (10-K/10-Q filings, Form 4 insiders — free)
-- NewsAPI (news sentiment — freemium)
+- FMP News API (news sentiment — paid tier; falls back to NewsAPI, then web search)
 - USPTO (patent filing trends — free)
 - Google Trends via pytrends (free)
 - Brave Search / DuckDuckGo fallback (web search)
@@ -100,9 +116,10 @@ uv sync
 
 # 2. Configure environment
 cp .env.example .env
-# Required:    DATABASE_URL, ANTHROPIC_API_KEY
-# Recommended: FMP_API_KEY (also backs every db tool), FRED_API_KEY, SEC_USER_AGENT
-# Optional:    NEWS_API_KEY, BRAVE_API_KEY
+# Required:    DATABASE_URL, OPENROUTER_API_KEY
+# Recommended: FMP_API_KEY (also backs every db tool and every news tool),
+#              FRED_API_KEY, SEC_USER_AGENT
+# Optional:    NEWS_API_KEY (news fallback behind FMP), BRAVE_API_KEY
 ```
 
 Then either activate the environment (`.venv\Scripts\activate` on Windows,
@@ -121,7 +138,7 @@ python -m equity_mcp.orchestrator --symbol MSFT --focus "focus on cloud growth a
 # Save JSON output to a directory
 python -m equity_mcp.orchestrator --symbol TSLA --output-dir outputs/
 
-# Use the legacy 6-stage Anthropic SDK pipeline
+# Use the legacy 6-stage sequential pipeline
 python -m equity_mcp.orchestrator --symbol AAPL --legacy
 
 # Legacy mode — run only specific agents
@@ -139,10 +156,10 @@ fastmcp run equity_mcp/server.py
 ```
 equity_mcp/
 ├── server.py              # FastMCP app — all ~70 tools registered with role tags
-├── roles.py               # Canonical tag sets per agent role
+├── roles.py               # Canonical tag sets + model assignment per agent role
 ├── langchain_bridge.py    # Bridges FastMCP tools → LangChain StructuredTool (by role)
 ├── deep_agent_factory.py  # Builds 12 subagents + master via create_deep_agent
-├── agent_factory.py       # Legacy: Anthropic-SDK tool-use loop (--legacy fallback)
+├── agent_factory.py       # Legacy: sequential tool-use loop (--legacy fallback)
 ├── orchestrator.py        # CLI entry — deepagents default, --legacy flag available
 ├── tools/
 │   ├── db.py              # Supabase query wrappers (falls back to fmp_mcp)

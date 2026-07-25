@@ -1,6 +1,10 @@
 """
-Agent factory: filters the MCP tool list by agent role and runs the
-Claude API tool-use loop.
+Agent factory: resolves the model and tool set for an agent role and runs a
+tool-use loop against it.
+
+Tools come from the shared FastMCP server via langchain_bridge, filtered by
+role tag.  The model comes from roles.model_for_role, so each agent can run on
+its own OpenRouter model.
 
 Usage:
     import asyncio
@@ -12,18 +16,15 @@ Usage:
 
 from __future__ import annotations
 
-import json
-import os
+import asyncio
 from pathlib import Path
-from typing import Any
 
-import anthropic
-from fastmcp import Client
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage, ToolMessage
 
-from equity_mcp.roles import ALL_ROLES
-from equity_mcp.server import mcp
+from equity_mcp.langchain_bridge import get_langchain_tools_for_role
+from equity_mcp.roles import ALL_ROLES, model_for_role
 
-_MODEL = "claude-sonnet-4-6"
 _MAX_TOKENS = 8096
 _MAX_TOOL_ROUNDS = 15  # safety cap on tool-call iterations
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
@@ -35,48 +36,6 @@ def load_system_prompt(agent_role: str) -> str:
     if prompt_file.exists():
         return prompt_file.read_text()
     return f"You are the {agent_role.replace('_', ' ').title()} agent in an equity research team."
-
-
-async def _list_agent_tools(agent_role: str) -> list[dict]:
-    """
-    Connect to the in-process MCP server, list all tools, and return only
-    those whose tags include the agent's role OR 'shared'.
-    Tools are returned in Anthropic tool format.
-    """
-    async with Client(mcp) as client:
-        all_tools = await client.list_tools()
-
-    agent_tools = [
-        t for t in all_tools
-        if agent_role in (t.tags or set()) or "shared" in (t.tags or set())
-    ]
-
-    return [
-        {
-            "name": t.name,
-            "description": t.description or "",
-            "input_schema": t.inputSchema if hasattr(t, "inputSchema") else t.parameters,
-        }
-        for t in agent_tools
-    ]
-
-
-async def _call_mcp_tool(tool_name: str, tool_input: dict) -> str:
-    """Execute a single MCP tool call and return the result as a JSON string."""
-    async with Client(mcp) as client:
-        result = await client.call_tool(tool_name, tool_input)
-
-    # FastMCP returns a list of content objects
-    parts = []
-    for item in result:
-        if hasattr(item, "text"):
-            parts.append(item.text)
-        elif hasattr(item, "model_dump"):
-            parts.append(json.dumps(item.model_dump(), default=str))
-        else:
-            parts.append(str(item))
-
-    return "\n".join(parts) if parts else "No output"
 
 
 async def run_agent(
@@ -99,59 +58,53 @@ async def run_agent(
     if agent_role not in ALL_ROLES:
         raise ValueError(f"Unknown role '{agent_role}'. Valid roles: {ALL_ROLES}")
 
-    anthropic_client = anthropic.AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-    tools = await _list_agent_tools(agent_role)
-    system_prompt = load_system_prompt(agent_role)
+    tools = await get_langchain_tools_for_role(agent_role)
+    tools_by_name = {t.name: t for t in tools}
+
+    llm = init_chat_model(
+        model_for_role(agent_role),
+        max_tokens=_MAX_TOKENS,
+    ).bind_tools(tools)
 
     user_content = f"Symbol: {symbol}\nTask: {task}"
     if extra_context:
         user_content += f"\n\nAdditional context:\n{extra_context}"
 
-    messages: list[dict] = [{"role": "user", "content": user_content}]
+    messages: list[BaseMessage] = [
+        SystemMessage(load_system_prompt(agent_role)),
+        HumanMessage(user_content),
+    ]
     total_tool_calls = 0
 
     for _ in range(_MAX_TOOL_ROUNDS):
-        response = await anthropic_client.messages.create(
-            model=_MODEL,
-            max_tokens=_MAX_TOKENS,
-            system=system_prompt,
-            tools=tools,
-            messages=messages,
-        )
+        ai = await llm.ainvoke(messages)
+        messages.append(ai)
 
-        # Append assistant message
-        messages.append({"role": "assistant", "content": response.content})
-
-        if response.stop_reason != "tool_use":
+        if not ai.tool_calls:
             break
 
-        # Execute all tool calls in this round
-        tool_results = []
-        for block in response.content:
-            if block.type != "tool_use":
-                continue
+        for call in ai.tool_calls:
             total_tool_calls += 1
-            tool_output = await _call_mcp_tool(block.name, block.input)
-            tool_results.append(
-                {
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": tool_output,
-                }
+            tool = tools_by_name.get(call["name"])
+            if tool is None:
+                output = f"Error: unknown tool '{call['name']}'"
+            else:
+                try:
+                    output = await tool.ainvoke(call["args"])
+                except Exception as exc:  # a bad tool call degrades, never crashes
+                    output = f"Tool error: {exc}"
+            messages.append(
+                ToolMessage(
+                    content=str(output),
+                    tool_call_id=call["id"],
+                    name=call["name"],
+                )
             )
-
-        messages.append({"role": "user", "content": tool_results})
-
-    # Extract final text
-    final_text = ""
-    for block in response.content:
-        if hasattr(block, "text"):
-            final_text += block.text
 
     return {
         "agent_role": agent_role,
         "symbol": symbol,
-        "output": final_text.strip(),
+        "output": str(ai.text).strip(),
         "tool_calls": total_tool_calls,
     }
 
@@ -166,8 +119,6 @@ async def run_agents_parallel(
     Run multiple agents concurrently for the same symbol.
     task_map optionally maps role -> task string; falls back to default_task.
     """
-    import asyncio
-
     tasks = [
         run_agent(
             role,

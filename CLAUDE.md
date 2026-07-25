@@ -3,9 +3,9 @@
 ## Project Overview
 
 A multi-agent equity research system built on a shared FastMCP server.
-13 AI agents (powered by Claude) collaborate to produce institutional-quality
-investment memos. All agents share one MCP tool server; tool access is
-enforced per-agent via FastMCP tags.
+13 AI agents (each on its own OpenRouter model) collaborate to produce
+institutional-quality investment memos. All agents share one MCP tool server;
+tool access is enforced per-agent via FastMCP tags.
 
 ## Development Branch
 
@@ -16,10 +16,10 @@ Always develop on `claude/multi-agent-equity-research-DOiTR`.
 ```
 equity_mcp/
 ├── server.py              # FastMCP app — all ~70 tools registered here with role tags
-├── roles.py               # Canonical tag sets per agent role
+├── roles.py               # Canonical tag sets + model assignment per agent role
 ├── langchain_bridge.py    # Bridges FastMCP tools → LangChain StructuredTool (by role)
 ├── deep_agent_factory.py  # Builds 12 subagents + master via create_deep_agent
-├── agent_factory.py       # Legacy: Anthropic-SDK tool-use loop (--legacy fallback)
+├── agent_factory.py       # Legacy: sequential tool-use loop (--legacy fallback)
 ├── orchestrator.py        # CLI entry — deepagents default, --legacy flag for fallback
 ├── tools/
 │   ├── db.py              # Supabase query wrappers (falls back to fmp_mcp)
@@ -49,8 +49,8 @@ Master: Head of Research  (create_deep_agent)
 
 ## Legacy Pipeline (--legacy flag)
 
-The original 6-stage sequential+parallel pipeline using the raw Anthropic SDK
-is preserved in `agent_factory.py`:
+The original 6-stage sequential+parallel pipeline is preserved in
+`agent_factory.py`:
 
 ```bash
 python -m equity_mcp.orchestrator --symbol AAPL --legacy
@@ -75,7 +75,7 @@ dependency pins resolve identically on every machine.
 ```bash
 uv sync                 # creates .venv, installs equity_mcp editable, respects uv.lock
 cp .env.example .env
-# Fill in DATABASE_URL, ANTHROPIC_API_KEY, FMP_API_KEY, and any optional keys
+# Fill in DATABASE_URL, OPENROUTER_API_KEY, FMP_API_KEY, and any optional keys
 ```
 
 Prefix commands with `uv run`, or activate the environment
@@ -105,9 +105,17 @@ fastmcp run equity_mcp/server.py
 tag it with the appropriate role sets from `roles.py`, and it's immediately
 available to the right agents. No duplication across agent files.
 
-**Enforcement by omission** — `agent_factory.py` filters the full tool list to
-only those tagged with the agent's role before passing to Claude API. Claude
+**Enforcement by omission** — both factories filter the full tool list to only
+those tagged with the agent's role before binding them to the model. An agent
 literally cannot see or call tools it isn't given.
+
+**Model selection lives in `roles.py`** — `DEFAULT_MODEL` applies to every role;
+`AGENT_MODELS` overrides individual ones. `model_for_role(role)` returns the
+`openrouter:<slug>` spec that both `agent_factory.py` (via `init_chat_model`)
+and `deep_agent_factory.py` (via the subagent spec's `model` key) consume, so
+retargeting one specialist is a one-line dict entry. A value that already
+carries a `<provider>:` prefix passes through unchanged, which is the escape
+hatch for pinning a role to a non-OpenRouter provider.
 
 **Tool tags = role sets** — tags are Python `set[str]` defined in `roles.py`.
 A tool tagged `VALUE | SHARED` is visible to the value researcher AND all
@@ -134,6 +142,28 @@ Two fallbacks are deliberately lossy, since the MCP server has no equivalent:
 `get_sector_financials` aggregates the top 25 sector constituents by market cap
 and buckets by fiscal year rather than exact `period_end`.
 
+**News: FMP → NewsAPI → web search** — `tools/external/news.py` applies the same
+degrade-never-crash contract to headlines, over FMP's stable News REST API
+(`https://financialmodelingprep.com/stable/news/*`). It calls that directly with
+`requests` rather than through `fmp_mcp.py`, matching its sibling `external/`
+tools; `fmp_mcp.py` is async and scoped to `db.py` fallbacks. A provider that
+raises *or* returns nothing hands off to the next, and each hop is logged, so a
+missing key or a plan gate only costs coverage.
+
+Note `/stable/news/*` requires a paid FMP tier — a plan without it answers HTTP
+402 `Restricted Endpoint`, which `_fmp_get` raises as `FmpNewsUnavailable` and the
+chain treats as a fallback trigger, not an error.
+
+Two shape mismatches drive the routing, since FMP filters by ticker and has no
+free-text search:
+
+- a call with `symbols` (or a query that is a bare ticker) hits `news/stock`;
+  anything else hits `news/general-latest` and is keyword-filtered client-side.
+- `fetch_esg_controversy_news` / `fetch_regulatory_news` pull the symbol's whole
+  feed and narrow it with the `_ESG_TERMS` / `_REGULATORY_TERMS` constants;
+  `fetch_geopolitical_news` takes a region, which has no FMP representation at
+  all, so it realistically lands on web search.
+
 ## Adding a New Tool
 
 1. Implement the function in the appropriate `tools/` module
@@ -148,18 +178,20 @@ and buckets by fiscal year rather than exact `period_end`.
 3. Add the role to `ALL_ROLES` in `roles.py`
 4. Add it to the appropriate pipeline stage in `orchestrator.py`
 5. Tag any new tools with the new role set
+6. Optionally pin it to a specific model via `AGENT_MODELS` in `roles.py`
+   (it inherits `DEFAULT_MODEL` otherwise)
 
 ## External APIs
 
 | API | Key Variable | Required | Notes |
 |-----|-------------|----------|-------|
 | Supabase/PostgreSQL | `DATABASE_URL` | Yes | Existing pipeline |
-| Anthropic | `ANTHROPIC_API_KEY` | Yes | Powers all agents |
+| OpenRouter | `OPENROUTER_API_KEY` | Yes | Powers all agents; per-role model set in `roles.py` |
 | FRED | `FRED_API_KEY` | Recommended | Free at fred.stlouisfed.org |
 | SEC EDGAR | `SEC_USER_AGENT` | Recommended | No key; just set a user-agent |
-| NewsAPI | `NEWS_API_KEY` | Optional | Falls back to web search |
+| NewsAPI | `NEWS_API_KEY` | Optional | Second-tier news fallback behind FMP |
 | Brave Search | `BRAVE_API_KEY` | Optional | Falls back to DuckDuckGo |
-| FMP | `FMP_API_KEY` | Recommended | Data pipeline **and** the live fallback for every `db.py` tool |
+| FMP | `FMP_API_KEY` | Recommended | Data pipeline, the live fallback for every `db.py` tool, **and** the primary news source |
 
 ## Data Proxies
 
