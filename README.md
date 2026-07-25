@@ -92,16 +92,22 @@ Stage 6: Head of Research              (final memo)
 
 ## Setup
 
+Requires [uv](https://docs.astral.sh/uv/) and Python 3.11+.
+
 ```bash
-# 1. Clone and install
-pip install -e .
+# 1. Clone and install — creates .venv from the committed uv.lock
+uv sync
 
 # 2. Configure environment
 cp .env.example .env
-# Required: DATABASE_URL, ANTHROPIC_API_KEY
-# Recommended: FRED_API_KEY, SEC_USER_AGENT
-# Optional: NEWS_API_KEY, BRAVE_API_KEY
+# Required:    DATABASE_URL, ANTHROPIC_API_KEY
+# Recommended: FMP_API_KEY (also backs every db tool), FRED_API_KEY, SEC_USER_AGENT
+# Optional:    NEWS_API_KEY, BRAVE_API_KEY
 ```
+
+Then either activate the environment (`.venv\Scripts\activate` on Windows,
+`source .venv/bin/activate` elsewhere) and use the commands below as written, or
+prefix each with `uv run`.
 
 ## Usage
 

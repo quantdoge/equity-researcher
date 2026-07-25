@@ -68,11 +68,20 @@ Stages run sequentially; agents within each stage run in parallel:
 
 ## Environment Setup
 
+Dependencies are managed with [uv](https://docs.astral.sh/uv/). `uv.lock` is
+committed — it is the source of truth for versions, so all ten lower-bound
+dependency pins resolve identically on every machine.
+
 ```bash
+uv sync                 # creates .venv, installs equity_mcp editable, respects uv.lock
 cp .env.example .env
-# Fill in DATABASE_URL, ANTHROPIC_API_KEY, and any optional API keys
-pip install -e .
+# Fill in DATABASE_URL, ANTHROPIC_API_KEY, FMP_API_KEY, and any optional keys
 ```
+
+Prefix commands with `uv run`, or activate the environment
+(`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` elsewhere) and
+run them directly. Add dependencies with `uv add <pkg>` so pyproject and the
+lockfile stay in step — don't hand-edit the dependency list.
 
 ## Running
 
