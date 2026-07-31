@@ -3,9 +3,10 @@
 ## Project Overview
 
 A multi-agent equity research system built on a shared FastMCP server.
-13 AI agents (each on its own OpenRouter model) collaborate to produce
-institutional-quality investment memos. All agents share one MCP tool server;
-tool access is enforced per-agent via FastMCP tags.
+14 AI agents (each on its own OpenRouter model) collaborate to produce
+institutional-quality investment memos. All financial data comes from Financial
+Modeling Prep's remote MCP server; anything that has to be *computed* rather than
+fetched is computed by a single agent that writes and runs Python.
 
 ## Development Branch
 
@@ -15,211 +16,243 @@ Always develop on `claude/multi-agent-equity-research-DOiTR`.
 
 ```
 equity_mcp/
-├── server.py              # FastMCP app — all ~70 tools registered here with role tags
+├── server.py              # FastMCP app — 6 tools registered here with role tags
 ├── roles.py               # Canonical tag sets + model assignment per agent role
+├── workspace.py           # Per-run scratch dir shared by the FMP and code tools
 ├── langchain_bridge.py    # Bridges FastMCP tools → LangChain StructuredTool (by role)
-├── deep_agent_factory.py  # Builds 12 subagents + master via create_deep_agent
-├── agent_factory.py       # Legacy: sequential tool-use loop (--legacy fallback)
-├── orchestrator.py        # CLI entry — deepagents default, --legacy flag for fallback
+├── deep_agent_factory.py  # Builds 13 subagents + master via create_deep_agent
+├── orchestrator.py        # CLI entry point
 ├── tools/
-│   ├── db.py              # Supabase query wrappers (falls back to fmp_mcp)
-│   ├── fmp_mcp.py         # FMP MCP client — fallback source for every db tool
-│   ├── web.py             # web_search + fetch_page
-│   ├── calculations/      # valuation, risk, quant, forensics (pure Python)
-│   └── external/          # fred, sec_edgar, news, alt_data (external APIs)
-└── prompts/               # System prompt .md file per agent role
+│   ├── fmp.py             # FMP MCP client — fmp_catalog + fmp_call
+│   ├── code_exec.py       # run_python + list_workspace
+│   └── web.py             # web_search + fetch_page
+└── prompts/               # System prompt .md per role, plus _toolkit.md
 ```
 
-## Orchestration: deepagents (default)
+## The Data Model: catalog → fetch → compute
 
-The Head of Research is a `create_deep_agent` master agent with 12 specialist
-subagents. It autonomously plans its research task breakdown via deepagents'
-built-in `write_todos` planning tool, then delegates to each specialist.
-Each subagent receives only the FastMCP tools tagged for its role via
-`langchain_bridge.get_langchain_tools_for_role`.
+There are no per-metric tools. There used to be ~40 `calculate_*` functions that
+hard-coded the column names of a Postgres schema; they were deleted because the
+database never existed (`DATABASE_URL` was a placeholder, so every query fell
+through to FMP) and because a thin schema had forced them onto invented proxies —
+A/R as 8% of assets, PPE as 30%, Piotroski's dilution criterion hard-coded to
+pass. Those numbers were wrong by construction.
+
+The replacement is three steps, described to the agents in `prompts/_toolkit.md`:
+
+1. **`fmp_catalog()`** — the 28 FMP category tools and what they cover.
+   `fmp_catalog("statements")` drills into one tool's endpoints and parameters.
+   Fetched once per process and cached.
+2. **`fmp_call(tool, endpoint, params)`** — a generic passthrough. Data arrives in
+   FMP's own camelCase and is *not* reshaped; the response carries a `fields` list
+   so the caller reads the schema instead of assuming it.
+3. **`run_python(code)`** — for anything FMP doesn't return directly.
+
+Deliberately no wrapper-per-endpoint: ~250 endpoints wrapped by hand is a second
+copy of FMP's catalog that goes stale the moment FMP ships anything.
+
+**Check FMP before computing.** It already returns much of what the old
+calculation layer approximated: `statements/financial-scores` (real Altman Z and
+Piotroski), `key-metrics`, `metrics-ratios`, `owner-earnings`,
+`financial-statement-growth`, `discountedCashFlow/*`, `technicalIndicators/*`,
+`economics/treasury-rates`.
+
+### Payload spilling
+
+`fmp_call` writes any response over `_INLINE_LIMIT` (8 KB) to
+`<workspace>/data/<name>.json` and returns only `fields`, a short `preview`, and
+`saved_to`. This is load-bearing, not an optimisation: one
+`technicalIndicators/relative-strength-index` call returns 1,255 rows / ~179 KB,
+which is untenable in an LLM context but trivial for `run_python` to read off
+disk. That call comes back as an 834-byte response.
+
+### Failure contract
+
+`fmp_call` never raises. It returns `{"error", "kind"}` where `kind` is one of:
+
+- `plan_denied` — the endpoint exists but the subscription doesn't cover it. FMP
+  reports this in prose (`ACCESS DENIED: … requires a higher plan`), not as a
+  status code, so it is detected by sniffing for `_PLAN_DENIED_MARKERS`. Logged
+  WARNING once per `(tool, endpoint)` per process, since several agents will
+  otherwise each rediscover the same gate.
+- `shutting_down` — the call started after the main thread finished, when
+  `concurrent.futures` refuses to schedule. Benign teardown noise; logged INFO.
+- `bad_request` / `unavailable` — everything else. FMP's validation errors list
+  the valid enum values, and that text is passed through to the agent verbatim so
+  it can correct itself.
+
+### The background event loop
+
+`fastmcp.Client` is async-only, but MCP tools are called synchronously (FastMCP
+runs sync tools in worker threads) and `asyncio.run` raises if the calling thread
+already drives a loop. So `fmp.py` owns one daemon event loop on a background
+thread and marshals every call onto it with `run_coroutine_threadsafe`.
+
+That loop outlives the main thread, which is the one hazard worth knowing about.
+CPython sets `concurrent.futures.thread._shutdown` the moment the main thread
+finishes, and everything downstream of a connect — down to the `run_in_executor`
+that resolves DNS — refuses to schedule after that. `call_tools` guards on
+`threading.main_thread().is_alive()` *and* converts the executor's RuntimeError,
+because CPython trips the flag just before stopping the main thread and neither
+signal alone covers the gap.
+
+The per-batch timeout lives *inside* the loop as `asyncio.timeout`, so expiry
+cancels the coroutine and closes the session. `Future.cancel()` cannot stop a
+coroutine that has already started, which used to leak reconnecting sessions.
+
+## Orchestration
+
+The Head of Research is a `create_deep_agent` master with 13 specialist
+subagents. It plans its own task breakdown via deepagents' `write_todos` and
+delegates. Each subagent gets only the FastMCP tools tagged for its role.
 
 ```
 Master: Head of Research  (create_deep_agent)
-  └── subagents (12 specialists, each with role-filtered tools):
+  └── subagents (13 specialists):
+        quant_engineer     ← the only agent that can execute code
         sector_researcher  |  geo_legal_researcher  |  macro_researcher
         value_researcher   |  growth_researcher     |  fin_risk_analyst
         nonfin_risk_analyst|  quant_analyst          |  short_analyst
         esg_analyst        |  alt_data_analyst       |  portfolio_strategist
 ```
 
-## Legacy Pipeline (--legacy flag)
+**Subagents cannot delegate to each other.** `deepagents.middleware.subagents.create_sub_agent`
+compiles each spec through plain `create_agent` with only its own `tools`, so no
+subagent has a `task` tool. An analyst needing a computed figure says so in its
+report; the Head of Research routes it to `quant_engineer`. Both the master's
+prompt and its task instruction say this explicitly, because it is not something
+the model can infer from its tool list.
 
-The original 6-stage sequential+parallel pipeline is preserved in
-`agent_factory.py`:
+## Code Execution
 
-```bash
-python -m equity_mcp.orchestrator --symbol AAPL --legacy
-```
+`run_python` shells out to `sys.executable` with the run workspace as cwd, a
+600-second timeout ceiling, and — importantly — a scrubbed environment. Only
+`PATH`, `SYSTEMROOT`, `WINDIR`, `TEMP`, `TMP`, `HOME`, `LANG` and
+`PYTHONIOENCODING` pass through. Generated code computes over JSON already on
+disk; it has no business holding `FMP_API_KEY` or `OPENROUTER_API_KEY`, and
+withholding them means it cannot fetch anything on its own either.
 
-## Agent Pipeline Order (legacy)
+**This is not a sandbox.** The child runs as the same user with the same
+filesystem and network access. The scrub limits credential exposure, not reach.
 
-Stages run sequentially; agents within each stage run in parallel:
-1. Alt Data + Quant (fast signals)
-2. Sector + Geo/Legal + Macro (context layer)
-3. Value + Growth + Short + ESG (company analysis)
-4. Financial Risk + Non-Financial Risk (risk overlay)
-5. Portfolio Strategist (synthesis)
-6. Head of Research (final investment memo)
+`numpy` and `pandas` are project dependencies specifically so scripts can use
+them — they reach the child through `sys.executable`, so they must be real deps
+rather than something incidentally installed.
+
+## Workspace
+
+Each run gets `runs/<SYMBOL>_<TIMESTAMP>/` with `data/` (payloads spilled by
+`fmp_call`) and `scripts/` (what `run_python` executed). That is the audit trail
+for every computed figure in the memo. `orchestrator.py` calls
+`workspace.set_run(symbol)` at startup.
+
+MCP tools are plain functions with no run context, so a process-global run
+directory is the only way the spill target and the execution cwd agree.
+`$EQ_WORKSPACE` pins an explicit directory for inspecting tools outside a run;
+`$EQ_WORKSPACE_ROOT` moves the parent.
+
+## Tool tags = role sets
+
+Tags are `set[str]` in `roles.py`, filtered in `langchain_bridge.get_langchain_tools_for_role`
+by `{role, "shared"} & tool.tags`.
+
+**A role constant holds only its own role — never `"shared"`.** They used to
+carry it, which silently defeated the whole mechanism: every union mentioning any
+role also carried `"shared"` and so matched all roles, making supposedly-gated
+tools universal. Since data access is now uniform, `QUANT_ENGINEER` is the only
+tag that gates anything, so this correctness matters more than it used to, not
+less. Verify with the loop in "Verifying" below.
 
 ## Environment Setup
 
 Dependencies are managed with [uv](https://docs.astral.sh/uv/). `uv.lock` is
-committed — it is the source of truth for versions, so all ten lower-bound
-dependency pins resolve identically on every machine.
+committed and is the source of truth for versions.
 
 ```bash
-uv sync                 # creates .venv, installs equity_mcp editable, respects uv.lock
+uv sync
 cp .env.example .env
-# Fill in DATABASE_URL, OPENROUTER_API_KEY, FMP_API_KEY, and any optional keys
+# Fill in FMP_API_KEY and OPENROUTER_API_KEY (both required)
 ```
 
 Prefix commands with `uv run`, or activate the environment
-(`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` elsewhere) and
-run them directly. Add dependencies with `uv add <pkg>` so pyproject and the
-lockfile stay in step — don't hand-edit the dependency list.
+(`.venv\Scripts\activate` on Windows). Add dependencies with `uv add <pkg>` so
+pyproject and the lockfile stay in step.
 
 ## Running
 
 ```bash
 # Full pipeline for a single ticker
-python -m equity_mcp.orchestrator --symbol AAPL
+uv run python -m equity_mcp.orchestrator --symbol AAPL
 
-# Run a subset of agents
-python -m equity_mcp.orchestrator --symbol MSFT --agents value quant fin_risk
+# Steer the master agent
+uv run python -m equity_mcp.orchestrator --symbol MSFT --focus "weight ESG and growth"
 
 # Inspect all registered MCP tools and their tags
-fastmcp inspect equity_mcp/server.py
+uv run fastmcp inspect equity_mcp/server.py
 
 # Run MCP server standalone (for testing tools directly)
-fastmcp run equity_mcp/server.py
+uv run fastmcp run equity_mcp/server.py
 ```
 
-## Key Design Decisions
+## Verifying
 
-**Single shared MCP server** — all tools live in `server.py`. Add a tool once,
-tag it with the appropriate role sets from `roles.py`, and it's immediately
-available to the right agents. No duplication across agent files.
+Per-role tool gating — `quant_engineer` should show 6 tools, every other role 4:
 
-**Enforcement by omission** — both factories filter the full tool list to only
-those tagged with the agent's role before binding them to the model. An agent
-literally cannot see or call tools it isn't given.
-
-**Model selection lives in `roles.py`** — `DEFAULT_MODEL` applies to every role;
-`AGENT_MODELS` overrides individual ones. `model_for_role(role)` returns the
-`openrouter:<slug>` spec that both `agent_factory.py` (via `init_chat_model`)
-and `deep_agent_factory.py` (via the subagent spec's `model` key) consume, so
-retargeting one specialist is a one-line dict entry. A value that already
-carries a `<provider>:` prefix passes through unchanged, which is the escape
-hatch for pinning a role to a non-OpenRouter provider.
-
-**Tool tags = role sets** — tags are Python `set[str]` defined in `roles.py`.
-A tool tagged `VALUE | SHARED` is visible to the value researcher AND all
-agents (since every agent's tag includes `"shared"`).
-
-**Database-first, FMP-second** — every `get_*` tool in `db.py` queries Supabase,
-then falls through to the same-named function in `fmp_mcp.py` if the query
-raises *or* returns zero rows (an un-backfilled symbol is treated as a cache
-miss, not as "no data"). The fallback calls FMP's official remote MCP server at
-`https://financialmodelingprep.com/mcp?apikey=$FMP_API_KEY` and re-shapes the
-camelCase response into the exact snake_case row shape the SQL returns, so
-callers can't tell which path served them. If both sources fail the tool logs
-and returns `[]` / `None` — a dead database degrades an agent, never crashes it.
-
-Wiring is one decorator; the FMP function must mirror the SQL signature and shape:
-
-```python
-@_fmp_fallback(fmp_mcp.get_income_statement)
-def get_income_statement(symbol, period_type="annual", n_periods=8): ...
+```bash
+uv run python -c "
+import asyncio
+from equity_mcp.langchain_bridge import get_langchain_tools_for_role
+from equity_mcp.roles import ALL_ROLES
+async def main():
+    for r in ALL_ROLES:
+        t = await get_langchain_tools_for_role(r)
+        print(f'{r:22} {len(t)}  {sorted(x.name for x in t)}')
+asyncio.run(main())"
 ```
 
-Three FMP outcomes are logged apart, because reading any of them as a generic
-failure sends you chasing the wrong thing:
+## External APIs
 
-- `FmpPlanDenied` — the endpoint exists but the account's plan doesn't cover it.
-  FMP reports this in prose (`ACCESS DENIED: … requires a higher plan`), not as a
-  status code. Logged at WARNING **once per tool**, then `[]`.
-- `FmpShuttingDown` — an FMP call started after the main thread finished, when
-  `concurrent.futures` refuses to schedule (`cannot schedule new futures after
-  interpreter shutdown`). Benign teardown noise; logged at INFO, then `[]`.
-- anything else — a real failure, logged at ERROR.
+| API | Key Variable | Required | Notes |
+|-----|-------------|----------|-------|
+| FMP | `FMP_API_KEY` | **Yes** | The only financial data source, via its remote MCP server |
+| OpenRouter | `OPENROUTER_API_KEY` | **Yes** | Powers all agents; per-role model set in `roles.py` |
+| Brave Search | `BRAVE_API_KEY` | Optional | Backs `web_search`; falls back to DuckDuckGo |
 
-`fmp_mcp.py`'s daemon loop is what makes the second case possible: it outlives the
-main thread. `call_tools` guards on `threading.main_thread().is_alive()` *and*
-converts the executor's RuntimeError, since CPython trips the scheduling flag
-just before it stops the main thread and neither signal alone covers that gap.
-The per-batch timeout lives inside the loop as `asyncio.timeout` so an expiry
-cancels the coroutine and closes the session — `Future.cancel()` cannot stop a
-coroutine that has already started, which used to leak reconnecting sessions.
+### FMP plan gating
 
-Two fallbacks are deliberately lossy, since the MCP server has no equivalent:
-`get_price_targets` uses `analyst/grades`, so `target_price` is always null;
-`get_sector_financials` aggregates the top 25 sector constituents by market cap
-and buckets by fiscal year rather than exact `period_end`.
+This account is on **Starter**. Available: `statements`, `chart`, `quote`,
+`company`, `analyst`, `calendar`, `news`, `economics`, `insiderTrades`, `senate`,
+`secFilings`, `search`, `directory`, `technicalIndicators`, `discountedCashFlow`,
+`indexes`, `etfAndMutualFunds`, `forex`, `crypto`, `commodity`.
 
-**News: FMP → NewsAPI → web search** — `tools/external/news.py` applies the same
-degrade-never-crash contract to headlines, over FMP's stable News REST API
-(`https://financialmodelingprep.com/stable/news/*`). It calls that directly with
-`requests` rather than through `fmp_mcp.py`, matching its sibling `external/`
-tools; `fmp_mcp.py` is async and scoped to `db.py` fallbacks. A provider that
-raises *or* returns nothing hands off to the next, and each hop is logged, so a
-missing key or a plan gate only costs coverage.
-
-Note `/stable/news/*` requires a paid FMP tier — a plan without it answers HTTP
-402 `Restricted Endpoint`, which `_fmp_get` raises as `FmpNewsUnavailable` and the
-chain treats as a fallback trigger, not an error.
-
-Two shape mismatches drive the routing, since FMP filters by ticker and has no
-free-text search:
-
-- a call with `symbols` (or a query that is a bare ticker) hits `news/stock`;
-  anything else hits `news/general-latest` and is keyword-filtered client-side.
-- `fetch_esg_controversy_news` / `fetch_regulatory_news` pull the symbol's whole
-  feed and narrow it with the `_ESG_TERMS` / `_REGULATORY_TERMS` constants;
-  `fetch_geopolitical_news` takes a region, which has no FMP representation at
-  all, so it realistically lands on web search.
+Gated: `ESG` and `earningsTranscript` (Ultimate+), `form13F` and
+`commitmentOfTraders` (Premium+), parts of `marketPerformance`, `tipranks`
+(separate add-on). These return `kind="plan_denied"`. The `esg_analyst`,
+`sector_researcher`, and `alt_data_analyst` prompts name their specific gaps and
+what to use instead, so agents don't burn turns rediscovering them.
 
 ## Adding a New Tool
 
 1. Implement the function in the appropriate `tools/` module
 2. Import it in `server.py`
 3. Register with `mcp.tool(tags=<ROLE_SET>)(<function>)`
-4. That's it — the agent factory picks it up automatically
+4. The bridge picks it up automatically
+
+Think twice before adding an FMP wrapper — if FMP has an endpoint for it, agents
+can already reach it through `fmp_call`, and a wrapper is one more thing to drift.
 
 ## Adding a New Agent
 
-1. Add role constants to `roles.py`
-2. Add a system prompt to `prompts/<new_role>.md`
-3. Add the role to `ALL_ROLES` in `roles.py`
-4. Add it to the appropriate pipeline stage in `orchestrator.py`
-5. Tag any new tools with the new role set
-6. Optionally pin it to a specific model via `AGENT_MODELS` in `roles.py`
-   (it inherits `DEFAULT_MODEL` otherwise)
+1. Add a role constant and tag set to `roles.py`, and the role to `ALL_ROLES`
+2. Add a system prompt at `prompts/<new_role>.md` — describe how the analyst
+   thinks; the data workflow is appended automatically from `_toolkit.md`
+3. Add a one-line capability description to `_DESCRIPTIONS` in
+   `deep_agent_factory.py` so the master knows when to delegate to it
+4. Optionally pin it to a model via `AGENT_MODELS` in `roles.py`
 
-## External APIs
+## Known Issues
 
-| API | Key Variable | Required | Notes |
-|-----|-------------|----------|-------|
-| Supabase/PostgreSQL | `DATABASE_URL` | Yes | Existing pipeline |
-| OpenRouter | `OPENROUTER_API_KEY` | Yes | Powers all agents; per-role model set in `roles.py` |
-| FRED | `FRED_API_KEY` | Recommended | Free at fred.stlouisfed.org |
-| SEC EDGAR | `SEC_USER_AGENT` | Recommended | No key; just set a user-agent |
-| NewsAPI | `NEWS_API_KEY` | Optional | Second-tier news fallback behind FMP |
-| Brave Search | `BRAVE_API_KEY` | Optional | Falls back to DuckDuckGo |
-| FMP | `FMP_API_KEY` | Recommended | Data pipeline, the live fallback for every `db.py` tool, **and** the primary news source |
-
-## Data Proxies
-
-Several calculation tools use proxies because the current schema doesn't store
-every financial line item separately (e.g., accounts receivable, D&A, PPE):
-
-- A/R → 8% of total assets
-- PPE → 30% of total assets
-- D&A → operating CF – net income
-
-Replace these proxies by extending the Supabase schema and FMP ingestion
-pipeline to store granular line items as the project matures.
+`web_search` returns `[]` for every query — the DuckDuckGo scrape in
+`tools/web.py` is broken. Setting `BRAVE_API_KEY` sidesteps it without code
+changes. This matters more than it looks: web search is the documented fallback
+for the ESG analyst, whose vendor ratings are plan-gated.

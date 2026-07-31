@@ -1,11 +1,19 @@
 """
 Canonical tag sets and model assignments for each agent role.
 
-Every tag set includes "shared" so that tools tagged {"shared"} are
-automatically visible to all agents.  The agent_factory filters the MCP
-tool list by checking whether the agent's role tag OR "shared" appears in
-each tool's tags — so a tool tagged SHARED is universally visible while a
-tool tagged VALUE is only visible to the value researcher.
+langchain_bridge filters the MCP tool list by checking whether the agent's own
+role tag OR "shared" appears in each tool's tags.  A role constant therefore
+holds *only* its own role: a tool tagged VALUE reaches the value researcher and
+nobody else, while a tool tagged SHARED reaches everyone.
+
+Do not put "shared" back into the role constants.  They used to carry it, which
+silently defeated the filter — every union that mentioned any role also carried
+"shared" and so matched all roles, making supposedly-gated tools universal.
+
+Since every agent reaches Financial Modeling Prep through the same fmp_catalog /
+fmp_call pair, data access no longer varies by role and almost everything is
+tagged SHARED.  The one tag that still gates anything is QUANT_ENGINEER, which
+holds the code-execution tools.
 
 This module is also the single source of truth for which model each agent
 runs on — see DEFAULT_MODEL, AGENT_MODELS and model_for_role at the bottom.
@@ -13,22 +21,24 @@ runs on — see DEFAULT_MODEL, AGENT_MODELS and model_for_role at the bottom.
 
 SHARED: set[str] = {"shared"}
 
-HEAD_OF_RESEARCH: set[str]    = {"head_of_research",    "shared"}
-SECTOR:           set[str]    = {"sector_researcher",    "shared"}
-GEO_LEGAL:        set[str]    = {"geo_legal_researcher", "shared"}
-MACRO:            set[str]    = {"macro_researcher",     "shared"}
-VALUE:            set[str]    = {"value_researcher",     "shared"}
-GROWTH:           set[str]    = {"growth_researcher",    "shared"}
-FIN_RISK:         set[str]    = {"fin_risk_analyst",     "shared"}
-NONFIN_RISK:      set[str]    = {"nonfin_risk_analyst",  "shared"}
-QUANT:            set[str]    = {"quant_analyst",        "shared"}
-SHORT:            set[str]    = {"short_analyst",        "shared"}
-ESG:              set[str]    = {"esg_analyst",          "shared"}
-ALT_DATA:         set[str]    = {"alt_data_analyst",     "shared"}
-PORTFOLIO:        set[str]    = {"portfolio_strategist", "shared"}
+HEAD_OF_RESEARCH: set[str]    = {"head_of_research"}
+QUANT_ENGINEER:   set[str]    = {"quant_engineer"}
+SECTOR:           set[str]    = {"sector_researcher"}
+GEO_LEGAL:        set[str]    = {"geo_legal_researcher"}
+MACRO:            set[str]    = {"macro_researcher"}
+VALUE:            set[str]    = {"value_researcher"}
+GROWTH:           set[str]    = {"growth_researcher"}
+FIN_RISK:         set[str]    = {"fin_risk_analyst"}
+NONFIN_RISK:      set[str]    = {"nonfin_risk_analyst"}
+QUANT:            set[str]    = {"quant_analyst"}
+SHORT:            set[str]    = {"short_analyst"}
+ESG:              set[str]    = {"esg_analyst"}
+ALT_DATA:         set[str]    = {"alt_data_analyst"}
+PORTFOLIO:        set[str]    = {"portfolio_strategist"}
 
-# Canonical role name strings — used as the agent_role key in agent_factory
+# Canonical role name strings — the subagent names and prompt file stems
 ROLE_HEAD_OF_RESEARCH    = "head_of_research"
+ROLE_QUANT_ENGINEER      = "quant_engineer"
 ROLE_SECTOR              = "sector_researcher"
 ROLE_GEO_LEGAL           = "geo_legal_researcher"
 ROLE_MACRO               = "macro_researcher"
@@ -44,6 +54,7 @@ ROLE_PORTFOLIO           = "portfolio_strategist"
 
 ALL_ROLES: list[str] = [
     ROLE_HEAD_OF_RESEARCH,
+    ROLE_QUANT_ENGINEER,
     ROLE_SECTOR,
     ROLE_GEO_LEGAL,
     ROLE_MACRO,

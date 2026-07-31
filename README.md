@@ -1,182 +1,125 @@
 # equity-researcher
 
-An AI-powered equity research team — 13 specialist agents backed by a shared FastMCP tool server — that collaborates to produce institutional-quality investment memos for any publicly traded company.
+An AI-powered equity research team — 14 specialist agents backed by a shared FastMCP tool server — that collaborates to produce institutional-quality investment memos for any publicly traded company.
 
-The orchestration layer is built on [deepagents](https://pypi.org/project/deepagents/) (LangChain / LangGraph): a **Head of Research** master agent autonomously plans its own task breakdown, delegates to 12 specialist subagents, and synthesises their outputs into a final Investment Memo.
+The orchestration layer is built on [deepagents](https://pypi.org/project/deepagents/) (LangChain / LangGraph): a **Head of Research** master agent autonomously plans its own task breakdown, delegates to 13 specialist subagents, and synthesises their outputs into a final Investment Memo.
 
 ## Agents
 
 | # | Agent | Focus |
 |---|-------|-------|
 | 1 | Head of Research | Master orchestrator — plans, delegates, synthesises |
-| 2 | Sector Economy Researcher | Industry dynamics, tailwinds/headwinds, peer benchmarking |
-| 3 | Geopolitical & Legal Researcher | Country risk, sanctions, litigation, regulation |
-| 4 | Macroeconomy Researcher | Rates, inflation, GDP, yield curve |
-| 5 | Equity Value Researcher | Economic moat, DCF / owner earnings — Buffett style |
-| 6 | Equity Growth Researcher | Revenue trajectory, TAM, catalysts — Cathie Wood style |
-| 7 | Financial Risk Analyst | Credit/market/liquidity — Altman Z, Piotroski F |
-| 8 | Non-Financial Risk Analyst | Governance, SEC enforcement, insider trading |
-| 9 | Quantitative Analyst | Factor scores, alpha/beta, Sharpe/Sortino |
-| 10 | Short / Contrarian Analyst | Beneish M-Score, accruals, bear case — Jim Chanos style |
-| 11 | ESG / Sustainability Analyst | Material E/S/G factors, controversies, governance |
-| 12 | Alternative Data Analyst | Google Trends, patents, job postings, sentiment |
-| 13 | Portfolio Strategist | Position sizing, correlation, portfolio construction |
+| 2 | Quantitative Engineer | The only agent that executes code; computes everything FMP doesn't return |
+| 3 | Sector Economy Researcher | Industry dynamics, tailwinds/headwinds, peer benchmarking |
+| 4 | Geopolitical & Legal Researcher | Country risk, sanctions, litigation, regulation |
+| 5 | Macroeconomy Researcher | Rates, inflation, GDP, yield curve |
+| 6 | Equity Value Researcher | Economic moat, DCF / owner earnings — Buffett style |
+| 7 | Equity Growth Researcher | Revenue trajectory, TAM, catalysts — Cathie Wood style |
+| 8 | Financial Risk Analyst | Credit/market/liquidity — Altman Z, Piotroski F |
+| 9 | Non-Financial Risk Analyst | Governance, SEC enforcement, insider trading |
+| 10 | Quantitative Analyst | Factor scores, alpha/beta, Sharpe/Sortino |
+| 11 | Short / Contrarian Analyst | Beneish M-Score, accruals, bear case — Jim Chanos style |
+| 12 | ESG / Sustainability Analyst | Material E/S/G factors, controversies, governance |
+| 13 | Alternative Data Analyst | Insider and congressional trading, sentiment, earnings surprises |
+| 14 | Portfolio Strategist | Position sizing, correlation, portfolio construction |
 
-## Architecture
-
-### Orchestration: deepagents (default)
+## How it works
 
 ```
-orchestrator.py  (CLI entry)
+orchestrator.py  (CLI entry, opens runs/<SYMBOL>_<ts>/)
        ↓
 deep_agent_factory.run_research(symbol)
        ↓
 create_deep_agent(
-    model = roles.model_for_role("head_of_research")
-    system_prompt = head_of_research.md
-    subagents = [
-        { name: sector_researcher, model: per-role, tools: role-filtered LangChain tools },
-        { name: value_researcher,  model: per-role, tools: role-filtered LangChain tools },
-        { name: quant_analyst,     model: per-role, tools: role-filtered LangChain tools },
-        ... 9 more specialists
-    ]
+    model         = roles.model_for_role("head_of_research"),
+    system_prompt = prompts/head_of_research.md + prompts/_toolkit.md,
+    subagents     = [ 13 specialists, each with a per-role model
+                      and role-filtered tools from the MCP server ]
 )
-       ↓  master agent autonomously plans which subagents to invoke
-LangGraph runtime
-  ├── delegate → sector_researcher  → calls FastMCP tools in-process
-  ├── delegate → value_researcher   → calls FastMCP tools in-process
-  ├── delegate → quant_analyst      → calls FastMCP tools in-process
-  └── synthesise → final Investment Memo
 ```
 
-The master agent uses deepagents' built-in `write_todos` planning tool to decompose the research task. Each subagent runs in an isolated context window and receives only the tools tagged for its role.
+The master plans with deepagents' built-in `write_todos`, delegates via `task`,
+and writes the memo. Subagents cannot call each other, so when an analyst needs a
+figure computed the master routes that request to the Quantitative Engineer.
 
-### FastMCP → LangChain Tool Bridge
+### Three tools, not forty
 
-A single **FastMCP server** (`server.py`) registers all ~70 tools, each tagged with the set of agent roles that may use it. The `langchain_bridge` module connects to the in-process FastMCP server, filters tools by role tag, and wraps each as a LangChain `StructuredTool` — so both the deepagents path and the legacy pipeline enforce identical access control via the same tag system.
+There is no tool per metric. Agents work in three steps:
 
-```
-FastMCP Server (all ~70 tools, role-tagged)
-        ↓  langchain_bridge.get_langchain_tools_for_role("value_researcher")
-LangChain StructuredTool list (~15 tools)  →  passed to value_researcher subagent
-```
+1. **`fmp_catalog()`** — discover what Financial Modeling Prep offers (28 category
+   tools, ~250 endpoints). `fmp_catalog("statements")` drills into one.
+2. **`fmp_call(tool, endpoint, params)`** — fetch. Data comes back in FMP's own
+   field names, with a `fields` list so nothing has to assume a schema. Responses
+   over 8 KB are written to `runs/<SYMBOL>_<ts>/data/` and only previewed inline.
+3. **`run_python(code)`** — compute, when FMP has no endpoint for it. Restricted to
+   the Quantitative Engineer.
 
-### Model Selection (OpenRouter)
+Much of what looks like it needs computing does not: `statements/financial-scores`
+returns real Altman Z and Piotroski scores, and `key-metrics`, `metrics-ratios`,
+`owner-earnings`, `financial-statement-growth`, `discountedCashFlow/*` and
+`technicalIndicators/*` cover most standard ratios.
 
-Every agent runs on [OpenRouter](https://openrouter.ai). `roles.py` is the single source of truth for which model each of the 13 roles uses — `DEFAULT_MODEL` covers every role, and `AGENT_MODELS` overrides individual ones:
+### Audit trail
 
-```python
-# equity_mcp/roles.py
-DEFAULT_MODEL: str = "anthropic/claude-sonnet-5"
-
-AGENT_MODELS: dict[str, str] = {
-    ROLE_QUANT:    "openai/gpt-5.1",           # heavy numeric reasoning
-    ROLE_ALT_DATA: "google/gemini-2.5-flash",  # cheap, high-volume scraping
-}
-```
-
-`model_for_role()` prefixes the slug with `openrouter:` for LangChain's `init_chat_model`, so both the deepagents path and the legacy pipeline pick up the same assignment. Variant slugs (`...:free`, `...:nitro`) work as written.
-
-### Legacy Pipeline (--legacy flag)
-
-The original hard-coded 6-stage pipeline is preserved in `agent_factory.py`. Stages run sequentially; agents within each stage run in parallel:
-
-```
-Stage 1: Alt Data + Quant              (fast signals)
-Stage 2: Sector + Geo/Legal + Macro    (context layer)
-Stage 3: Value + Growth + Short + ESG  (company analysis)
-Stage 4: Financial Risk + Non-Financial Risk  (risk overlay)
-Stage 5: Portfolio Strategist          (synthesis)
-Stage 6: Head of Research              (final memo)
-```
-
-## Data Sources
-
-**Already ingested (Supabase/PostgreSQL via FMP pipeline):**
-- Daily OHLCV prices
-- Income statements, balance sheets, cash flow statements
-- Analyst estimates and price targets
-- Earnings calendar, dividends, splits
-
-**External APIs called live by agents:**
-- FRED (macro series — free)
-- SEC EDGAR (10-K/10-Q filings, Form 4 insiders — free)
-- FMP News API (news sentiment — paid tier; falls back to NewsAPI, then web search)
-- USPTO (patent filing trends — free)
-- Google Trends via pytrends (free)
-- Brave Search / DuckDuckGo fallback (web search)
+Every run leaves `runs/<SYMBOL>_<TIMESTAMP>/` containing `data/` — the raw FMP
+payloads the agents fetched — and `scripts/` — the Python they ran over them. Any
+computed figure in the memo can be traced back to both.
 
 ## Setup
 
-Requires [uv](https://docs.astral.sh/uv/) and Python 3.11+.
+Dependencies are managed with [uv](https://docs.astral.sh/uv/); `uv.lock` is
+committed.
 
 ```bash
-# 1. Clone and install — creates .venv from the committed uv.lock
 uv sync
-
-# 2. Configure environment
 cp .env.example .env
-# Required:    DATABASE_URL, OPENROUTER_API_KEY
-# Recommended: FMP_API_KEY (also backs every db tool and every news tool),
-#              FRED_API_KEY, SEC_USER_AGENT
-# Optional:    NEWS_API_KEY (news fallback behind FMP), BRAVE_API_KEY
+# Fill in FMP_API_KEY and OPENROUTER_API_KEY — both required
 ```
 
-Then either activate the environment (`.venv\Scripts\activate` on Windows,
-`source .venv/bin/activate` elsewhere) and use the commands below as written, or
-prefix each with `uv run`.
+| Key | Required | Purpose |
+|-----|----------|---------|
+| `FMP_API_KEY` | Yes | The only financial data source |
+| `OPENROUTER_API_KEY` | Yes | Powers every agent |
+| `BRAVE_API_KEY` | Optional | Backs `web_search`; the DuckDuckGo fallback is unreliable |
 
-## Usage
+Endpoint availability follows your FMP plan. A gated endpoint returns
+`{"kind": "plan_denied"}` rather than failing the run — on Starter that means no
+ESG ratings, earnings transcripts, 13F data, or sector P/E snapshots.
+
+## Running
 
 ```bash
-# Full pipeline for one ticker (deepagents — default)
-python -m equity_mcp.orchestrator --symbol AAPL
+# Full pipeline for a single ticker
+uv run python -m equity_mcp.orchestrator --symbol AAPL
 
-# Add optional research focus instructions
-python -m equity_mcp.orchestrator --symbol MSFT --focus "focus on cloud growth and AI competition"
+# Steer the master agent
+uv run python -m equity_mcp.orchestrator --symbol MSFT --focus "weight ESG and growth"
 
-# Save JSON output to a directory
-python -m equity_mcp.orchestrator --symbol TSLA --output-dir outputs/
+# Inspect the registered MCP tools and their role tags
+uv run fastmcp inspect equity_mcp/server.py
 
-# Use the legacy 6-stage sequential pipeline
-python -m equity_mcp.orchestrator --symbol AAPL --legacy
-
-# Legacy mode — run only specific agents
-python -m equity_mcp.orchestrator --symbol MSFT --legacy --agents value quant fin_risk
-
-# Inspect all registered tools and their role tags
-fastmcp inspect equity_mcp/server.py
-
-# Run the MCP server standalone (for testing tools directly)
-fastmcp run equity_mcp/server.py
+# Run the MCP server standalone, to exercise tools directly
+uv run fastmcp run equity_mcp/server.py
 ```
 
-## Project Structure
+The memo is printed to stdout and saved to `outputs/<SYMBOL>_<date>.json`.
+
+## Layout
 
 ```
 equity_mcp/
-├── server.py              # FastMCP app — all ~70 tools registered with role tags
-├── roles.py               # Canonical tag sets + model assignment per agent role
-├── langchain_bridge.py    # Bridges FastMCP tools → LangChain StructuredTool (by role)
-├── deep_agent_factory.py  # Builds 12 subagents + master via create_deep_agent
-├── agent_factory.py       # Legacy: sequential tool-use loop (--legacy fallback)
-├── orchestrator.py        # CLI entry — deepagents default, --legacy flag available
+├── server.py              # FastMCP app — 6 tools registered with role tags
+├── roles.py               # Tag sets + per-role model assignment
+├── workspace.py           # Per-run scratch dir
+├── langchain_bridge.py    # FastMCP tools → LangChain StructuredTool, by role
+├── deep_agent_factory.py  # Builds 13 subagents + master
+├── orchestrator.py        # CLI entry point
 ├── tools/
-│   ├── db.py              # Supabase query wrappers (falls back to fmp_mcp)
-│   ├── fmp_mcp.py         # FMP MCP client — fallback source for every db tool
-│   ├── web.py             # Web search + page fetch
-│   ├── calculations/      # Valuation, risk, quant, forensics (pure Python)
-│   └── external/          # FRED, SEC EDGAR, News, Alt Data
-└── prompts/               # System prompt .md file per agent role
+│   ├── fmp.py             # fmp_catalog + fmp_call
+│   ├── code_exec.py       # run_python + list_workspace
+│   └── web.py             # web_search + fetch_page
+└── prompts/               # One .md per role, plus the shared _toolkit.md
 ```
 
-## FMP → Supabase Data Pipeline
-
-A production-ready continuous ingestion pipeline lives on the `dev` branch:
-
-- **Script**: `scripts/fmp_pipeline.py`
-- **Config**: `pipeline/endpoints.yaml`
-- **Schema**: `supabase/migrations/20260425_000001_init_fmp_pipeline.sql`
-- **CI/CD**: `.github/workflows/daily-fmp-pipeline.yml`
-
-See the `dev` branch for full documentation.
+See `CLAUDE.md` for design rationale and the details worth knowing before
+changing any of it.

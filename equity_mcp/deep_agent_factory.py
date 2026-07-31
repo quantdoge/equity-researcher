@@ -1,15 +1,23 @@
 """
 deepagents-based agent factory.
 
-Builds 12 specialist subagents (one per role) and wraps them under a master
+Builds 13 specialist subagents (one per role) and wraps them under a master
 Head of Research agent using LangChain's create_deep_agent.
 
-Each subagent receives only the LangChain tools whose FastMCP tags include
-its role — the same access-control logic as the legacy agent_factory.  Each
-also runs on the model roles.model_for_role assigns to it, so specialists can
-be pointed at different OpenRouter models independently of the master.
-The master agent uses deepagents' built-in planning loop to autonomously
+Each subagent receives only the LangChain tools whose FastMCP tags include its
+role.  In practice that means the twelve analysts all get the same fmp_catalog /
+fmp_call pair, while quant_engineer additionally gets run_python — it is the one
+agent that executes code, and everything computed in a run is computed there.
+
+Each subagent also runs on the model roles.model_for_role assigns to it, so
+specialists can be pointed at different OpenRouter models independently of the
+master.  The master agent uses deepagents' built-in planning loop to autonomously
 decide which specialists to delegate to and synthesise a final Investment Memo.
+
+One structural constraint worth knowing: deepagents compiles each subagent spec
+through plain create_agent with only its own tools, so subagents have no `task`
+tool and cannot delegate to each other.  An analyst that needs a computed metric
+says so in its report and the Head of Research routes it to quant_engineer.
 
 Usage:
     import asyncio
@@ -39,6 +47,7 @@ _PROMPTS    = Path(__file__).parent / "prompts"
 # One-line capability description shown to the master agent for each subagent.
 # These inform the Head of Research when and why to delegate to each specialist.
 _DESCRIPTIONS: dict[str, str] = {
+    "quant_engineer":       "Runs financial computations — finds the right FMP endpoints, pulls the series, and writes and executes Python over them. Delegate any number no FMP endpoint returns directly: custom factor scores, correlation matrices, regressions, cross-sectional ranks, multi-symbol aggregates, forensic ratios",
     "sector_researcher":    "Sector dynamics, industry tailwinds/headwinds, and peer benchmarking on revenue and margins",
     "geo_legal_researcher": "Geopolitical risk, sanctions exposure, active litigation, and regulatory risk by jurisdiction",
     "macro_researcher":     "Macroeconomic environment (rates, inflation, GDP, yield curve) and impact on the company",
@@ -55,10 +64,23 @@ _DESCRIPTIONS: dict[str, str] = {
 
 
 def _load_prompt(role: str) -> str:
+    """
+    Role prompt plus the shared toolkit appendix.
+
+    Every agent reaches data the same way, so the catalog/fetch/delegate workflow
+    lives once in _toolkit.md rather than being copied into each role file.  The
+    role prompt stays what it should be — how this analyst thinks — and adding an
+    agent means writing only that.
+    """
     p = _PROMPTS / f"{role}.md"
-    return p.read_text() if p.exists() else (
+    role_prompt = p.read_text(encoding="utf-8") if p.exists() else (
         f"You are the {role.replace('_', ' ').title()} agent in an elite equity research team."
     )
+
+    toolkit = _PROMPTS / "_toolkit.md"
+    if toolkit.exists():
+        return f"{role_prompt.rstrip()}\n\n{toolkit.read_text(encoding='utf-8')}"
+    return role_prompt
 
 
 async def _build_subagent(role: str) -> dict[str, Any]:
@@ -77,7 +99,7 @@ async def build_master_agent():
     """
     Construct the master Head of Research deep agent.
 
-    All 12 specialist subagents are built concurrently (their tool lists are
+    All 13 specialist subagents are built concurrently (their tool lists are
     fetched in parallel from the in-process FastMCP server), then passed to
     create_deep_agent as the subagents roster.
     """
@@ -121,6 +143,7 @@ async def run_research(symbol: str, extra_instructions: str = "") -> dict[str, A
         f"Conduct a complete institutional-quality equity research on ticker: {symbol}.\n\n"
         "Delegate to your specialist subagents to cover ALL dimensions:\n"
         "  • Alternative data signals (alt_data_analyst)\n"
+        "  • Any metric that needs computing rather than fetching (quant_engineer)\n"
         "  • Quantitative factor analysis (quant_analyst)\n"
         "  • Sector dynamics and peer benchmarking (sector_researcher)\n"
         "  • Geopolitical and legal risk (geo_legal_researcher)\n"
@@ -133,7 +156,11 @@ async def run_research(symbol: str, extra_instructions: str = "") -> dict[str, A
         "  • Non-financial and governance risk (nonfin_risk_analyst)\n"
         "  • Portfolio construction recommendation (portfolio_strategist)\n\n"
         "After collecting all specialist reports, produce a final Investment Memo "
-        "in the structured format defined in your system prompt.\n"
+        "in the structured format defined in your system prompt.\n\n"
+        "Specialists cannot call each other. When one reports that it needs a "
+        "figure computed — a factor score, a correlation, a forensic ratio, a "
+        "cross-sectional rank — delegate that to quant_engineer yourself and "
+        "feed the result back into the memo.\n"
     )
     if extra_instructions:
         task += f"\nAdditional instructions: {extra_instructions}"

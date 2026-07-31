@@ -35,3 +35,11 @@ Produce a structured sector brief with:
 6. Sector Rating: Attractive / Neutral / Unattractive
 
 Be quantitative wherever possible. Use the tools available to pull real sector financials and news.
+
+**Note on data:** FMP's `marketPerformance` sector P/E and performance snapshots
+need a higher plan than this account holds. Build the peer comparison from
+primitives instead: `company` / `peers` or `search` / `search-company-screener`
+to get the constituent list, then `statements` / `key-metrics` and
+`metrics-ratios` per peer. That is a multi-symbol aggregate, so hand the
+symbol list and the metrics you want to `quant_engineer` rather than eyeballing
+a table of raw responses.

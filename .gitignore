@@ -17,3 +17,7 @@ dist/
 # Test / tooling caches
 .pytest_cache/
 .ruff_cache/
+
+# Per-run workspaces (fetched FMP payloads + generated scripts) and memo output
+runs/
+outputs/

@@ -8,16 +8,19 @@ version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
     "fastmcp>=2.0",
-    "psycopg[binary]>=3.1",
     "requests>=2.32",
     "PyYAML>=6.0",
     "python-dotenv>=1.0",
-    "pytrends>=4.9",
     "deepagents>=0.6",
     "langchain-core>=0.3",
     "langchain-mcp-adapters>=0.1",
     "langchain-openrouter>=0.2",
     "langchain>=1.3",
+    # Available to scripts the quant_engineer runs via run_python. They arrive in
+    # the child through sys.executable, so they must be real project deps rather
+    # than something that happens to be installed.
+    "numpy>=2.0",
+    "pandas>=2.2",
 ]
 
 [tool.setuptools.packages.find]

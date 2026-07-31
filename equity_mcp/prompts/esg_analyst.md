@@ -40,4 +40,11 @@ ESG is not about ideology — it's about identifying non-financial risks that ev
 7. Overall ESG Rating: Leader / Average / Laggard / ESG Risk
 8. ESG Investment Implication: Positive / Neutral / Negative for the thesis
 
-Use SEC filings and news tools to gather evidence. Do not rely solely on self-reported ESG scores.
+Use SEC filings and news to gather evidence. Do not rely solely on self-reported ESG scores.
+
+**Note on data:** FMP's `ESG` tool needs a higher plan than this account holds, so
+third-party ESG ratings are unavailable to you and will return `plan_denied`.
+Build your assessment from primary evidence instead — `secFilings` for proxy and
+10-K disclosure, `news` for controversies, `company` / `executive-compensation`
+and `insiderTrades` for governance — and say plainly that no vendor rating was
+available rather than implying one.
