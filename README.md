@@ -80,7 +80,7 @@ cp .env.example .env
 |-----|----------|---------|
 | `FMP_API_KEY` | Yes | The only financial data source |
 | `OPENROUTER_API_KEY` | Yes | Powers every agent |
-| `BRAVE_API_KEY` | Optional | Backs `web_search`; the DuckDuckGo fallback is unreliable |
+| `SERP_API_KEY` | Optional | Backs `web_search` via [SerpApi](https://serpapi.com); without it `web_search` returns no results |
 
 Endpoint availability follows your FMP plan. A gated endpoint returns
 `{"kind": "plan_denied"}` rather than failing the run — on Starter that means no

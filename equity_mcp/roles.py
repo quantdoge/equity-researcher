@@ -74,7 +74,7 @@ ALL_ROLES: list[str] = [
 # entry in AGENT_MODELS.  Values are bare OpenRouter slugs; model_for_role()
 # adds the "openrouter:" provider prefix that LangChain's init_chat_model wants.
 
-DEFAULT_MODEL: str = "anthropic/claude-sonnet-5"
+DEFAULT_MODEL: str = "moonshotai/kimi-k2.6"
 
 # Per-agent overrides.  role string -> OpenRouter slug.  Empty by default —
 # uncomment or add entries to point individual specialists at cheaper or

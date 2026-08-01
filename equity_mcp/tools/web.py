@@ -1,12 +1,15 @@
 """
 Web search and page fetch tools.
 
-Uses Brave Search API when BRAVE_API_KEY is set, falls back to a basic
-DuckDuckGo HTML scrape so the tool remains usable without a paid key.
+Search runs on SerpApi (https://serpapi.com), keyed by SERP_API_KEY. There is no
+fallback provider: without the key web_search returns a single tagged marker
+result rather than an empty list, so an unconfigured run is visible instead of
+looking like the web simply had nothing to say.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import textwrap
@@ -14,18 +17,30 @@ import textwrap
 import requests
 
 _TIMEOUT = 15
-_BRAVE_SEARCH_URL = "https://api.search.brave.com/res/v1/web/search"
+_SERPAPI_URL = "https://serpapi.com/search"
+
+_log = logging.getLogger(__name__)
+_missing_key_warned = False
 
 
 def web_search(query: str, n_results: int = 8) -> list[dict]:
     """
     Search the web for query and return up to n_results results.
-    Each result contains: title, url, description.
+    Each result contains: title, url, description (plus source and date when
+    the engine reports them).
+
+    Never raises. A failure comes back as one result carrying a "kind" of
+    not_configured, unavailable, or search_error; an empty list means the
+    search genuinely returned no hits.
     """
-    api_key = os.getenv("BRAVE_API_KEY")
-    if api_key:
-        return _brave_search(query, n_results, api_key)
-    return _ddg_search(query, n_results)
+    api_key = os.getenv("SERP_API_KEY")
+    if not api_key:
+        global _missing_key_warned
+        if not _missing_key_warned:
+            _missing_key_warned = True
+            _log.warning("SERP_API_KEY is not set; web_search cannot return results")
+        return [_failure("SERP_API_KEY is not set", "not_configured")]
+    return _serpapi_search(query, n_results, api_key)
 
 
 def fetch_page(url: str, max_chars: int = 8000) -> dict:
@@ -53,48 +68,39 @@ def fetch_page(url: str, max_chars: int = 8000) -> dict:
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
 
-def _brave_search(query: str, n: int, api_key: str) -> list[dict]:
-    headers = {
-        "Accept": "application/json",
-        "Accept-Encoding": "gzip",
-        "X-Subscription-Token": api_key,
-    }
-    params = {"q": query, "count": min(n, 20)}
-    resp = requests.get(_BRAVE_SEARCH_URL, headers=headers, params=params, timeout=_TIMEOUT)
-    resp.raise_for_status()
-    data = resp.json()
-    results = []
-    for item in data.get("web", {}).get("results", [])[:n]:
-        results.append(
-            {
-                "title": item.get("title", ""),
-                "url": item.get("url", ""),
-                "description": item.get("description", ""),
-            }
-        )
-    return results
+def _failure(message: str, kind: str) -> dict:
+    return {"title": "Search unavailable", "url": "", "description": message, "kind": kind}
 
 
-def _ddg_search(query: str, n: int) -> list[dict]:
-    """Minimal DuckDuckGo HTML scrape as no-key fallback."""
-    url = "https://html.duckduckgo.com/html/"
-    headers = {"User-Agent": "equity-researcher/0.1"}
+def _serpapi_search(query: str, n: int, api_key: str) -> list[dict]:
+    params = {"engine": "google", "q": query, "num": n, "api_key": api_key}
     try:
-        resp = requests.post(url, data={"q": query}, headers=headers, timeout=_TIMEOUT)
-        resp.raise_for_status()
+        resp = requests.get(_SERPAPI_URL, params=params, timeout=_TIMEOUT)
+        data = resp.json()
     except requests.RequestException as exc:
-        return [{"title": "Search unavailable", "url": "", "description": str(exc)}]
+        _log.error("SerpApi request for %r failed: %s", query, exc)
+        return [_failure(str(exc), "unavailable")]
+    except ValueError as exc:  # non-JSON body
+        _log.error("SerpApi returned a non-JSON response for %r: %s", query, exc)
+        return [_failure(f"SerpApi returned a non-JSON response: {exc}", "unavailable")]
+
+    # SerpApi reports bad keys and exhausted quotas in the body, not the status
+    # code. Pass its wording through so the agent can read what went wrong.
+    if error := data.get("error"):
+        _log.error("SerpApi error for %r: %s", query, error)
+        return [_failure(str(error), "search_error")]
 
     results = []
-    for m in re.finditer(
-        r'<a class="result__a"[^>]*href="([^"]+)"[^>]*>([^<]+)</a>.*?'
-        r'<a class="result__snippet"[^>]*>([^<]+)</a>',
-        resp.text,
-        re.DOTALL,
-    ):
-        results.append({"title": m.group(2).strip(), "url": m.group(1), "description": m.group(3).strip()})
-        if len(results) >= n:
-            break
+    for item in (data.get("organic_results") or [])[:n]:
+        result = {
+            "title": item.get("title", ""),
+            "url": item.get("link", ""),
+            "description": item.get("snippet", ""),
+        }
+        for extra in ("source", "date"):
+            if item.get(extra):
+                result[extra] = item[extra]
+        results.append(result)
     return results
 
 

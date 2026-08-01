@@ -216,7 +216,7 @@ asyncio.run(main())"
 |-----|-------------|----------|-------|
 | FMP | `FMP_API_KEY` | **Yes** | The only financial data source, via its remote MCP server |
 | OpenRouter | `OPENROUTER_API_KEY` | **Yes** | Powers all agents; per-role model set in `roles.py` |
-| Brave Search | `BRAVE_API_KEY` | Optional | Backs `web_search`; falls back to DuckDuckGo |
+| SerpApi | `SERP_API_KEY` | Optional | Backs `web_search`; no fallback provider |
 
 ### FMP plan gating
 
@@ -250,9 +250,17 @@ can already reach it through `fmp_call`, and a wrapper is one more thing to drif
    `deep_agent_factory.py` so the master knows when to delegate to it
 4. Optionally pin it to a model via `AGENT_MODELS` in `roles.py`
 
-## Known Issues
+## Web Search
 
-`web_search` returns `[]` for every query — the DuckDuckGo scrape in
-`tools/web.py` is broken. Setting `BRAVE_API_KEY` sidesteps it without code
-changes. This matters more than it looks: web search is the documented fallback
-for the ESG analyst, whose vendor ratings are plan-gated.
+`web_search` runs on SerpApi's `engine=google` and has no fallback provider —
+Brave and the DuckDuckGo scrape are gone. The scrape's regex had stopped matching
+DDG's markup, so it returned `[]` for every query while looking healthy, which is
+the failure mode worth avoiding here: web search is the documented fallback for
+the ESG analyst, whose vendor ratings are plan-gated, and an empty list reads to
+an agent as "nothing exists" rather than "the tool is broken."
+
+So `web_search` never raises and never returns a bare `[]` on failure. It returns
+one marker result tagged `kind` — `not_configured` (no `SERP_API_KEY`),
+`unavailable` (transport error), or `search_error` (SerpApi's own message for a
+bad key or exhausted quota, passed through verbatim). An empty list now means
+exactly one thing: the search ran and found nothing.
