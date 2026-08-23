@@ -19,6 +19,8 @@ equity_mcp/
 ├── server.py              # FastMCP app — 6 tools registered here with role tags
 ├── roles.py               # Canonical tag sets + model assignment per agent role
 ├── workspace.py           # Per-run scratch dir shared by the FMP and code tools
+├── session.py             # SQLite checkpoints + session registry behind --last
+├── progress.py            # AgentMiddleware: console status + per-agent reports
 ├── langchain_bridge.py    # Bridges FastMCP tools → LangChain StructuredTool (by role)
 ├── deep_agent_factory.py  # Builds 13 subagents + master via create_deep_agent
 ├── orchestrator.py        # CLI entry point
@@ -123,6 +125,97 @@ report; the Head of Research routes it to `quant_engineer`. Both the master's
 prompt and its task instruction say this explicitly, because it is not something
 the model can infer from its tool list.
 
+## Call limits
+
+`roles.py` also carries the per-agent call budgets, attached as LangChain
+middleware by `middleware_for_role(role, tool_names)` — passed into each subagent
+spec by `_build_subagent` and into `create_deep_agent` for the master. Middleware
+given to the master does *not* propagate to subagents, which is why both call
+sites exist.
+
+- **Tools** — `DEFAULT_TOOL_RUN_LIMIT` (10) per tool, overridable per tool in
+  `TOOL_CALL_LIMITS` and per role in `ROLE_TOOL_CALL_LIMITS`. One
+  `ToolCallLimitMiddleware` instance per tool, so the budgets are independent:
+  ten `fmp_call` *and* ten `web_search`, not ten between them. `exit_behavior` is
+  `"continue"`, so an over-budget call returns an error ToolMessage the agent can
+  read and route around.
+- **Models** — `DEFAULT_MODEL_RUN_LIMIT` (20) per role, overridable in
+  `MODEL_CALL_LIMITS`. `exit_behavior` is `"end"`, not because that is preferable
+  but because `ModelCallLimitMiddleware` accepts only `"end"` or `"error"` —
+  there is no `"continue"` — and `"error"` raises through the graph, killing a
+  whole run over one runaway specialist.
+
+`head_of_research` is uncapped on model calls (`MODEL_CALL_LIMITS` sets it to
+`None`, and no middleware is built when a limit resolves to `None`). The master
+plans, delegates thirteen times, reads thirteen reports and writes the memo; any
+cap tight enough to save tokens ends the run with `"Model call limits exceeded"`
+where the Investment Memo should be. Its four data tools are still capped.
+
+Two things are deliberately *not* limited. deepagents' own built-ins — `task`,
+`write_todos`, `ls`, `read_file` — never appear in `tool_names`, so they get no
+middleware; capping `task` at ten would strand three of the thirteen specialists.
+And these are all `run_limit`s, never `thread_limit`s, so a subagent's counters
+reset on each delegation: the budget bounds one task, not a specialist's whole
+participation in a run.
+
+Middleware names must be unique per agent (`create_agent` asserts on duplicates).
+`ToolCallLimitMiddleware.name` embeds the tool name, so per-tool instances are
+safe; `ModelCallLimitMiddleware.name` does not, so there is exactly one per agent.
+Same for `ModelRetryMiddleware` and `ToolErrorMiddleware` below.
+
+## Model transport
+
+`chat_model_for_role(role)` builds the chat model rather than handing deepagents
+the bare `"openrouter:<slug>"` spec, because two `ChatOpenRouter` defaults are
+hostile to a run that lasts half an hour.
+
+**`streaming=True`.** The default is `False`, which makes every model call one
+POST held open with zero bytes flowing until the completion is finished. Over a
+long run OpenRouter's edge closes some of those sockets before the first response
+byte, and httpx reports it as `RemoteProtocolError: Server disconnected without
+sending a response` — the failure that used to end every run partway through.
+Streaming keeps bytes moving so the connection never looks idle. It is a
+transport change only: `_agenerate` routes through `_astream` +
+`agenerate_from_stream` and still returns one complete `AIMessage`, tool calls
+reassembled from the chunks.
+
+**`timeout=REQUEST_TIMEOUT_MS`.** `request_timeout=None` is not "use the
+default" — the SDK passes it straight into httpx's `build_request`, where an
+explicit `None` means `Timeout(None)`, no ceiling at all, so a stalled call hangs
+until the server hangs up. With streaming the explicit value is a between-chunks
+read timeout, which is the semantics worth having.
+
+Attribution and `openrouter_provider` are set here too. Passing a model *instance*
+bypasses deepagents' `apply_provider_profile`, which would otherwise supply them;
+they are only passed when the role actually resolves to OpenRouter, since
+`model_for_role` lets a role be pinned to another provider that would reject them.
+
+Models are built one per role and never cached — a module-level cache would
+outlive the event loop it first served, and a pooled connection from a dead loop
+is a new failure mode. The pools connect lazily, so fourteen cost nothing.
+
+### Surviving a dropped connection anyway
+
+The SDK's own `max_retries` does not cover the disconnect above.
+`openrouter.utils.retries` honours `retry_connection_errors` only for
+`httpx.ConnectError` and `httpx.TimeoutException`; `RemoteProtocolError` falls to
+a catch-all that wraps it as `PermanentError` and re-raises without a retry. So
+`middleware_for_role` adds two things:
+
+- **`ModelRetryMiddleware`, every role** — retries `httpx.TransportError` (the
+  common base of `RemoteProtocolError`, `ReadTimeout` and `ConnectError`) three
+  times with backoff. `on_failure="continue"`, so an exhausted retry becomes an
+  `AIMessage` describing the failure and degrades one specialist rather than the
+  run. It does not eat into the model budget: `ModelCallLimitMiddleware` counts in
+  `before_model`, a graph-node hook, while retries happen inside one
+  `wrap_model_call`.
+- **`ToolErrorMiddleware`, master only** — subagents reach the master through the
+  `task` tool, and LangGraph re-raises anything that is not a `ToolException`, so
+  an exception escaping a specialist ends the run. `_transport_error_message`
+  returns text (which becomes an error `ToolMessage`) for network faults only, and
+  `None` for everything else so an ordinary bug still surfaces as a traceback
+  instead of being quietly serialised into the master's context.
+
 ## Code Execution
 
 `run_python` shells out to `sys.executable` with the run workspace as cwd, a
@@ -142,14 +235,96 @@ rather than something incidentally installed.
 ## Workspace
 
 Each run gets `runs/<SYMBOL>_<TIMESTAMP>/` with `data/` (payloads spilled by
-`fmp_call`) and `scripts/` (what `run_python` executed). That is the audit trail
-for every computed figure in the memo. `orchestrator.py` calls
-`workspace.set_run(symbol)` at startup.
+`fmp_call`), `scripts/` (what `run_python` executed), `reports/` (one `.md` per
+agent, written the moment it finishes) and `run.log`. That is the audit trail for
+every computed figure in the memo. `orchestrator.py` calls
+`workspace.set_run(symbol)` at startup, or `workspace.attach_run(session_id)` when
+resuming — `attach_run` raises rather than creating the directory, because a
+resume into an empty workspace refetches everything while looking like it worked.
 
 MCP tools are plain functions with no run context, so a process-global run
 directory is the only way the spill target and the execution cwd agree.
 `$EQ_WORKSPACE` pins an explicit directory for inspecting tools outside a run;
 `$EQ_WORKSPACE_ROOT` moves the parent.
+
+**The directory name is the session id.** One string is the LangGraph `thread_id`,
+the workspace directory, and the stem of both output files. There is deliberately
+no second identifier scheme.
+
+## Session persistence
+
+`session.py` owns `runs/sessions.sqlite` (`$EQ_STATE_DB` moves it), which holds
+two unrelated things in one file: LangGraph's own `checkpoints`/`writes` tables,
+written by `AsyncSqliteSaver`, and a `sessions`/`agent_events` registry written
+here. The registry exists so `--list-sessions` can answer without deserialising
+checkpoint blobs, and so a run records *why* it stopped.
+
+`build_master_agent(checkpointer=...)` forwards to `create_deep_agent`, and
+`run_research` passes `{"configurable": {"thread_id": session_id}}` plus
+`recursion_limit=200`. That limit is not incidental: LangGraph's default is 25
+supersteps, which a master that plans, delegates thirteen times and synthesises
+can plausibly exceed, and a `GraphRecursionError` is indistinguishable from a
+crash worth resuming from.
+
+Resume invokes with `None` input, which re-runs the tasks pending in the
+checkpoint instead of appending a second copy of the task message. If the thread
+has no checkpoint — the first attempt died before its first superstep committed —
+`run_research` falls back to the full input.
+
+**Resume granularity is one specialist.** Checkpoints land at master-graph
+supersteps, so every finished specialist report survives in the master's message
+history. A specialist that died mid-flight reruns from scratch: deepagents
+compiles subagent graphs through plain `create_agent` and its `SubAgent`
+TypedDict has no `checkpointer` field, so there is nowhere to pass one. The
+payloads that specialist had already fetched are still in `data/`, so the rerun
+is cheaper than the first pass, not free.
+
+### Never write to the registry from the event loop
+
+The registry helpers block, and the checkpointer's `commit()` is an `await`
+queued on the same loop. Blocking the loop means the saver cannot release its
+write transaction, so the blocking call waits out its entire busy timeout and
+fails with `database is locked` — observed as a 30-second stall per agent before
+it was routed off the loop. `session.arecord_agent` is the async-safe entry
+point; anything else called from async code needs the same `to_thread` wrapper.
+
+## Progress and incremental output
+
+`progress.py` is one `AgentMiddleware` attached to every agent, and it is where
+both the console status and the durable per-agent output come from.
+`awrap_tool_call` narrates each fetch and delegation; `aafter_agent` writes
+`reports/<role>.md`, appends the same section to `outputs/<session>.md`, and
+records the `agent_events` row.
+
+**It costs no tokens.** Every hook returns `None` or the handler's result
+untouched, so no message, tool or prompt fragment reaches a model. That is the
+whole reason this is middleware rather than a "report your progress" instruction
+in the prompts.
+
+Middleware rather than `astream` because deepagents invokes subagents *inside*
+the `task` tool rather than as graph nodes, so streaming the master's graph
+cannot see into a specialist. Only the async hooks are implemented;
+`langchain.agents.factory` picks hooks by comparing the class attribute against
+`AgentMiddleware`'s and wraps them in `RunnableCallable(sync, async)`, so
+async-only is a supported shape.
+
+Two details that are easy to get wrong:
+
+- **Per-invocation counters cannot key on `checkpoint_ns`.** LangGraph writes it
+  *per node*, so `abefore_model` and `aafter_agent` in one invocation see
+  different values and the counts get dropped. What is stable is the namespace's
+  parent prefix — everything before the last `|`. A subagent sees
+  `tools:<task-id>|<node>:<node-id>`, so the prefix is the delegating tool call:
+  constant for that specialist's run and distinct from any other delegation. The
+  master's nodes are unnested, so their prefix is empty. See `progress._scope`.
+- **Report files are named by role, not by ordinal.** A resumed run may rerun a
+  specialist, and the newer report should replace the older one rather than
+  accumulate near-duplicates. True ordering lives in `agent_events` and in the
+  append-only master copy.
+
+Console glyphs fall back to ASCII when `sys.stdout.encoding` cannot encode them —
+a Windows console codepage raising `UnicodeEncodeError` from a status line must
+not be the thing that ends a run.
 
 ## Tool tags = role sets
 
@@ -187,6 +362,12 @@ uv run python -m equity_mcp.orchestrator --symbol AAPL
 # Steer the master agent
 uv run python -m equity_mcp.orchestrator --symbol MSFT --focus "weight ESG and growth"
 
+# Sessions: list what ran, resume what did not finish
+uv run python -m equity_mcp.orchestrator --list-sessions
+uv run python -m equity_mcp.orchestrator --last                       # newest unfinished
+uv run python -m equity_mcp.orchestrator --last AAPL_20260801T142233  # a specific one
+uv run python -m equity_mcp.orchestrator --last <id> --force          # re-run a completed one
+
 # Inspect all registered MCP tools and their tags
 uv run fastmcp inspect equity_mcp/server.py
 
@@ -209,6 +390,75 @@ async def main():
         print(f'{r:22} {len(t)}  {sorted(x.name for x in t)}')
 asyncio.run(main())"
 ```
+
+Middleware — one instance per tool the role holds, a model limiter for everyone
+but the master, a retry and a progress reporter for everyone, and the tool-error
+net for the master alone. Expect 9 for `quant_engineer` and 7 for every other
+role, including `head_of_research` (which trades the model limiter for
+`ToolErrorMiddleware`):
+
+```bash
+uv run python -c "
+import asyncio
+from equity_mcp.langchain_bridge import get_langchain_tools_for_role
+from equity_mcp.roles import ALL_ROLES, middleware_for_role
+async def main():
+    for r in ALL_ROLES:
+        t = await get_langchain_tools_for_role(r)
+        mw = middleware_for_role(r, [x.name for x in t])
+        names = [m.name for m in mw]
+        assert len(set(names)) == len(names), (r, names)
+        print(f'{r:22} {len(mw)}  {names}')
+asyncio.run(main())"
+```
+
+Graph assembly — `create_agent` validates middleware at construction, and
+deepagents compiles all 13 subagent graphs eagerly, so this catches a bad
+`exit_behavior` or a duplicate middleware name without spending a token.
+`OPENROUTER_API_KEY` must be set for `init_chat_model`, but no API call is made:
+
+```bash
+uv run python -c "
+import asyncio
+from equity_mcp.deep_agent_factory import build_master_agent
+asyncio.run(build_master_agent()); print('master compiled')"
+```
+
+The same check against a live checkpointer, which additionally proves the saver
+binds to the running loop and that the state DB is writable:
+
+```bash
+uv run python -c "
+import asyncio
+from equity_mcp import session
+from equity_mcp.deep_agent_factory import build_master_agent
+async def main():
+    session.init_db()
+    async with session.checkpointer() as cp:
+        await build_master_agent(checkpointer=cp)
+        print('master compiled with checkpointer')
+asyncio.run(main())"
+```
+
+Session state — the LangGraph tables and the registry share one file:
+
+```bash
+uv run python -c "
+import sqlite3
+from equity_mcp import session
+c = sqlite3.connect(session.state_db_path())
+print(sorted(r[0] for r in c.execute(\"select name from sqlite_master where type='table'\")))
+for r in c.execute('select session_id,symbol,status,resumed_count from sessions'): print(r)
+for r in c.execute('select seq,role,status,tool_calls,model_calls from agent_events'): print(r)"
+```
+
+Expect `['agent_events', 'checkpoints', 'sessions', 'writes', ...]`.
+
+End-to-end resume is the acceptance test, and it costs real tokens: start a run,
+Ctrl-C after two or three specialists report, then `--last`. The finished
+specialists must appear in `runs/<session>/reports/` and in
+`outputs/<session>.md` *before* the resume, and must not be re-run by it — no
+second `▶` for them in the resumed run's output.
 
 ## External APIs
 

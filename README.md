@@ -31,7 +31,7 @@ orchestrator.py  (CLI entry, opens runs/<SYMBOL>_<ts>/)
 deep_agent_factory.run_research(symbol)
        ↓
 create_deep_agent(
-    model         = roles.model_for_role("head_of_research"),
+    model         = roles.chat_model_for_role("head_of_research"),
     system_prompt = prompts/head_of_research.md + prompts/_toolkit.md,
     subagents     = [ 13 specialists, each with a per-role model
                       and role-filtered tools from the MCP server ]
@@ -95,6 +95,13 @@ uv run python -m equity_mcp.orchestrator --symbol AAPL
 # Steer the master agent
 uv run python -m equity_mcp.orchestrator --symbol MSFT --focus "weight ESG and growth"
 
+# See past runs and which of them can be resumed
+uv run python -m equity_mcp.orchestrator --list-sessions
+
+# Resume the newest unfinished run — or name one
+uv run python -m equity_mcp.orchestrator --last
+uv run python -m equity_mcp.orchestrator --last AAPL_20260801T142233
+
 # Inspect the registered MCP tools and their role tags
 uv run fastmcp inspect equity_mcp/server.py
 
@@ -102,7 +109,37 @@ uv run fastmcp inspect equity_mcp/server.py
 uv run fastmcp run equity_mcp/server.py
 ```
 
-The memo is printed to stdout and saved to `outputs/<SYMBOL>_<date>.json`.
+`-v` adds model turns and tool-result previews; `-q` cuts back to banners and
+warnings.
+
+### Output
+
+A run reports as it goes rather than only at the end:
+
+```
+[00:00] → delegate  macro_researcher
+[00:00]   ▶ macro_researcher
+[00:08]     🔧 fmp_call  economics/treasury-rates
+[01:52]   ✓ macro_researcher done  (4 tools, 6 model calls, 74.3s)
+[01:52]     · saved reports/macro_researcher.md
+```
+
+| Path | Written |
+|---|---|
+| `outputs/<session>.md` | the master copy — appended as each agent finishes |
+| `outputs/<session>.json` | full result and message history, at the end |
+| `runs/<session>/reports/<role>.md` | one report per agent, the moment it finishes |
+| `runs/<session>/run.log` | everything the console printed |
+| `runs/<session>/data/`, `scripts/` | fetched payloads and the code run over them |
+
+### Resuming a failed run
+
+Every run is checkpointed to `runs/sessions.sqlite` as it goes, so a crash or a
+Ctrl-C half an hour in is resumable. `--last` picks up from the last completed
+specialist: finished reports are kept, and only the work that had not finished
+is redone. A specialist that died mid-way reruns in full — checkpoints land at
+master-graph supersteps, and deepagents' subagents have nowhere to hold one of
+their own.
 
 ## Layout
 
@@ -111,6 +148,8 @@ equity_mcp/
 ├── server.py              # FastMCP app — 6 tools registered with role tags
 ├── roles.py               # Tag sets + per-role model assignment
 ├── workspace.py           # Per-run scratch dir
+├── session.py             # SQLite checkpoints + session registry (--last)
+├── progress.py            # Console status + per-agent report files
 ├── langchain_bridge.py    # FastMCP tools → LangChain StructuredTool, by role
 ├── deep_agent_factory.py  # Builds 13 subagents + master
 ├── orchestrator.py        # CLI entry point

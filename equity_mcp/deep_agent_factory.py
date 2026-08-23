@@ -9,7 +9,7 @@ role.  In practice that means the twelve analysts all get the same fmp_catalog /
 fmp_call pair, while quant_engineer additionally gets run_python — it is the one
 agent that executes code, and everything computed in a run is computed there.
 
-Each subagent also runs on the model roles.model_for_role assigns to it, so
+Each subagent also runs on the model roles.chat_model_for_role assigns to it, so
 specialists can be pointed at different OpenRouter models independently of the
 master.  The master agent uses deepagents' built-in planning loop to autonomously
 decide which specialists to delegate to and synthesise a final Investment Memo.
@@ -38,7 +38,12 @@ from deepagents import create_deep_agent
 from dotenv import load_dotenv
 
 from equity_mcp.langchain_bridge import get_langchain_tools_for_role
-from equity_mcp.roles import ALL_ROLES, ROLE_HEAD_OF_RESEARCH, model_for_role
+from equity_mcp.roles import (
+    ALL_ROLES,
+    ROLE_HEAD_OF_RESEARCH,
+    chat_model_for_role,
+    middleware_for_role,
+)
 
 load_dotenv()
 
@@ -84,24 +89,43 @@ def _load_prompt(role: str) -> str:
 
 
 async def _build_subagent(role: str) -> dict[str, Any]:
-    """Construct a single subagent dict for create_deep_agent."""
+    """
+    Construct a single subagent dict for create_deep_agent.
+
+    The middleware entry carries this role's call budgets.  It is built from the
+    names of the tools the role actually received, so only those are capped —
+    deepagents' own built-ins stay uncapped by design.  deepagents applies this
+    list after its default stack.
+    """
     tools = await get_langchain_tools_for_role(role)
     return {
         "name":          role,
         "description":   _DESCRIPTIONS.get(role, role),
         "system_prompt": _load_prompt(role),
         "tools":         tools,
-        "model":         model_for_role(role),
+        "model":         chat_model_for_role(role),
+        "middleware":    middleware_for_role(role, [t.name for t in tools]),
     }
 
 
-async def build_master_agent():
+async def build_master_agent(checkpointer: Any | None = None):
     """
     Construct the master Head of Research deep agent.
 
     All 13 specialist subagents are built concurrently (their tool lists are
     fetched in parallel from the in-process FastMCP server), then passed to
     create_deep_agent as the subagents roster.
+
+    The master gets its own middleware because middleware passed here does not
+    propagate to subagents — each subagent spec carries its own, set in
+    _build_subagent.  The master's model calls are uncapped (see MODEL_CALL_LIMITS
+    in roles.py); only its four data tools are.
+
+    ``checkpointer`` persists the master graph so a failed run can be resumed;
+    it goes only to the master because the SubAgent spec has nowhere to put one,
+    which is what bounds resume granularity to a whole specialist (see
+    session.py).  ``None`` builds an unpersisted graph, which is what the compile
+    checks and any ad-hoc use want.
     """
     specialist_roles = [r for r in ALL_ROLES if r != ROLE_HEAD_OF_RESEARCH]
 
@@ -112,15 +136,33 @@ async def build_master_agent():
     master_tools = await get_langchain_tools_for_role(ROLE_HEAD_OF_RESEARCH)
 
     master = create_deep_agent(
-        model=model_for_role(ROLE_HEAD_OF_RESEARCH),
+        model=chat_model_for_role(ROLE_HEAD_OF_RESEARCH),
         system_prompt=_load_prompt(ROLE_HEAD_OF_RESEARCH),
         tools=master_tools,
         subagents=list(subagents),
+        middleware=middleware_for_role(
+            ROLE_HEAD_OF_RESEARCH, [t.name for t in master_tools]
+        ),
+        checkpointer=checkpointer,
     )
     return master
 
 
-async def run_research(symbol: str, extra_instructions: str = "") -> dict[str, Any]:
+# One superstep per model turn and per tool batch, and the master plans,
+# delegates thirteen times and synthesises.  LangGraph's default of 25 is thin
+# enough that a long-but-healthy run can trip it, and a GraphRecursionError is
+# indistinguishable from a crash worth resuming from.
+RECURSION_LIMIT = 200
+
+
+async def run_research(
+    symbol: str,
+    extra_instructions: str = "",
+    *,
+    session_id: str | None = None,
+    checkpointer: Any | None = None,
+    resume: bool = False,
+) -> dict[str, Any]:
     """
     Run the full equity research pipeline for a ticker symbol.
 
@@ -130,6 +172,12 @@ async def run_research(symbol: str, extra_instructions: str = "") -> dict[str, A
     the Head of Research plans its own task breakdown via deepagents'
     built-in write_todos planning tool.
 
+    ``session_id`` becomes the LangGraph thread id, so it must be the same
+    string across a run and its resumes — orchestrator.py uses the workspace
+    directory name.  With ``resume=True`` the graph is invoked with ``None``
+    input, which re-runs the pending tasks recorded in the checkpoint instead of
+    appending a second copy of the task message.
+
     Returns:
         {
           "symbol":           str,
@@ -137,7 +185,11 @@ async def run_research(symbol: str, extra_instructions: str = "") -> dict[str, A
           "messages":         list,  # full LangGraph message history
         }
     """
-    master = await build_master_agent()
+    master = await build_master_agent(checkpointer=checkpointer)
+
+    config: dict[str, Any] = {"recursion_limit": RECURSION_LIMIT}
+    if session_id:
+        config["configurable"] = {"thread_id": session_id}
 
     task = (
         f"Conduct a complete institutional-quality equity research on ticker: {symbol}.\n\n"
@@ -165,7 +217,17 @@ async def run_research(symbol: str, extra_instructions: str = "") -> dict[str, A
     if extra_instructions:
         task += f"\nAdditional instructions: {extra_instructions}"
 
-    result = await master.ainvoke({"messages": task})
+    payload: Any = {"messages": task}
+    if resume:
+        # Resuming means "carry on from the checkpoint", which LangGraph spells
+        # as a None input.  If there is no checkpoint to carry on from — the
+        # first run died before its first superstep committed — that would be an
+        # empty invocation, so fall back to starting the task properly.
+        state = await master.aget_state(config)
+        if state is not None and state.values.get("messages"):
+            payload = None
+
+    result = await master.ainvoke(payload, config)
 
     messages = result.get("messages", [])
     final_text = ""

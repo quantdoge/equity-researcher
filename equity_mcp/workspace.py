@@ -11,11 +11,16 @@ Layout::
     runs/<SYMBOL>_<TIMESTAMP>/
         data/       # JSON payloads spilled by fmp_call
         scripts/    # Python written by the quant_engineer subagent
+        reports/    # one .md per specialist, written as each finishes
 
 ``orchestrator.py`` calls ``set_run(symbol)`` before the agent starts. Anything
 that touches the workspace without one — a bare ``fastmcp run``, a REPL — gets a
 lazily created ``runs/adhoc_<TIMESTAMP>/`` instead of an error, so the tools stay
 usable standalone.
+
+The directory name doubles as the session id (see ``session.py``): resuming a
+failed run calls ``attach_run(session_id)`` instead of ``set_run``, so the second
+pass spills into the same directory and can read what the first pass fetched.
 """
 
 from __future__ import annotations
@@ -27,6 +32,9 @@ from pathlib import Path
 
 _DATA = "data"
 _SCRIPTS = "scripts"
+_REPORTS = "reports"
+
+_SUBDIRS = (_DATA, _SCRIPTS, _REPORTS)
 
 _run_dir: Path | None = None
 
@@ -51,9 +59,38 @@ def set_run(symbol: str, root: str | Path | None = None) -> Path:
 
     base = Path(root or os.environ.get("EQ_WORKSPACE_ROOT") or "runs")
     _run_dir = (base / f"{slug(symbol).upper()}_{_stamp()}").resolve()
-    for sub in (_DATA, _SCRIPTS):
+    for sub in _SUBDIRS:
         (_run_dir / sub).mkdir(parents=True, exist_ok=True)
     return _run_dir
+
+
+def attach_run(session_id: str, root: str | Path | None = None) -> Path:
+    """
+    Re-enter the existing workspace named *session_id* — the resume counterpart
+    to ``set_run``.
+
+    Raises ``FileNotFoundError`` rather than creating the directory: a resume
+    against a workspace that is not there would silently refetch everything into
+    an empty one, which looks like a working resume and is not.  Missing
+    *subdirectories* are recreated, since an untouched run may never have had a
+    reason to make ``scripts/``.
+    """
+    global _run_dir
+
+    base = Path(root or os.environ.get("EQ_WORKSPACE_ROOT") or "runs")
+    candidate = (base / session_id).resolve()
+    if not candidate.is_dir():
+        raise FileNotFoundError(f"No run workspace at {candidate}")
+
+    _run_dir = candidate
+    for sub in _SUBDIRS:
+        (_run_dir / sub).mkdir(parents=True, exist_ok=True)
+    return _run_dir
+
+
+def session_id() -> str:
+    """The active run's identifier — its directory name."""
+    return workspace_dir().name
 
 
 def workspace_dir() -> Path:
@@ -69,7 +106,7 @@ def workspace_dir() -> Path:
     pinned = os.environ.get("EQ_WORKSPACE")
     if pinned:
         path = Path(pinned).resolve()
-        for sub in (_DATA, _SCRIPTS):
+        for sub in _SUBDIRS:
             (path / sub).mkdir(parents=True, exist_ok=True)
         return path
 
@@ -85,6 +122,10 @@ def data_dir() -> Path:
 
 def scripts_dir() -> Path:
     return workspace_dir() / _SCRIPTS
+
+
+def reports_dir() -> Path:
+    return workspace_dir() / _REPORTS
 
 
 def relative(path: Path) -> str:

@@ -21,6 +21,7 @@ dependencies = [
     # than something that happens to be installed.
     "numpy>=2.0",
     "pandas>=2.2",
+    "langgraph-checkpoint-sqlite>=3.1.1",
 ]
 
 [tool.setuptools.packages.find]
