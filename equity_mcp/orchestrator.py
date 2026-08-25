@@ -31,16 +31,38 @@ load_dotenv()
 # ── deepagents pipeline (default) ─────────────────────────────────────────────
 
 
-async def _run_deepagents(symbol: str, focus: str, output_dir: Path | None) -> dict:
-    from equity_mcp.deep_agent_factory import run_research
+async def _run_deepagents(
+    symbol: str,
+    focus: str,
+    output_dir: Path | None,
+    max_concurrency: int,
+    timeout: float | None,
+) -> dict:
+    from equity_mcp.deep_agent_factory import RESEARCH_ROLES, run_research
 
     print(f"\n{'='*60}")
     print(f"  equity-researcher  [deepagents]")
     print(f"  Symbol : {symbol}")
+    print(f"  Fan-out: {len(RESEARCH_ROLES)} specialists, {max_concurrency} at a time")
     print(f"{'='*60}\n")
 
     start = time.time()
-    result = await run_research(symbol, extra_instructions=focus)
+
+    def _report(r: dict) -> None:
+        name = r["agent_role"].replace("_", " ").title()
+        mark = "✗" if r.get("error") else "✓"
+        line = f"  [{time.time()-start:6.1f}s] {mark} {name:24s} {r['elapsed_seconds']:>6.1f}s"
+        if r.get("error"):
+            line += f"  — {r['error'][:100]}"
+        print(line)
+
+    coro = run_research(
+        symbol,
+        extra_instructions=focus,
+        max_concurrency=max_concurrency,
+        on_agent_complete=_report,
+    )
+    result = await (asyncio.wait_for(coro, timeout=timeout) if timeout else coro)
     elapsed = round(time.time() - start, 1)
 
     result["date"] = date.today().isoformat()
@@ -48,20 +70,14 @@ async def _run_deepagents(symbol: str, focus: str, output_dir: Path | None) -> d
 
     print(f"\n{'='*60}")
     print(f"  Research complete in {elapsed}s")
+    if result.get("failures"):
+        print(f"  Failed agents: {', '.join(result['failures'])}")
     print(f"{'='*60}\n")
 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
         out_file = output_dir / f"{symbol}_{date.today().isoformat()}.json"
-        # messages may not be JSON-serialisable directly; store as strings
-        serialisable = {
-            **result,
-            "messages": [
-                m.content if hasattr(m, "content") else str(m)
-                for m in result.get("messages", [])
-            ],
-        }
-        out_file.write_text(json.dumps(serialisable, indent=2, default=str))
+        out_file.write_text(json.dumps(result, indent=2, default=str))
         print(f"Output saved → {out_file}\n")
 
     return result
@@ -182,6 +198,14 @@ def _parse_args() -> argparse.Namespace:
         "--agents", nargs="*",
         help="(Legacy mode only) Subset of agent roles to run",
     )
+    parser.add_argument(
+        "--max-concurrency", type=int, default=6,
+        help="Specialists to run at once (default: 6). Lower this if you hit API rate limits.",
+    )
+    parser.add_argument(
+        "--timeout", type=float, default=None,
+        help="Total wall-clock ceiling in seconds for the whole run (default: none)",
+    )
     return parser.parse_args()
 
 
@@ -192,7 +216,9 @@ async def _main_async(args: argparse.Namespace) -> None:
     if args.legacy:
         result = await _run_legacy(symbol, args.agents, output_dir)
     else:
-        result = await _run_deepagents(symbol, args.focus, output_dir)
+        result = await _run_deepagents(
+            symbol, args.focus, output_dir, args.max_concurrency, args.timeout
+        )
 
     print("\n" + "=" * 70)
     print("INVESTMENT MEMO")
