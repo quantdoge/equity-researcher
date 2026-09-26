@@ -1,0 +1,5 @@
+*.pyc
+*.lock
+**/equity_researcher.egg-info/*
+**/runs/*
+**.env
