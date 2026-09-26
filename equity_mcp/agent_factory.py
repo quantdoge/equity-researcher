@@ -12,7 +12,6 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 from typing import Any
@@ -20,6 +19,7 @@ from typing import Any
 import anthropic
 from fastmcp import Client
 
+from equity_mcp.langchain_bridge import _result_to_text, _tags_of
 from equity_mcp.roles import ALL_ROLES
 from equity_mcp.server import mcp
 
@@ -48,7 +48,7 @@ async def _list_agent_tools(agent_role: str) -> list[dict]:
 
     agent_tools = [
         t for t in all_tools
-        if agent_role in (t.tags or set()) or "shared" in (t.tags or set())
+        if agent_role in _tags_of(t) or "shared" in _tags_of(t)
     ]
 
     return [
@@ -66,17 +66,7 @@ async def _call_mcp_tool(tool_name: str, tool_input: dict) -> str:
     async with Client(mcp) as client:
         result = await client.call_tool(tool_name, tool_input)
 
-    # FastMCP returns a list of content objects
-    parts = []
-    for item in result:
-        if hasattr(item, "text"):
-            parts.append(item.text)
-        elif hasattr(item, "model_dump"):
-            parts.append(json.dumps(item.model_dump(), default=str))
-        else:
-            parts.append(str(item))
-
-    return "\n".join(parts) if parts else "No output"
+    return _result_to_text(result)
 
 
 async def run_agent(

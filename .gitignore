@@ -3,3 +3,10 @@
 **/equity_researcher.egg-info/*
 **/runs/*
 **.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.env
+outputs/

@@ -21,7 +21,7 @@ load_dotenv()
 from fastmcp import FastMCP
 
 from equity_mcp.roles import (
-    ALT_DATA, ESG, FIN_RISK, GEO_LEGAL, GROWTH, HEAD_OF_RESEARCH,
+    ALT_DATA, ESG, FIN_RISK, GEO_LEGAL, GROWTH,
     MACRO, NONFIN_RISK, PORTFOLIO, QUANT, SECTOR, SHARED, SHORT, VALUE,
 )
 
@@ -175,7 +175,9 @@ mcp.tool(tags=QUANT | GROWTH)(calculate_earnings_revision_score)
 mcp.tool(tags=QUANT | PORTFOLIO)(calculate_alpha_beta)
 mcp.tool(tags=QUANT | PORTFOLIO)(calculate_sharpe_sortino)
 mcp.tool(tags=QUANT | PORTFOLIO)(calculate_correlation_matrix)
-mcp.tool(tags=QUANT | HEAD_OF_RESEARCH)(rank_universe_by_factor)
+# NOTE: not exposed to HEAD_OF_RESEARCH — a single call fans out over up to 100
+# symbols x ~7 DB helpers, each opening its own connection (see tools/calculations/quant.py).
+mcp.tool(tags=QUANT)(rank_universe_by_factor)
 
 # =============================================================================
 # FORENSIC / SHORT TOOLS — Short Analyst primary
