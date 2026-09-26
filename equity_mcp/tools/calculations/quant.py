@@ -15,7 +15,6 @@ from equity_mcp.tools.db import (
     get_income_statement,
     get_price_history,
     get_research_universe,
-    get_sector_peers,
 )
 
 
@@ -270,8 +269,14 @@ def rank_universe_by_factor(
     universe defaults to all active symbols if not provided.
     """
     if universe is None:
+        # Each symbol costs 1-3 FMP requests depending on the factor, against a
+        # 90s tool timeout (langchain_bridge._TOOL_TIMEOUT_S). Measured cold at
+        # 40 names, the 3-request factors took ~55s — too close to the ceiling
+        # once eleven agents are competing for the same connection pool, and a
+        # timeout returns nothing at all. get_research_universe is ordered by
+        # market cap, so this is the 25 largest names, not an arbitrary slice.
         rows = get_research_universe()
-        universe = [r["symbol"] for r in rows[:100]]  # cap for performance
+        universe = [r["symbol"] for r in rows[:25]]
 
     factor_fn = {
         "momentum": lambda s: calculate_momentum_score(s).get("momentum_return_pct"),

@@ -24,7 +24,6 @@ def calculate_leverage_ratios(symbol: str) -> dict:
     """
     income = get_income_statement(symbol, "annual", 1)
     balance = get_balance_sheet(symbol, "annual", 1)
-    cf = get_cash_flow(symbol, "annual", 1)
 
     if not income or not balance:
         return {"symbol": symbol, "error": "Insufficient data"}
@@ -37,9 +36,8 @@ def calculate_leverage_ratios(symbol: str) -> dict:
     assets = float(bal["total_assets"] or 0)
     cash = float(bal["cash_and_short_term_investments"] or 0)
     op_income = float(inc["operating_income"] or 0)
-    net_income = float(inc["net_income"] or 0)
     revenue = float(inc["revenue"] or 0)
-    ebitda_approx = op_income  # D&A not stored separately
+    ebitda = float(inc["ebitda"] or 0)
 
     return {
         "symbol": symbol,
@@ -47,16 +45,20 @@ def calculate_leverage_ratios(symbol: str) -> dict:
         "debt_to_equity": round(debt / equity, 2) if equity else None,
         "debt_to_assets": round(debt / assets, 2) if assets else None,
         "net_debt": round(debt - cash, 0),
-        "net_debt_to_ebitda": round((debt - cash) / ebitda_approx, 2) if ebitda_approx else None,
+        "net_debt_to_ebitda": round((debt - cash) / ebitda, 2) if ebitda else None,
+        "interest_coverage": (
+            round(op_income / abs(float(inc["interest_expense"])), 2)
+            if inc["interest_expense"]
+            else None
+        ),
         "operating_margin_pct": round(op_income / revenue * 100, 2) if revenue else None,
     }
 
 
 def calculate_liquidity_ratios(symbol: str) -> dict:
     """
-    Compute current ratio, quick ratio proxy, and cash ratio.
-    Note: current assets/liabilities are not stored separately; this uses
-    total assets / total liabilities as a solvency proxy.
+    Compute current ratio, quick ratio, cash ratio and working capital, plus
+    whole-balance-sheet solvency ratios.
     """
     balance = get_balance_sheet(symbol, "annual", 1)
     if not balance:
@@ -67,10 +69,27 @@ def calculate_liquidity_ratios(symbol: str) -> dict:
     liabilities = float(bal["total_liabilities"] or 0)
     cash = float(bal["cash_and_short_term_investments"] or 0)
     equity = float(bal["total_equity"] or 0)
+    current_assets = float(bal["total_current_assets"] or 0)
+    current_liabilities = float(bal["total_current_liabilities"] or 0)
+    inventory = float(bal["inventory"] or 0)
 
     return {
         "symbol": symbol,
         "period_end": bal["period_end"],
+        "current_ratio": (
+            round(current_assets / current_liabilities, 2)
+            if current_liabilities
+            else None
+        ),
+        "quick_ratio": (
+            round((current_assets - inventory) / current_liabilities, 2)
+            if current_liabilities
+            else None
+        ),
+        "cash_ratio": (
+            round(cash / current_liabilities, 2) if current_liabilities else None
+        ),
+        "working_capital": round(current_assets - current_liabilities, 0),
         "assets_to_liabilities": round(assets / liabilities, 2) if liabilities else None,
         "cash_to_liabilities": round(cash / liabilities, 2) if liabilities else None,
         "equity_to_assets": round(equity / assets, 2) if assets else None,
@@ -83,12 +102,11 @@ def calculate_altman_z_score(symbol: str) -> dict:
     Altman Z-Score (public company version).
     Z > 2.99: safe zone.  1.81–2.99: grey zone.  < 1.81: distress zone.
 
-    Uses approximations where individual current asset/liability line items
-    are unavailable (they are not stored in the current schema).
+    x4 uses book equity rather than market capitalisation, so the score is
+    indicative rather than a literal Altman reading.
     """
     income = get_income_statement(symbol, "annual", 1)
     balance = get_balance_sheet(symbol, "annual", 1)
-    cf = get_cash_flow(symbol, "annual", 1)
 
     if not income or not balance:
         return {"symbol": symbol, "error": "Insufficient data for Z-score"}
@@ -99,19 +117,18 @@ def calculate_altman_z_score(symbol: str) -> dict:
     assets = float(bal["total_assets"] or 1)
     liabilities = float(bal["total_liabilities"] or 0)
     equity = float(bal["total_equity"] or 0)
-    debt = float(bal["total_debt"] or 0)
-    cash = float(bal["cash_and_short_term_investments"] or 0)
-    net_income = float(inc["net_income"] or 0)
     revenue = float(inc["revenue"] or 0)
-    op_income = float(inc["operating_income"] or 0)
-    retained_earnings = equity  # proxy — retained earnings not stored separately
+    # EBIT proper, not operating income standing in for it.
+    ebit = float(inc["ebit"] or inc["operating_income"] or 0)
+    retained_earnings = float(bal["retained_earnings"] or 0)
 
-    # Working capital proxy: cash - (liabilities - debt)  [current portion unknown]
-    working_capital_proxy = cash - max(liabilities - debt, 0)
+    working_capital = float(bal["total_current_assets"] or 0) - float(
+        bal["total_current_liabilities"] or 0
+    )
 
-    x1 = working_capital_proxy / assets               # Working capital / Total assets
+    x1 = working_capital / assets                     # Working capital / Total assets
     x2 = retained_earnings / assets                   # Retained earnings / Total assets
-    x3 = op_income / assets                           # EBIT / Total assets
+    x3 = ebit / assets                                # EBIT / Total assets
     x4 = equity / liabilities if liabilities else 0   # Market value equity / Total liabilities
     x5 = revenue / assets                             # Sales / Total assets
 
@@ -160,6 +177,8 @@ def calculate_piotroski_f_score(symbol: str) -> dict:
     revenue1 = float(inc1["revenue"] or 1)
     gross0 = float(inc0["gross_profit"] or 0)
     gross1 = float(inc1["gross_profit"] or 0)
+    shares0 = float(inc0["weighted_average_shares_diluted"] or 0)
+    shares1 = float(inc1["weighted_average_shares_diluted"] or 0)
 
     roa0 = net_income / assets0
     roa1 = float(inc1["net_income"] or 0) / assets1
@@ -177,7 +196,9 @@ def calculate_piotroski_f_score(symbol: str) -> dict:
         "F4_accruals_quality": int(op_cf / assets0 > roa0),
         "F5_lower_leverage": int(leverage0 < leverage1),
         "F6_positive_equity_change": int(float(bal0["total_equity"] or 0) > float(bal1["total_equity"] or 0)),
-        "F7_no_dilution": 1,  # shares outstanding not stored — assume no dilution
+        # Diluted share count fell or held flat — buybacks score, issuance does not.
+        # Scores 1 when the count is unavailable rather than penalising a gap.
+        "F7_no_dilution": int(shares0 <= shares1 if shares0 and shares1 else 1),
         "F8_gross_margin_improvement": int(gross_margin0 > gross_margin1),
         "F9_asset_turnover_improvement": int(asset_turnover0 > asset_turnover1),
     }
@@ -253,7 +274,7 @@ def calculate_price_volatility(
 
 
 def calculate_fcf_yield(symbol: str) -> dict:
-    """Compute trailing FCF yield = FCF / (price * shares_approx)."""
+    """Compute trailing FCF yield = FCF / market cap."""
     from equity_mcp.tools.calculations.valuation import _latest_price
     income = get_income_statement(symbol, "annual", 1)
     cf = get_cash_flow(symbol, "annual", 1)
@@ -263,9 +284,8 @@ def calculate_fcf_yield(symbol: str) -> dict:
     inc = income[0]
     price = _latest_price(symbol)
     fcf = float(cf[0]["free_cash_flow"] or 0)
-    eps = float(inc["eps_diluted"] or 0)
-    shares_approx = float(inc["net_income"] or 0) / eps if eps else None
-    market_cap = price * shares_approx if price and shares_approx else None
+    shares = float(inc["weighted_average_shares_diluted"] or 0) or None
+    market_cap = price * shares if price and shares else None
     fcf_yield = round(fcf / market_cap * 100, 2) if market_cap and market_cap > 0 else None
 
     return {

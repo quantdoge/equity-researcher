@@ -36,30 +36,44 @@ def calculate_beneish_m_score(symbol: str) -> dict:
     # Current year
     rev1       = f(inc1["revenue"]) or 1
     gp1        = f(inc1["gross_profit"])
-    ar1        = f(bal1["total_assets"]) * 0.08   # proxy: A/R ~ 8% of assets
+    ar1        = f(bal1["net_receivables"])
     assets1    = f(bal1["total_assets"]) or 1
     liab1      = f(bal1["total_liabilities"])
     ni1        = f(inc1["net_income"])
     op_cf1     = f(cf1.get("operating_cash_flow") or 0)
-    capex1     = abs(f(cf1.get("capital_expenditure") or 0))
-    ppe1       = assets1 * 0.30   # proxy: PPE ~ 30% of assets
-    sga1       = rev1 - gp1 - f(inc1["operating_income"])  # rough SG&A proxy
+    ppe1       = f(bal1["ppe_net"])
+    dep1       = f(inc1["depreciation_and_amortization"])
+    sga1       = f(inc1["sga"])
 
     # Prior year
     rev2       = f(inc2["revenue"]) or 1
     gp2        = f(inc2["gross_profit"])
-    ar2        = f(bal2["total_assets"]) * 0.08
+    ar2        = f(bal2["net_receivables"])
     assets2    = f(bal2["total_assets"]) or 1
-    ppe2       = assets2 * 0.30
-    sga2       = rev2 - gp2 - f(inc2["operating_income"])
+    ppe2       = f(bal2["ppe_net"])
+    dep2       = f(inc2["depreciation_and_amortization"])
+    sga2       = f(inc2["sga"])
 
-    # M-score indices
-    dsri  = (ar1 / rev1)  / (ar2 / rev2)                                # Days Sales in Receivables
+    def _dep_rate(dep: float, ppe: float) -> float:
+        """Depreciation rate = D&A / (D&A + net PPE)."""
+        base = dep + ppe
+        return dep / base if base else 0.0
+
+    dep_rate1 = _dep_rate(dep1, ppe1)
+    dep_rate2 = _dep_rate(dep2, ppe2)
+
+    # M-score indices.  AQI is the share of assets that is neither current nor
+    # PPE — i.e. soft/capitalised assets — so it needs real current assets and
+    # real PPE to mean anything.
+    soft1 = 1 - (f(bal1["total_current_assets"]) + ppe1) / assets1
+    soft2 = 1 - (f(bal2["total_current_assets"]) + ppe2) / assets2
+
+    dsri  = (ar1 / rev1)  / (ar2 / rev2) if ar2 and rev2 else 1         # Days Sales in Receivables
     gmi   = (gp2 / rev2)  / (gp1 / rev1) if gp1 > 0 else 1             # Gross Margin
-    aqi   = (1 - (ppe1 + ar1) / assets1) / (1 - (ppe2 + ar2) / assets2) # Asset Quality
+    aqi   = soft1 / soft2 if soft2 else 1                               # Asset Quality
     sgi   = rev1 / rev2                                                   # Sales Growth
-    depi  = (ppe2 / (ppe2 + (assets2 - ppe2))) / (ppe1 / (ppe1 + (assets1 - ppe1))) if ppe1 > 0 else 1  # Depreciation
-    sgai  = (sga1 / rev1) / (sga2 / rev2) if sga2 != 0 and rev2 != 0 else 1  # SG&A
+    depi  = dep_rate2 / dep_rate1 if dep_rate1 else 1                    # Depreciation
+    sgai  = (sga1 / rev1) / (sga2 / rev2) if sga2 and rev2 else 1        # SG&A
     lvgi  = (liab1 / assets1) / (f(bal2["total_liabilities"]) / assets2) if assets2 > 0 else 1  # Leverage
     tata  = (ni1 - op_cf1) / assets1                                     # Total Accruals
 
@@ -94,7 +108,7 @@ def calculate_beneish_m_score(symbol: str) -> dict:
             "sgi": round(sgi, 3), "depi": round(depi, 3), "sgai": round(sgai, 3),
             "lvgi": round(lvgi, 3), "tata": round(tata, 4),
         },
-        "note": "A/R and PPE estimated via proxies; obtain actual line items for precision",
+        "note": "Computed from reported receivables, PPE, D&A and SG&A line items",
     }
 
 
@@ -215,8 +229,6 @@ def calculate_receivables_growth_vs_revenue(symbol: str) -> dict:
     """
     Red flag: receivables growing faster than revenue suggests channel stuffing
     or aggressive revenue recognition.
-    Uses accounts receivable proxy (8% of total assets) since A/R is not
-    stored as a separate column in the current schema.
     """
     income = get_income_statement(symbol, "annual", 4)
     balance = get_balance_sheet(symbol, "annual", 4)
@@ -232,8 +244,8 @@ def calculate_receivables_growth_vs_revenue(symbol: str) -> dict:
 
         rev_curr = float(inc["revenue"] or 0)
         rev_prev = float(income[i + 1]["revenue"] or 0)
-        ar_curr = float(bal_curr.get("total_assets") or 0) * 0.08
-        ar_prev = float(bal_prev.get("total_assets") or 0) * 0.08
+        ar_curr = float(bal_curr.get("net_receivables") or 0)
+        ar_prev = float(bal_prev.get("net_receivables") or 0)
 
         rev_growth = (rev_curr - rev_prev) / rev_prev * 100 if rev_prev else None
         ar_growth = (ar_curr - ar_prev) / ar_prev * 100 if ar_prev else None
@@ -242,14 +254,14 @@ def calculate_receivables_growth_vs_revenue(symbol: str) -> dict:
         rows.append({
             "period_end": pe_curr,
             "revenue_growth_pct": round(rev_growth, 2) if rev_growth else None,
-            "ar_growth_pct_proxy": round(ar_growth, 2) if ar_growth else None,
+            "ar_growth_pct": round(ar_growth, 2) if ar_growth else None,
             "red_flag": flag,
         })
 
     return {
         "symbol": symbol,
         "annual_series": rows,
-        "note": "A/R approximated as 8% of total assets — replace with actual A/R if available",
+        "note": "Computed from reported net receivables",
     }
 
 
@@ -257,36 +269,42 @@ def calculate_inventory_days_trend(symbol: str) -> dict:
     """
     Inventory days = inventory / (COGS / 365).
     Rising inventory days may signal weakening demand.
-    Inventory is proxied as (revenue - gross_profit) * 0.15 since it is not
-    stored as a separate line item.
+
+    Returns nulls for a company that carries no inventory (most software and
+    services businesses) rather than implying a number for it.
     """
     income = get_income_statement(symbol, "annual", 4)
+    balance = get_balance_sheet(symbol, "annual", 4)
+    bal_map = {r["period_end"]: r for r in balance}
 
     rows = []
     for inc in income:
         rev = float(inc["revenue"] or 0)
-        gp = float(inc["gross_profit"] or 0)
-        cogs = rev - gp
-        inventory_proxy = cogs * 0.15
-        inventory_days = round(inventory_proxy / (cogs / 365), 1) if cogs > 0 else None
+        cogs = float(inc["cost_of_revenue"] or 0) or (rev - float(inc["gross_profit"] or 0))
+        bal = bal_map.get(inc["period_end"], {})
+        inventory = float(bal.get("inventory") or 0)
+        inventory_days = (
+            round(inventory / (cogs / 365), 1) if cogs > 0 and inventory else None
+        )
         rows.append({
             "period_end": inc["period_end"],
             "revenue": rev,
-            "cogs_proxy": round(cogs, 0),
-            "inventory_days_proxy": inventory_days,
+            "cogs": round(cogs, 0),
+            "inventory": round(inventory, 0),
+            "inventory_days": inventory_days,
         })
 
     # Signal: is the most recent year higher than 2 years ago?
     signal = "rising" if (
         len(rows) >= 3
-        and rows[0]["inventory_days_proxy"]
-        and rows[2]["inventory_days_proxy"]
-        and rows[0]["inventory_days_proxy"] > rows[2]["inventory_days_proxy"] * 1.1
+        and rows[0]["inventory_days"]
+        and rows[2]["inventory_days"]
+        and rows[0]["inventory_days"] > rows[2]["inventory_days"] * 1.1
     ) else "stable_or_falling"
 
     return {
         "symbol": symbol,
         "trend_signal": signal,
         "annual_series": rows,
-        "note": "Inventory estimated as 15% of COGS — replace with actual inventory if available",
+        "note": "Computed from reported inventory and cost of revenue; null where the company carries no inventory",
     }

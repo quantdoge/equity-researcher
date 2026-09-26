@@ -1,8 +1,13 @@
 """
 Web search and page fetch tools.
 
-Uses Brave Search API when BRAVE_API_KEY is set, falls back to a basic
-DuckDuckGo HTML scrape so the tool remains usable without a paid key.
+Providers are tried in order of how much we trust them: Brave when
+BRAVE_API_KEY is set, then SerpAPI when SERP_API_KEY is set, then a basic
+DuckDuckGo HTML scrape so the tool remains nominally usable without any key.
+
+The DuckDuckGo leg is a genuine last resort, not a supported path — DDG blocks
+and rate-limits the scrape, so it returns nothing or times out as often as not.
+Treat a run with neither key set as having no web search at all.
 """
 
 from __future__ import annotations
@@ -13,8 +18,9 @@ import textwrap
 
 import requests
 
-_TIMEOUT = 15
+_TIMEOUT = 60
 _BRAVE_SEARCH_URL = "https://api.search.brave.com/res/v1/web/search"
+_SERP_SEARCH_URL = "https://serpapi.com/search"
 
 
 def web_search(query: str, n_results: int = 8) -> list[dict]:
@@ -22,9 +28,14 @@ def web_search(query: str, n_results: int = 8) -> list[dict]:
     Search the web for query and return up to n_results results.
     Each result contains: title, url, description.
     """
-    api_key = os.getenv("BRAVE_API_KEY")
-    if api_key:
-        return _brave_search(query, n_results, api_key)
+    brave_key = os.getenv("BRAVE_API_KEY")
+    if brave_key:
+        return _brave_search(query, n_results, brave_key)
+
+    serp_key = os.getenv("SERP_API_KEY")
+    if serp_key:
+        return _serp_search(query, n_results, serp_key)
+
     return _ddg_search(query, n_results)
 
 
@@ -70,6 +81,31 @@ def _brave_search(query: str, n: int, api_key: str) -> list[dict]:
                 "title": item.get("title", ""),
                 "url": item.get("url", ""),
                 "description": item.get("description", ""),
+            }
+        )
+    return results
+
+
+def _serp_search(query: str, n: int, api_key: str) -> list[dict]:
+    params = {
+        "q": query,
+        "api_key": api_key,
+        "engine": "google",
+        "num": min(n, 20),
+    }
+    resp = requests.get(_SERP_SEARCH_URL, params=params, timeout=_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+
+    # SerpAPI reports an exhausted quota or a malformed query as HTTP 200 with
+    # an "error" key and no organic_results, so raise_for_status never sees it.
+    results = []
+    for item in data.get("organic_results", [])[:n]:
+        results.append(
+            {
+                "title": item.get("title", ""),
+                "url": item.get("link", ""),
+                "description": item.get("snippet", ""),
             }
         )
     return results

@@ -10,12 +10,10 @@ from datetime import date, timedelta
 from equity_mcp.tools.db import (
     get_balance_sheet,
     get_cash_flow,
-    get_company_profile,
     get_dividends,
     get_income_statement,
     get_price_history,
     get_sector_peers,
-    get_analyst_estimates,
 )
 
 
@@ -45,25 +43,28 @@ def calculate_valuation_ratios(symbol: str) -> dict:
     cf0 = cf[0] if cf else {}
 
     eps = float(inc["eps_diluted"] or 0)
+    shares = float(inc["weighted_average_shares_diluted"] or 0) or None
     book_value_per_share = (
-        float(bal["total_equity"]) / 1 if bal["total_equity"] else None
+        round(float(bal["total_equity"]) / shares, 2)
+        if bal["total_equity"] and shares
+        else None
     )
 
     pe = round(price / eps, 2) if price and eps else None
-
-    # Approximate EV = market_cap + total_debt - cash
-    # We don't have shares outstanding directly — use net income / EPS as proxy
-    shares_approx = (
-        float(inc["net_income"]) / eps if inc["net_income"] and eps else None
+    pb = (
+        round(price / book_value_per_share, 2)
+        if price and book_value_per_share and book_value_per_share > 0
+        else None
     )
-    market_cap = round(price * shares_approx, 0) if price and shares_approx else None
+
+    # EV = market_cap + total_debt - cash
+    market_cap = round(price * shares, 0) if price and shares else None
     debt = float(bal["total_debt"] or 0)
     cash = float(bal["cash_and_short_term_investments"] or 0)
     ev = market_cap + debt - cash if market_cap else None
 
-    # EBITDA approximation: operating_income (D&A not separately stored)
-    ebitda_approx = float(inc["operating_income"] or 0)
-    ev_ebitda = round(ev / ebitda_approx, 2) if ev and ebitda_approx else None
+    ebitda = float(inc["ebitda"] or 0)
+    ev_ebitda = round(ev / ebitda, 2) if ev and ebitda else None
 
     fcf = float(cf0.get("free_cash_flow") or 0)
     p_fcf = round(market_cap / fcf, 2) if market_cap and fcf else None
@@ -77,9 +78,12 @@ def calculate_valuation_ratios(symbol: str) -> dict:
         "price": price,
         "period_end": inc["period_end"],
         "pe_ratio": pe,
+        "pb_ratio": pb,
         "ev_ebitda": ev_ebitda,
         "price_to_fcf": p_fcf,
         "dividend_yield_pct": div_yield,
+        "book_value_per_share": book_value_per_share,
+        "diluted_shares": shares,
         "market_cap_approx": market_cap,
         "enterprise_value_approx": ev,
     }
@@ -87,8 +91,8 @@ def calculate_valuation_ratios(symbol: str) -> dict:
 
 def calculate_owner_earnings(symbol: str) -> dict:
     """
-    Buffett owner earnings = net income + D&A – maintenance capex.
-    D&A is approximated as (operating_income - net_income) when not available.
+    Buffett owner earnings = net income + D&A – maintenance capex, using reported
+    D&A rather than inferring it from cash flow.
     Returns 4 years of annual owner earnings.
     """
     income = get_income_statement(symbol, "annual", 4)
@@ -100,16 +104,18 @@ def calculate_owner_earnings(symbol: str) -> dict:
         pe = inc["period_end"]
         c = cf_map.get(pe, {})
         net_income = float(inc["net_income"] or 0)
-        op_cf = float(c.get("operating_cash_flow") or 0)
         capex = abs(float(c.get("capital_expenditure") or 0))
-        # D&A proxy: operating CF - net income (rough)
-        da_proxy = op_cf - net_income
-        owner_earnings = net_income + da_proxy - capex
+        da = float(
+            inc["depreciation_and_amortization"]
+            or c.get("depreciation_and_amortization")
+            or 0
+        )
+        owner_earnings = net_income + da - capex
         rows.append(
             {
                 "period_end": pe,
                 "net_income": net_income,
-                "da_proxy": round(da_proxy, 0),
+                "depreciation_amortization": round(da, 0),
                 "capex": round(capex, 0),
                 "owner_earnings": round(owner_earnings, 0),
             }
@@ -275,7 +281,10 @@ def compare_peer_valuations(symbol: str) -> dict:
     peers = get_sector_peers(symbol)
 
     peer_pes = []
-    for peer in peers[:20]:  # cap at 20 peers to avoid long runtime
+    # Each peer costs five FMP requests, against a 90s tool timeout — and
+    # get_sector_peers returns largest-first, so these are the comparables that
+    # matter. Raising this is the first thing that will blow the budget.
+    for peer in peers[:8]:
         try:
             r = calculate_valuation_ratios(peer["symbol"])
             if r.get("pe_ratio"):

@@ -33,7 +33,9 @@ def load_system_prompt(agent_role: str) -> str:
     """Load the system prompt for the given role from prompts/<role>.md."""
     prompt_file = _PROMPTS_DIR / f"{agent_role}.md"
     if prompt_file.exists():
-        return prompt_file.read_text()
+        # Explicit encoding: read_text() otherwise uses the locale's, which
+        # mangles these prompts' em dashes into mojibake on a cp1252 Windows box.
+        return prompt_file.read_text(encoding="utf-8")
     return f"You are the {agent_role.replace('_', ' ').title()} agent in an equity research team."
 
 

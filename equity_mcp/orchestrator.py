@@ -31,20 +31,72 @@ load_dotenv()
 # ── deepagents pipeline (default) ─────────────────────────────────────────────
 
 
+def _resolve_roles(requested: list[str] | None, valid: list[str]) -> list[str] | None:
+    """
+    Map CLI role tokens onto canonical role names, accepting unambiguous prefixes.
+
+    So `--agents macro esg` reaches macro_researcher and esg_analyst.  An
+    unmatched or ambiguous token is fatal: silently dropping it would run a
+    smaller pipeline than asked for, and running zero specialists would look
+    like every agent had failed.
+    """
+    if not requested:
+        return None
+
+    resolved: list[str] = []
+    for token in requested:
+        key = token.lower().replace("-", "_")
+        matches = [r for r in valid if r == key] or [r for r in valid if r.startswith(key)]
+        if not matches:
+            raise SystemExit(
+                f"Unknown agent '{token}'. Valid agents: {', '.join(valid)}"
+            )
+        if len(matches) > 1:
+            raise SystemExit(
+                f"Ambiguous agent '{token}' — matches {', '.join(matches)}"
+            )
+        if matches[0] not in resolved:
+            resolved.append(matches[0])
+
+    return resolved
+
+
 async def _run_deepagents(
     symbol: str,
     focus: str,
     output_dir: Path | None,
     max_concurrency: int,
     timeout: float | None,
+    agents: list[str] | None = None,
+    skip_synthesis: bool = False,
+    runs_dir: Path | None = None,
 ) -> dict:
     from equity_mcp.deep_agent_factory import RESEARCH_ROLES, run_research
+    from equity_mcp.run_log import RunLog
 
-    print(f"\n{'='*60}")
-    print(f"  equity-researcher  [deepagents]")
-    print(f"  Symbol : {symbol}")
-    print(f"  Fan-out: {len(RESEARCH_ROLES)} specialists, {max_concurrency} at a time")
-    print(f"{'='*60}\n")
+    roles = _resolve_roles(agents, RESEARCH_ROLES)
+    n_specialists = len(roles) if roles else len(RESEARCH_ROLES)
+
+    run_log = RunLog(runs_dir or Path("runs"), symbol)
+
+    # flush on every print: stdout is block-buffered the moment it is piped or
+    # redirected, which is exactly when someone is watching a half-hour run and
+    # would otherwise see nothing at all until it ends.
+    print(f"\n{'='*60}", flush=True)
+    print(f"  equity-researcher  [deepagents]", flush=True)
+    print(f"  Symbol : {symbol}", flush=True)
+    print(f"  Fan-out: {n_specialists} specialists, {max_concurrency} at a time", flush=True)
+    if roles:
+        print(f"  Agents : {', '.join(roles)}", flush=True)
+    if skip_synthesis:
+        print(f"  Synth  : skipped (no portfolio brief, no memo)", flush=True)
+    print(f"  Log    : {run_log.dir}", flush=True)
+    print(f"{'='*60}\n", flush=True)
+
+    run_log.event(
+        f"START  symbol={symbol} agents={','.join(roles) if roles else 'all'} "
+        f"concurrency={max_concurrency} skip_synthesis={skip_synthesis} timeout={timeout}"
+    )
 
     start = time.time()
 
@@ -54,31 +106,56 @@ async def _run_deepagents(
         line = f"  [{time.time()-start:6.1f}s] {mark} {name:24s} {r['elapsed_seconds']:>6.1f}s"
         if r.get("error"):
             line += f"  — {r['error'][:100]}"
-        print(line)
+        print(line, flush=True)
+        run_log.report(r)
 
     coro = run_research(
         symbol,
         extra_instructions=focus,
         max_concurrency=max_concurrency,
         on_agent_complete=_report,
+        roles=roles,
+        skip_synthesis=skip_synthesis,
     )
-    result = await (asyncio.wait_for(coro, timeout=timeout) if timeout else coro)
+
+    # The finally is what makes a timeout or a Ctrl-C legible afterwards: the
+    # reports are already on disk by then, and without this the log would simply
+    # stop mid-run with no indication of why.
+    try:
+        result = await (asyncio.wait_for(coro, timeout=timeout) if timeout else coro)
+    except asyncio.TimeoutError:
+        run_log.event(f"ABORT  timed out after {timeout}s")
+        raise
+    except BaseException as exc:
+        run_log.event(f"ABORT  {type(exc).__name__}: {exc}")
+        raise
+
     elapsed = round(time.time() - start, 1)
 
     result["date"] = date.today().isoformat()
     result["elapsed_seconds"] = elapsed
+    result["run_id"] = run_log.name
 
-    print(f"\n{'='*60}")
-    print(f"  Research complete in {elapsed}s")
+    run_log.event(
+        f"END    elapsed={elapsed}s failures={','.join(result.get('failures') or []) or 'none'}"
+    )
+    run_log.finish(result)
+
+    print(f"\n{'='*60}", flush=True)
+    print(f"  Research complete in {elapsed}s", flush=True)
     if result.get("failures"):
-        print(f"  Failed agents: {', '.join(result['failures'])}")
-    print(f"{'='*60}\n")
+        print(f"  Failed agents: {', '.join(result['failures'])}", flush=True)
+    print(f"  Run log: {run_log.dir}", flush=True)
+    print(f"{'='*60}\n", flush=True)
 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
-        out_file = output_dir / f"{symbol}_{date.today().isoformat()}.json"
-        out_file.write_text(json.dumps(result, indent=2, default=str))
-        print(f"Output saved → {out_file}\n")
+        # Timestamped, not date-only: two runs of the same ticker on one day
+        # used to overwrite each other's JSON.  Sharing the run's stamp also
+        # ties this file to its run directory.
+        out_file = output_dir / f"{symbol}_{run_log.stamp}.json"
+        out_file.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
+        print(f"Output saved → {out_file}\n", flush=True)
 
     return result
 
@@ -167,7 +244,7 @@ async def _run_legacy(symbol: str, agents: list[str] | None, output_dir: Path | 
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
         out_file = output_dir / f"{symbol}_{date.today().isoformat()}_legacy.json"
-        out_file.write_text(json.dumps(output, indent=2, default=str))
+        out_file.write_text(json.dumps(output, indent=2, default=str), encoding="utf-8")
         print(f"\nOutput saved → {out_file}")
 
     return output
@@ -191,12 +268,20 @@ def _parse_args() -> argparse.Namespace:
         help="Directory to save JSON output (default: outputs/)",
     )
     parser.add_argument(
+        "--runs-dir", default="runs",
+        help="Directory for per-run logs and incremental agent reports (default: runs/)",
+    )
+    parser.add_argument(
         "--legacy", action="store_true",
         help="Use the legacy Anthropic-SDK pipeline instead of deepagents",
     )
     parser.add_argument(
         "--agents", nargs="*",
-        help="(Legacy mode only) Subset of agent roles to run",
+        help="Subset of agent roles to run; unambiguous prefixes accepted (e.g. macro esg)",
+    )
+    parser.add_argument(
+        "--skip-synthesis", action="store_true",
+        help="Stop after the specialists — no portfolio brief, no memo. For smoke tests.",
     )
     parser.add_argument(
         "--max-concurrency", type=int, default=6,
@@ -217,8 +302,20 @@ async def _main_async(args: argparse.Namespace) -> None:
         result = await _run_legacy(symbol, args.agents, output_dir)
     else:
         result = await _run_deepagents(
-            symbol, args.focus, output_dir, args.max_concurrency, args.timeout
+            symbol, args.focus, output_dir, args.max_concurrency, args.timeout,
+            agents=args.agents, skip_synthesis=args.skip_synthesis,
+            runs_dir=Path(args.runs_dir),
         )
+
+    if result.get("skipped_synthesis"):
+        # Nothing was synthesised, so print the specialist reports instead —
+        # otherwise a --skip-synthesis run ends with an empty banner.
+        for r in result["agent_results"]:
+            print("\n" + "=" * 70)
+            print(r["agent_role"].replace("_", " ").upper())
+            print("=" * 70)
+            print(r["output"] or f"_Unavailable: {r['error']}_")
+        return
 
     print("\n" + "=" * 70)
     print("INVESTMENT MEMO")
