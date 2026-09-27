@@ -61,7 +61,7 @@ _SPECIALIST_RECURSION_LIMIT = 30
 _MASTER_RECURSION_LIMIT     = 15
 
 # Per-agent wall-clock ceiling.  A hung specialist used to hang the whole CLI.
-_AGENT_TIMEOUT_S = 900.0
+_AGENT_TIMEOUT_S = 750.0
 
 # Concurrent specialists.  Nothing in this repo retries or backs off, and the
 # tools hit rate-limited third parties (SEC EDGAR allows 10 req/s), so an
