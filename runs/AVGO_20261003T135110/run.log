@@ -1,0 +1,15 @@
+2026-10-03T13:51:10  START  symbol=AVGO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-03T13:51:39  DONE   sector_researcher  28.6s
+2026-10-03T13:51:56  DONE   growth_researcher  45.9s
+2026-10-03T13:52:21  DONE   fin_risk_analyst  70.9s
+2026-10-03T13:52:29  DONE   quant_analyst  32.9s
+2026-10-03T13:52:36  DONE   value_researcher  86.2s
+2026-10-03T13:53:22  DONE   macro_researcher  131.5s
+2026-10-03T13:55:06  DONE   geo_legal_researcher  235.7s
+2026-10-03T13:55:14  DONE   esg_analyst  165.3s
+2026-10-03T13:55:37  DONE   nonfin_risk_analyst  238.8s
+2026-10-03T13:56:33  DONE   alt_data_analyst  237.3s
+2026-10-03T13:57:10  DONE   short_analyst  289.5s
+2026-10-03T13:59:40  DONE   portfolio_strategist  149.9s
+2026-10-03T14:01:37  DONE   head_of_research  116.4s
+2026-10-03T14:01:37  END    elapsed=626.7s failures=none
