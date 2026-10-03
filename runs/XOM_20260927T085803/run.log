@@ -1,0 +1,15 @@
+2026-09-27T08:58:03  START  symbol=XOM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-09-27T09:01:26  DONE   macro_researcher  203.7s
+2026-09-27T09:01:30  DONE   geo_legal_researcher  207.2s
+2026-09-27T09:01:52  DONE   value_researcher  229.4s
+2026-09-27T09:02:39  DONE   sector_researcher  276.3s
+2026-09-27T09:03:46  DONE   fin_risk_analyst  343.5s
+2026-09-27T09:03:54  DONE   nonfin_risk_analyst  147.4s
+2026-09-27T09:04:51  DONE   short_analyst  179.3s
+2026-09-27T09:06:22  DONE   alt_data_analyst  155.9s
+2026-09-27T09:08:59  DONE   growth_researcher  656.3s
+2026-09-27T09:10:27  DONE   quant_analyst  537.6s
+2026-09-27T09:11:49  DONE   esg_analyst  549.9s
+2026-09-27T09:20:47  DONE   portfolio_strategist  538.1s
+2026-09-27T09:25:23  DONE   head_of_research  276.3s
+2026-09-27T09:25:23  END    elapsed=1640.7s failures=none

@@ -1,0 +1,51 @@
+{
+  "symbol": "AAPL",
+  "investment_memo": "",
+  "portfolio_brief": "",
+  "agent_results": [
+    {
+      "agent_role": "value_researcher",
+      "symbol": "AAPL",
+      "output": "",
+      "elapsed_seconds": 604.9,
+      "error": "ReadTimeout: "
+    },
+    {
+      "agent_role": "fin_risk_analyst",
+      "symbol": "AAPL",
+      "output": "",
+      "elapsed_seconds": 604.8,
+      "error": "ReadTimeout: "
+    },
+    {
+      "agent_role": "quant_analyst",
+      "symbol": "AAPL",
+      "output": "",
+      "elapsed_seconds": 604.8,
+      "error": "ReadTimeout: "
+    },
+    {
+      "agent_role": "short_analyst",
+      "symbol": "AAPL",
+      "output": "",
+      "elapsed_seconds": 604.8,
+      "error": "ReadTimeout: "
+    }
+  ],
+  "per_agent_timings": {
+    "value_researcher": 604.9,
+    "fin_risk_analyst": 604.8,
+    "quant_analyst": 604.8,
+    "short_analyst": 604.8
+  },
+  "failures": [
+    "value_researcher",
+    "fin_risk_analyst",
+    "quant_analyst",
+    "short_analyst"
+  ],
+  "skipped_synthesis": true,
+  "date": "2026-09-26",
+  "elapsed_seconds": 604.9,
+  "run_id": "AAPL_20260926T222057"
+}

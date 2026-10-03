@@ -1,0 +1,398 @@
+{
+ "preCOVID_income": {
+  "2018": {
+   "revenue": 1749293000,
+   "ebitda": 407925000,
+   "netIncome": 40888000,
+   "epsDiluted": 0.21
+  },
+  "2019": {
+   "revenue": 1900371000,
+   "ebitda": 388747000,
+   "netIncome": 30025000,
+   "epsDiluted": 0.16
+  }
+ },
+ "annual_series": {
+  "2020": {
+   "revenue": 948379000,
+   "grossMargin": 0.30402718744299484,
+   "ebitdaMargin": -0.11771981454671603,
+   "ebitMargin": -0.3788949354635647,
+   "netMargin": -0.379797528203387,
+   "epsDiluted": -1.88,
+   "ocf": -95981000,
+   "capex": -265617000,
+   "fcf": -361598000,
+   "fcfMargin": -0.3812800578671607,
+   "ocfMargin": -0.10120531981412495,
+   "ocfToNI": 0.26647177061122956,
+   "totalDebt": 4062037000,
+   "netDebt": 4028842000,
+   "equity": 1481413000,
+   "totalAssets": 6017558000,
+   "netDebtToEbitda": null,
+   "interestCoverage": -2.7986977584622332,
+   "sharesDil": 191478758,
+   "revPerShare": 4.952920156292219
+  },
+  "2021": {
+   "revenue": 1318053000,
+   "grossMargin": 0.35958720931555865,
+   "ebitdaMargin": -0.19731604116071205,
+   "ebitMargin": -0.3757034049465386,
+   "netMargin": -0.43956426638382523,
+   "epsDiluted": -3,
+   "ocf": -20029000,
+   "capex": -328909000,
+   "fcf": -348938000,
+   "fcfMargin": -0.2647374574467036,
+   "ocfMargin": -0.01519589879921369,
+   "ocfToNI": 0.03457036879777827,
+   "totalDebt": 3756818000,
+   "netDebt": 3725181000,
+   "equity": 2091392000,
+   "totalAssets": 6256675000,
+   "netDebtToEbitda": null,
+   "interestCoverage": -2.205620089436833,
+   "sharesDil": 193060000,
+   "revPerShare": 6.82716771987983,
+   "accrualsRatio": -0.09114052177435446,
+   "roeAvgEquity": -0.32432164643746303,
+   "roaAvgAssets": -0.09440410655394924,
+   "assetTurnover": 0.21476747263963458
+  },
+  "2022": {
+   "revenue": 1822557000,
+   "grossMargin": 0.41389597142915147,
+   "ebitdaMargin": 0.18644245420033503,
+   "ebitMargin": 0.060859001940680044,
+   "netMargin": -0.0009837826745610699,
+   "epsDiluted": -0.0093,
+   "ocf": 200969000,
+   "capex": -591178000,
+   "fcf": -390209000,
+   "fcfMargin": -0.21409975106402707,
+   "ocfMargin": 0.1102676075425899,
+   "ocfToNI": -112.08533184606804,
+   "totalDebt": 4035238000,
+   "netDebt": 4009729000,
+   "equity": 2124261000,
+   "totalAssets": 6625363000,
+   "netDebtToEbitda": 11.800192465023748,
+   "interestCoverage": 0.9769414375930313,
+   "sharesDil": 193570000,
+   "revPerShare": 9.415493103270135,
+   "accrualsRatio": -0.03147980156555973,
+   "roeAvgEquity": -0.0008506392722550931,
+   "roaAvgAssets": -0.00027837210230244623,
+   "assetTurnover": 0.2829609724796651
+  },
+  "2023": {
+   "revenue": 2216593000,
+   "grossMargin": 0.465679987259727,
+   "ebitdaMargin": 0.21202990355017814,
+   "ebitMargin": 0.10177195362432345,
+   "netMargin": 0.03431527574074266,
+   "epsDiluted": 0.37,
+   "ocf": 463004000,
+   "capex": -693902000,
+   "fcf": -230898000,
+   "fcfMargin": -0.10416797310106095,
+   "ocfMargin": 0.20888092671951955,
+   "ocfToNI": 6.087111999263768,
+   "totalDebt": 4260502000,
+   "netDebt": 4230536000,
+   "equity": 2254112000,
+   "totalAssets": 7032141000,
+   "netDebtToEbitda": 9.001446857765371,
+   "interestCoverage": 1.7247108114100476,
+   "sharesDil": 204005000,
+   "revPerShare": 10.865385652312444,
+   "accrualsRatio": -0.05666350161786517,
+   "roeAvgEquity": 0.03474486984092036,
+   "roaAvgAssets": 0.011138638509642758,
+   "assetTurnover": 0.32459708596827064
+  },
+  "2024": {
+   "revenue": 2620995000,
+   "grossMargin": 0.4687433589152211,
+   "ebitdaMargin": 0.24095582021331594,
+   "ebitMargin": 0.1361555439823426,
+   "netMargin": 0.05961094927689675,
+   "epsDiluted": 0.74,
+   "ocf": 575117000,
+   "capex": -524535000,
+   "fcf": 50582000,
+   "fcfMargin": 0.01929877775424982,
+   "ocfMargin": 0.2194269733440926,
+   "ocfToNI": 3.6809843830005122,
+   "totalDebt": 3987297000,
+   "netDebt": 3976418000,
+   "equity": 2610350000,
+   "totalAssets": 7152537000,
+   "netDebtToEbitda": 6.296343564343894,
+   "interestCoverage": 2.4096897261892702,
+   "sharesDil": 211164000,
+   "revPerShare": 12.412129908507131,
+   "accrualsRatio": -0.059060487661404794,
+   "roeAvgEquity": 0.06423731956380788,
+   "roaAvgAssets": 0.022029403839833376,
+   "assetTurnover": 0.3695529782205842
+  },
+  "2025": {
+   "revenue": 2995255000,
+   "grossMargin": 0.47630134996853357,
+   "ebitdaMargin": 0.26369975177405597,
+   "ebitMargin": 0.16476159792738848,
+   "netMargin": 0.12475431974906978,
+   "epsDiluted": 1.66,
+   "ocf": 870525000,
+   "capex": -891483000,
+   "fcf": -20958000,
+   "fcfMargin": -0.006997067027682117,
+   "ocfMargin": 0.29063468719691643,
+   "ocfToNI": 2.329656301934054,
+   "totalDebt": 6749361000,
+   "netDebt": 6517192000,
+   "equity": 3126211000,
+   "totalAssets": 8789624000,
+   "netDebtToEbitda": 8.251197698797743,
+   "interestCoverage": null,
+   "sharesDil": 225495000,
+   "revPerShare": 13.28302179649216,
+   "accrualsRatio": -0.06233207656101328,
+   "roeAvgEquity": 0.13027700742657491,
+   "roaAvgAssets": 0.04687833725929628,
+   "assetTurnover": 0.37576524286763885
+  }
+ },
+ "cagrs": {
+  "rev_2019_2025_6y": 0.07877920918497017,
+  "rev_2021_2025_4y": 0.22779322320308282,
+  "ebitda_2022_2025_3y": 0.32466439727851326,
+  "ni_2023_2025_2y": 1.216450169707859,
+  "revPerShare_2021_2025_4y": 0.1810385629199902
+ },
+ "growth_crosscheck": {
+  "2021": {
+   "myRevGrowth": 0.38979564077230733,
+   "fmpRevGrowth": 0.3897956407723073,
+   "match": true
+  },
+  "2022": {
+   "myRevGrowth": 0.3827645777521844,
+   "fmpRevGrowth": 0.3827645777521845,
+   "match": true
+  },
+  "2023": {
+   "myRevGrowth": 0.2161995482171477,
+   "fmpRevGrowth": 0.21619954821714768,
+   "match": true
+  },
+  "2024": {
+   "myRevGrowth": 0.18244305562635987,
+   "fmpRevGrowth": 0.1824430556263599,
+   "match": true
+  },
+  "2025": {
+   "myRevGrowth": 0.14279309956714914,
+   "fmpRevGrowth": 0.1427930995671491,
+   "match": true
+  }
+ },
+ "margin_crosscheck": {
+  "2020": {
+   "myGross": 0.30402718744299484,
+   "fmpGross": 0.30402718744299484,
+   "myEbitda": -0.11771981454671603,
+   "fmpEbitda": -0.11771981454671603,
+   "myNet": -0.379797528203387,
+   "fmpNet": -0.379797528203387
+  },
+  "2021": {
+   "myGross": 0.35958720931555865,
+   "fmpGross": 0.35958720931555865,
+   "myEbitda": -0.19731604116071205,
+   "fmpEbitda": -0.19731604116071205,
+   "myNet": -0.43956426638382523,
+   "fmpNet": -0.43956426638382523
+  },
+  "2022": {
+   "myGross": 0.41389597142915147,
+   "fmpGross": 0.41389597142915147,
+   "myEbitda": 0.18644245420033503,
+   "fmpEbitda": 0.18644245420033503,
+   "myNet": -0.0009837826745610699,
+   "fmpNet": -0.0009837826745610699
+  },
+  "2023": {
+   "myGross": 0.465679987259727,
+   "fmpGross": 0.465679987259727,
+   "myEbitda": 0.21202990355017814,
+   "fmpEbitda": 0.21202990355017814,
+   "myNet": 0.03431527574074266,
+   "fmpNet": 0.03431527574074266
+  },
+  "2024": {
+   "myGross": 0.4687433589152211,
+   "fmpGross": 0.4687433589152211,
+   "myEbitda": 0.24095582021331594,
+   "fmpEbitda": 0.24095582021331594,
+   "myNet": 0.05961094927689675,
+   "fmpNet": 0.05961094927689675
+  },
+  "2025": {
+   "myGross": 0.47630134996853357,
+   "fmpGross": 0.47630134996853357,
+   "myEbitda": 0.26369975177405597,
+   "fmpEbitda": 0.26369975177405597,
+   "myNet": 0.12475431974906978,
+   "fmpNet": 0.12475431974906978
+  }
+ },
+ "identity_checks": {
+  "2020": {
+   "assets_eq_liab_equity": true,
+   "totalDebt_components": 4010989000
+  },
+  "2021": {
+   "assets_eq_liab_equity": true,
+   "totalDebt_components": 3709129000
+  },
+  "2022": {
+   "assets_eq_liab_equity": true,
+   "totalDebt_components": 3983346000
+  },
+  "2023": {
+   "assets_eq_liab_equity": true,
+   "totalDebt_components": 4201738000
+  },
+  "2024": {
+   "assets_eq_liab_equity": true,
+   "totalDebt_components": 3916835000
+  },
+  "2025": {
+   "assets_eq_liab_equity": true,
+   "totalDebt_components": 6749361000
+  }
+ },
+ "fy25_debt_reconciliation_flags": {
+  "ltDebt_2024": 1513157000,
+  "ltDebt_2025": 4041452000,
+  "ltDebt_change": 2528295000,
+  "otherNonCurrLiab_2024": 42578000,
+  "otherNonCurrLiab_2025": -2535928000,
+  "cf_netDebtIssuance_2025": -20408000,
+  "interestExpense_2024": 148095000,
+  "interestExpense_2025": 0
+ },
+ "valuation": {
+  "asOf": "2026-08-21 close",
+  "price": 45.11,
+  "marketCap": 10080367843.0,
+  "pe_diluted_FY25": 27.174698795180724,
+  "ps_FY25": 3.3654456275008306,
+  "pb_FY25": 3.224468163857142,
+  "pocf_FY25": 11.579641989603974,
+  "ev_FY25debt": 16597559843.0,
+  "evEbitda_FY25": 21.013612546971064,
+  "evEbitda_sensitivity_debtPerCFstmt": 17.786785359967993,
+  "netDebtEbitda_reported": 8.251197698797743,
+  "netDebtEbitda_sensitivity": 5.024370511794674,
+  "fmp_FYend_multiples_123125": {
+   "price": 26.58,
+   "pe": 15.543859649122806,
+   "ps": 1.9348148922211965,
+   "pb": 1.8537661021600909,
+   "evEbitda": 15.588386600966261
+  },
+  "price_change_since_FY25_end": 0.697140707298721
+ },
+ "dupont_FY25": {
+  "netMargin": 0.12475431974906978,
+  "assetTurnover_avg": 0.37576524286763885,
+  "equityMultiplier_avg": 2.7790449713687346,
+  "roe_avg_equity": 0.13027700742657491,
+  "roe_ending_equity_FMP": 0.1195284003542947
+ },
+ "price_analytics": {
+  "first_close_2021_10_07": 17.75,
+  "last_close": 45.11,
+  "n_days": 1223,
+  "return_since_ipo": 1.5414084507042252,
+  "cagr_since_ipo": 0.21106272862971176,
+  "ret_1m": 0.07584068685905088,
+  "ret_3m": 0.3690440060698026,
+  "ret_6m": 0.5582037996545768,
+  "ret_1y": 0.6070537940862131,
+  "ytd_2026": 0.697140707298721,
+  "ann_vol_full": 0.46961366497746637,
+  "ann_vol_trailing1y": 0.3661658399874683,
+  "daily_ret_mean": 0.0007632720421431098,
+  "daily_ret_std": 0.02958288023352331,
+  "skew": 0.00032110843848438077,
+  "excess_kurtosis": 3.385308157692095,
+  "up_day_fraction": 0.5122749590834698,
+  "best_day": 0.16885886782713694,
+  "worst_day": -0.1654025566246934,
+  "max_drawdown_close": -0.5835591689250226,
+  "max_dd_date": "2022-11-04",
+  "sma50": 41.755,
+  "sma200": 31.50465,
+  "price_vs_sma50_pct": 0.08034965872350619,
+  "price_vs_sma200_pct": 0.43185212341670187,
+  "rsi14_wilder_computed": 59.59888278936477,
+  "hi_52w_close": 45.7,
+  "lo_52w_close": 24.59,
+  "pct_below_52w_high_close": -0.012910284463895083,
+  "avg_vol_30d": 2903746.466666667,
+  "avg_vol_full": 1401614.367130008,
+  "quote_check_priceAvg50": 41.755,
+  "quote_check_priceAvg200": 31.50465,
+  "quote_52w_high_low": [
+   47.235,
+   24.14
+  ],
+  "beta_profile": 1.498,
+  "fyend_close_crosscheck": {
+   "2021": {
+    "ev_file_price": 17.21,
+    "chart_close_nearest": 17.21,
+    "nearest_date": "2021-12-31"
+   },
+   "2022": {
+    "ev_file_price": 11.96,
+    "chart_close_nearest": 11.96,
+    "nearest_date": "2022-12-30"
+   },
+   "2023": {
+    "ev_file_price": 15.08,
+    "chart_close_nearest": 15.08,
+    "nearest_date": "2023-12-29"
+   },
+   "2024": {
+    "ev_file_price": 22.12,
+    "chart_close_nearest": 22.12,
+    "nearest_date": "2024-12-31"
+   },
+   "2025": {
+    "ev_file_price": 26.58,
+    "chart_close_nearest": 26.58,
+    "nearest_date": "2025-12-31"
+   }
+  }
+ },
+ "scores": {
+  "altmanZ": 1.8117242555523103,
+  "piotroskiF": 7,
+  "note": "financial-scores row carries revenue 3,182.4M and totalAssets 8,358.2M - both differ from FY2025 annuals (2,995.3M / 8,789.6M), consistent with a TTM/latest-quarter basis (~mid-2026); quarterly statements unavailable to verify (fmp_call limit)."
+ },
+ "macro_context": {
+  "treasury_asof": "2026-05-26",
+  "ust3m": 3.68,
+  "ust10y": 4.5,
+  "earnings_yield_FY25_at_current_price": 0.03679893593438262,
+  "earnings_yield_FY25_at_FYend_price": 0.06447868488641306
+ }
+}

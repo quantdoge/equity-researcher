@@ -1,0 +1,19 @@
+{
+  "symbol": "CMG",
+  "latest_date": "2025-05-30",
+  "realized_vol_30d": 0.304235,
+  "realized_vol_90d": 0.364692,
+  "realized_vol_1yr": 0.33194,
+  "max_drawdown_52wk": -0.329249,
+  "momentum_12mo_minus_1mo": -0.158045,
+  "sharpe_ratio": 0.187997,
+  "annualized_return": 0.092897,
+  "annualized_vol_full": 0.290948,
+  "risk_free_3m_treasury": 0.0382,
+  "cmg_spy_correlation": 0.479172,
+  "cmg_beta_spy": 0.846362,
+  "price_data_start": "2023-06-01",
+  "price_data_end": "2025-05-30",
+  "n_observations": 501,
+  "trading_days_overlap_with_spy": 500
+}

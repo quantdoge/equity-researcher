@@ -1,0 +1,15 @@
+2026-09-26T23:52:24  START  symbol=JPM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-09-26T23:53:58  DONE   sector_researcher  94.7s
+2026-09-26T23:54:24  DONE   fin_risk_analyst  120.4s
+2026-09-26T23:56:04  DONE   macro_researcher  220.1s
+2026-09-26T23:56:29  DONE   quant_analyst  124.8s
+2026-09-26T23:57:45  DONE   growth_researcher  321.0s
+2026-09-26T23:58:29  DONE   geo_legal_researcher  364.9s
+2026-09-26T23:59:05  DONE   nonfin_risk_analyst  306.9s
+2026-09-26T23:59:28  DONE   alt_data_analyst  103.4s
+2026-09-27T00:00:36  DONE   short_analyst  272.1s
+2026-09-27T00:01:28  DONE   esg_analyst  298.8s
+2026-09-27T00:02:24  FAIL   value_researcher  600.5s  TimeoutError: 
+2026-09-27T00:05:18  DONE   portfolio_strategist  174.2s
+2026-09-27T00:07:37  DONE   head_of_research  138.8s
+2026-09-27T00:07:37  END    elapsed=913.4s failures=value_researcher

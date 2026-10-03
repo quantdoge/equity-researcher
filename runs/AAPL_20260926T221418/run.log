@@ -1,0 +1,2 @@
+2026-09-26T22:14:18  START  symbol=AAPL agents=value_researcher,fin_risk_analyst,quant_analyst,short_analyst concurrency=4 skip_synthesis=True timeout=780.0
+2026-09-26T22:20:10  ABORT  UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 12: character maps to <undefined>

@@ -1,0 +1,24 @@
+{
+  "symbol": "CMG",
+  "altman_z_score": 6.379039473618883,
+  "altman_z_status": "Safe Zone",
+  "piotroski_f_score": 7,
+  "piotroski_f_status": "Strong",
+  "rsi_latest": 62.47224470730974,
+  "sma_latest": 32.800000000000004,
+  "std_dev_latest": 1.709843560095485,
+  "value_score": 90.0,
+  "quality_score": 48.89,
+  "momentum_score": 34.2,
+  "risk_score": 27.26,
+  "composite_score": 50.09,
+  "peer_set": [
+    "CMG",
+    "MCD",
+    "YUM",
+    "QSR",
+    "DRI",
+    "SBUX"
+  ],
+  "note": "WING excluded due to data unavailability. Revenue growth unavailable for cross-sectional comparison."
+}

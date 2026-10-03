@@ -1,0 +1,1 @@
+[{"status": "not_found", "endpoint": "cashflow-statement", "provided": "symbol=\"LIME\"", "message": "No data returned for cashflow-statement with symbol=\"LIME\". The identifier may not exist, or may have no data for this endpoint. Use the 'search' tool to verify the symbol/cik/name."}]

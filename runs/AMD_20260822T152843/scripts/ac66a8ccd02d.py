@@ -1,0 +1,1 @@
+exec(open("scripts/amd_forensic_quant_metrics.py").read())

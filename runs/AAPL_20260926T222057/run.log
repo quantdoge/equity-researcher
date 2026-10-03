@@ -1,0 +1,6 @@
+2026-09-26T22:20:57  START  symbol=AAPL agents=value_researcher,fin_risk_analyst,quant_analyst,short_analyst concurrency=4 skip_synthesis=True timeout=780.0
+2026-09-26T22:31:01  FAIL   fin_risk_analyst  604.8s  ReadTimeout: 
+2026-09-26T22:31:01  FAIL   quant_analyst  604.8s  ReadTimeout: 
+2026-09-26T22:31:01  FAIL   short_analyst  604.8s  ReadTimeout: 
+2026-09-26T22:31:01  FAIL   value_researcher  604.9s  ReadTimeout: 
+2026-09-26T22:31:01  END    elapsed=604.9s failures=value_researcher,fin_risk_analyst,quant_analyst,short_analyst

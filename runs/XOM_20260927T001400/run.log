@@ -1,0 +1,9 @@
+2026-09-27T00:14:00  START  symbol=XOM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-09-27T00:15:41  DONE   geo_legal_researcher  100.5s
+2026-09-27T00:25:57  FAIL   growth_researcher  716.9s  ReadTimeout: 
+2026-09-27T00:25:57  FAIL   nonfin_risk_analyst  616.5s  ReadTimeout: 
+2026-09-27T00:25:57  FAIL   fin_risk_analyst  717.2s  ReadTimeout: 
+2026-09-27T00:25:57  FAIL   value_researcher  717.3s  ReadTimeout: 
+2026-09-27T00:25:57  FAIL   macro_researcher  717.3s  ReadTimeout: 
+2026-09-27T00:25:57  FAIL   sector_researcher  717.3s  ReadTimeout: 
+2026-09-27T00:26:18  ABORT  CancelledError: 

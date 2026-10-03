@@ -1,0 +1,622 @@
+[00:00] ==============================================================
+[00:00]   equity-researcher  [deepagents]
+[00:00]   Symbol    : CMG
+[00:00]   Session   : CMG_20260823T161415
+[00:00]   Workspace : C:\Users\jason\EQResearch Agent\equity-researcher\runs\CMG_20260823T161415
+[00:00]   State DB  : C:\Users\jason\EQResearch Agent\equity-researcher\runs\sessions.sqlite
+[00:00]   Resume    : python -m equity_mcp.orchestrator --last CMG_20260823T161415
+[00:00] ==============================================================
+[00:25]   🔧 write_todos  
+[01:15] → delegate  macro_researcher
+[01:15] → delegate  sector_researcher
+[01:15] → delegate  geo_legal_researcher
+[01:15] → delegate  value_researcher
+[01:15] → delegate  growth_researcher
+[01:15] → delegate  quant_analyst
+[01:15] → delegate  short_analyst
+[01:15] → delegate  esg_analyst
+[01:15] → delegate  fin_risk_analyst
+[01:15] → delegate  nonfin_risk_analyst
+[01:15] → delegate  alt_data_analyst
+[01:15]   ▶ macro_researcher
+[01:15]   ▶ sector_researcher
+[01:15]   ▶ geo_legal_researcher
+[01:15]   ▶ value_researcher
+[01:15]   ▶ growth_researcher
+[01:15]   ▶ quant_analyst
+[01:15]   ▶ short_analyst
+[01:15]   ▶ esg_analyst
+[01:15]   ▶ fin_risk_analyst
+[01:15]   ▶ nonfin_risk_analyst
+[01:15]   ▶ alt_data_analyst
+[01:18]     🔧 fmp_catalog  
+[01:18]     🔧 fmp_catalog  analyst
+[01:18]     🔧 fmp_catalog  
+[01:18]     🔧 fmp_catalog  company
+[01:18]     🔧 fmp_catalog  
+[01:18]     🔧 fmp_catalog  statements
+[01:18]     🔧 fmp_catalog  company
+[01:18]     🔧 fmp_catalog  discountedCashFlow
+[01:19]     🔧 write_todos  
+[01:19]     🔧 fmp_catalog  
+[01:19]     🔧 write_todos  
+[01:19]     🔧 fmp_catalog  
+[01:20]     🔧 fmp_catalog  
+[01:20]     🔧 fmp_catalog  chart
+[01:20]     🔧 fmp_catalog  technicalIndicators
+[01:20]     🔧 fmp_catalog  statements
+[01:20]     🔧 write_todos  
+[01:20]     🔧 fmp_catalog  
+[01:20]     🔧 write_todos  
+[01:20]     🔧 write_todos  
+[01:20]     🔧 web_search  "Chipotle CMG lawsuit 2024 2025 class action labor settlement"
+[01:20]     🔧 web_search  "Chipotle NLRB union election workers 2024 2025"
+[01:20]     🔧 web_search  "Chipotle avocado supply chain Mexico tariffs 2025"
+[01:21]     🔧 write_todos  
+[01:21]     🔧 fmp_catalog  
+[01:21]     🔧 fmp_catalog  
+[01:22]     🔧 fmp_catalog  economics
+[01:23]     🔧 fmp_catalog  statements
+[01:23]     🔧 fmp_call  company/peers  symbol=CMG
+[01:23]     🔧 fmp_catalog  statements
+[01:23]     🔧 fmp_catalog  company
+[01:23]     🔧 fmp_catalog  insiderTrades
+[01:23]     🔧 fmp_catalog  company
+[01:23]     🔧 fmp_catalog  secFilings
+[01:23]     🔧 fmp_catalog  news
+[01:23]     🔧 fmp_catalog  statements
+[01:23]     🔧 fmp_catalog  technicalIndicators
+[01:23]     🔧 fmp_catalog  statements
+[01:23]     🔧 fmp_catalog  company
+[01:23]     🔧 fmp_catalog  news
+[01:23]     🔧 fmp_catalog  calendar
+[01:24]     🔧 fmp_call  company/profile  symbol=CMG
+[01:24]     🔧 fmp_call  news/stock-news  symbols=['CMG'] limit=30
+[01:24]     🔧 fmp_call  secFilings/company-filings  symbol=CMG from_date=2023-01-01 to_date=2025
+[01:25]     🔧 fmp_call  economics/treasury-rates
+[01:25]     🔧 fmp_call  economics/market-risk-premium
+[01:25]     🔧 fmp_call  economics/economics-indicators  name=GDP
+[01:26]     🔧 fmp_call  statements/income-statement  symbol=CMG period=annual limit=10
+[01:26]     🔧 fmp_call  statements/balance-sheet-statement  symbol=CMG period=annual limit=10
+[01:26]     🔧 fmp_call  statements/cashflow-statement  symbol=CMG period=annual limit=10
+[01:27]     🔧 fmp_call  statements/financial-scores  symbol=CMG limit=5
+[01:27]     🔧 fmp_call  statements/metrics-ratios  symbol=CMG limit=5
+[01:27]     🔧 fmp_call  statements/key-metrics  symbol=CMG limit=5
+[01:27]     🔧 fmp_call  quote/quote  symbol=CMG
+[01:27]   ✗ company/profile: FMP MCP tool company{'symbol': 'CMG', 'endpoint': 'profile'} failed: MCP error -32602: Input validation error: Invalid arguments for tool company: [
+  {
+    "received": "profile",
+    "code": "invalid_enum_value",
+    "options": [
+      "all-shares-float",
+      "batch-market-cap",
+      "company-executives",
+      "company-notes",
+      "delisted-companies",
+      "employee-count",
+      "executive-compensation",
+      "executive-compensation-benchmark",
+      "historical-employee-count",
+      "historical-market-cap",
+      "latest-mergers-acquisitions",
+      "market-cap",
+      "peers",
+      "profile-cik",
+      "profile-symbol",
+      "search-mergers-acquisitions",
+      "shares-float"
+    ],
+    "path": [
+      "endpoint"
+    ],
+    "message": "Invalid enum value. Expected 'all-shares-float' | 'batch-market-cap' | 'company-executives' | 'company-notes' | 'delisted-companies' | 'employee-count' | 'executive-compensation' | 'executive-compensation-benchmark' | 'historical-employee-count' | 'historical-market-cap' | 'latest-mergers-acquisitions' | 'market-cap' | 'peers' | 'profile-cik' | 'profile-symbol' | 'search-mergers-acquisitions' | 'shares-float', received 'profile'"
+  }
+]
+[01:27]   ✗ secFilings/company-filings: FMP MCP tool secFilings{'symbol': 'CMG', 'from_date': '2023-01-01', 'to_date': '2025-12-31', 'endpoint': 'company-filings'} failed: MCP error -32602: Input validation error: Invalid arguments for tool secFilings: [
+  {
+    "received": "company-filings",
+    "code": "invalid_enum_value",
+    "options": [
+      "8k-latest",
+      "all-industry-classification",
+      "company-search-by-cik",
+      "company-search-by-symbol",
+      "financials-latest",
+      "industry-classification-list",
+      "industry-classification-search",
+      "search-by-cik",
+      "search-by-form-type",
+      "search-by-name",
+      "search-by-symbol",
+      "sec-company-full-profile"
+    ],
+    "path": [
+      "endpoint"
+    ],
+    "message": "Invalid enum value. Expected '8k-latest' | 'all-industry-classification' | 'company-search-by-cik' | 'company-search-by-symbol' | 'financials-latest' | 'industry-classification-list' | 'industry-classification-search' | 'search-by-cik' | 'search-by-form-type' | 'search-by-name' | 'search-by-symbol' | 'sec-company-full-profile', received 'company-filings'"
+  }
+]
+[01:28]     🔧 fmp_call  company/profile-symbol  symbol=CMG
+[01:28]     🔧 fmp_call  company/company-executives  symbol=CMG
+[01:28]     🔧 fmp_call  company/executive-compensation  symbol=CMG
+[01:28]     🔧 fmp_call  insiderTrades/insider-trade-statistics  symbol=CMG limit=100
+[01:28]     🔧 fmp_call  insiderTrades/search-insider-trades  symbol=CMG limit=100
+[01:29]     🔧 write_todos  
+[01:29]     🔧 fmp_call  statements/key-metrics  symbol=CMG limit=10
+[01:29]     🔧 fmp_call  statements/key-metrics-ttm  symbol=CMG limit=10
+[01:29]     🔧 fmp_call  statements/metrics-ratios  symbol=CMG limit=10
+[01:29]     🔧 fmp_call  statements/metrics-ratios-ttm  symbol=CMG limit=10
+[01:29]     🔧 fmp_call  statements/financial-scores  symbol=CMG limit=10
+[01:31]     🔧 web_search  "Chipotle wage and hour lawsuit tip pooling California 2024 2025"
+[01:31]     🔧 web_search  "Chipotle EEOC sexual harassment lawsuit settlement 2024 2025"
+[01:31]     🔧 web_search  "Chipotle food safety norovirus lawsuit E. coli settlement measure up"
+[01:31]     🔧 web_search  "Chipotle FTC DOJ investigation 2024 2025"
+[01:31]   · company/executive-compensation: FMP subscription does not cover this endpoint (ACCESS DENIED: A parameter you passed to this tool ("company") requires a higher plan. The user is currently on the Starter plan. Please inform the user they need to upgrade their FMP subscription at https://financialmodelingprep.com/developer/docs/pricing to use this filter. Do not retry this tool with the same parameter value; the user may retry with values their plan allows.)
+[01:32]     🔧 write_todos  
+[01:32]     🔧 fmp_catalog  
+[01:32]     🔧 fmp_call  economics/economics-indicators  name=CPI
+[01:32]     🔧 read_file  data/economics_treasury-rates.json
+[01:32]     🔧 read_file  data/economics_market-risk-premium.json
+[01:33]     🔧 write_todos  
+[01:33]     🔧 fmp_call  statements/income-statement-growth  symbol=CMG period=annual limit=10
+[01:33]     🔧 fmp_call  statements/financial-statement-growth  symbol=CMG period=annual limit=10
+[01:33]     🔧 fmp_call  statements/income-statement  symbol=CMG period=annual limit=10
+[01:33]     🔧 fmp_call  company/profile-symbol  symbol=CMG
+[01:33]     🔧 fmp_call  company/peers  symbol=CMG
+[01:33]     🔧 fmp_call  company/profile-symbol  symbol=CMG
+[01:33]     🔧 fmp_call  company/executive-compensation  symbol=CMG
+[01:33]     🔧 fmp_call  secFilings/search-by-symbol  symbol=CMG
+[01:33]     🔧 fmp_call  news/press-releases  symbols=['CMG'] limit=20
+[01:33]     🔧 write_todos  
+[01:33]     🔧 fmp_call  quote/quote  symbol=CMG
+[01:33]     🔧 fmp_call  chart/historical-price-eod-full  symbol=CMG from_date=2023-06-01 to_date
+[01:33]     🔧 fmp_call  statements/key-metrics-ttm  symbol=CMG
+[01:34]     🔧 fmp_call  statements/key-metrics  symbol=CMG limit=12
+[01:34]     🔧 fmp_call  statements/income-statement  symbol=CMG period=annual limit=6
+[01:36]   ✗ secFilings/search-by-symbol: FMP MCP tool secFilings{'symbol': 'CMG', 'endpoint': 'search-by-symbol'} failed: Bad request for tool "secFilings" (endpoint /sec-filings-search/symbol): Query Error: Invalid or missing query parameter - from
+[01:36]   · news/press-releases: FMP subscription does not cover this endpoint (ACCESS DENIED: This tool ("news") requires the Premium, Ultimate, or Enterprise plan. The user is currently on the Starter plan. Please inform the user they need to upgrade their FMP subscription at https://financialmodelingprep.com/developer/docs/pricing to use this tool. Do not retry this tool or attempt sibling tools that require the same plan in this session.)
+[01:38]     🔧 fmp_call  statements/owner-earnings  limit=8 symbol=CMG
+[01:38]     🔧 fmp_call  discountedCashFlow/dcf-advanced  symbol=CMG
+[01:38]     🔧 fmp_call  discountedCashFlow/dcf-levered  symbol=CMG
+[01:38]     🔧 fmp_call  statements/income-statement  limit=8 symbol=CMG
+[01:38]     🔧 fmp_call  statements/balance-sheet-statement  limit=8 symbol=CMG
+[01:39]     🔧 fmp_catalog  analyst
+[01:39]     🔧 fmp_catalog  calendar
+[01:39]     🔧 fmp_catalog  news
+[01:39]     🔧 fmp_catalog  insiderTrades
+[01:39]     🔧 fmp_catalog  company
+[01:40]     🔧 read_file  data/insiderTrades_search-insider-trades.json
+[01:40]     🔧 fmp_call  secFilings/search-by-symbol  symbol=CMG from_date=2024-01-01 to_date=202
+[01:40]     🔧 fmp_call  news/search-stock-news  symbols=['CMG'] limit=30
+[01:40]     🔧 fmp_call  insiderTrades/all-transaction-types  symbol=CMG limit=100
+[01:40]     🔧 glob  **/economics_*.json
+[01:40]     🔧 ls  /
+[01:41]     🔧 fmp_call  statements/balance-sheet-statement  limit=5 symbol=CMG
+[01:41]     🔧 fmp_call  statements/cashflow-statement  limit=5 symbol=CMG
+[01:41]     🔧 fmp_call  technicalIndicators/standard-deviation  symbol=CMG timeframe=1day period
+[01:45]     🔧 fmp_call  statements/income-statement-growth  symbol=CAVA period=annual limit=6
+[01:45]     🔧 fmp_call  statements/income-statement-growth  symbol=SHAK period=annual limit=6
+[01:45]     🔧 fmp_call  statements/income-statement-growth  symbol=MCD period=annual limit=6
+[01:45]     🔧 fmp_call  statements/income-statement-growth  symbol=YUM period=annual limit=6
+[01:45]     🔧 ls  /
+[01:45]     🔧 fmp_call  quote/quote  symbol=CMG
+[01:45]     🔧 fmp_call  statements/key-metrics  symbol=CMG period=annual limit=10
+[01:45]     🔧 fmp_call  statements/financial-scores  symbol=CMG period=annual limit=10
+[01:45]     🔧 fmp_call  statements/financial-statement-growth  symbol=CMG period=annual limit=10
+[01:47]     🔧 glob  **/*.json
+[01:48]     🔧 fmp_call  company/company-executives  symbol=CMG
+[01:48]     🔧 fmp_call  company/employee-count  symbol=CMG
+[01:48]     🔧 fmp_call  secFilings/search-by-symbol  symbol=CMG from_date=2023-01-01 to_date=202
+[01:48]     🔧 grep  Chipotle
+[01:48]     🔧 read_file  data/statements_income-statement.json
+[01:48]     🔧 read_file  data/statements_income-statement-growth.json
+[01:48]     🔧 fmp_call  analyst/financial-estimates  symbol=CMG period=annual
+[01:48]     🔧 fmp_call  analyst/price-target-consensus  symbol=CMG
+[01:48]     🔧 fmp_call  analyst/grade-summary  symbol=CMG
+[01:51]   · analyst/financial-estimates: FMP subscription does not cover this endpoint (ACCESS DENIED: A parameter you passed to this tool ("analyst") requires a higher plan. The user is currently on the Starter plan. Please inform the user they need to upgrade their FMP subscription at https://financialmodelingprep.com/developer/docs/pricing to use this filter. Do not retry this tool with the same parameter value; the user may retry with values their plan allows.)
+[01:51]   ✗ analyst/grade-summary: FMP MCP tool analyst{'symbol': 'CMG', 'endpoint': 'grade-summary'} failed: MCP error -32602: Input validation error: Invalid arguments for tool analyst: [
+  {
+    "received": "grade-summary",
+    "code": "invalid_enum_value",
+    "options": [
+      "financial-estimates",
+      "grades",
+      "grades-summary",
+      "historical-grades",
+      "historical-ratings",
+      "price-target-consensus",
+      "price-target-summary",
+      "ratings-snapshot"
+    ],
+    "path": [
+      "endpoint"
+    ],
+    "message": "Invalid enum value. Expected 'financial-estimates' | 'grades' | 'grades-summary' | 'historical-grades' | 'historical-ratings' | 'price-target-consensus' | 'price-target-summary' | 'ratings-snapshot', received 'grade-summary'"
+  }
+]
+[01:54]     🔧 fmp_call  statements/income-statement-growth  limit=6 period=annual symbol=TXRH
+[01:54]     🔧 fmp_call  statements/income-statement-growth  limit=6 period=annual symbol=WING
+[01:54]     🔧 fmp_call  statements/income-statement-growth  limit=6 period=annual symbol=DPZ
+[01:55]     🔧 fmp_call  economics/economics-indicators  name=CPI from_date=2024-01-01 to_date=20
+[01:55]     🔧 fmp_call  economics/economics-indicators  name=GDP from_date=2024-01-01 to_date=20
+[01:55]     🔧 fmp_call  economics/market-risk-premium  country=United States
+[01:55]     🔧 ls  /
+[01:55]     🔧 glob  **/statements_income-statement.json
+[01:55]     🔧 fmp_call  analyst/grades-summary  symbol=CMG
+[01:55]     🔧 fmp_call  analyst/ratings-snapshot  symbol=CMG
+[01:59]     🔧 write_todos  
+[01:59]     🔧 web_search  "Chipotle sustainability report emissions food sourcing regenerative agr
+[01:59]     🔧 web_search  "Chipotle ESG rating Sustainalytics MSCI climate transition"
+[01:59]     🔧 web_search  "Chipotle labor workers union NLRB settlement wage increase"
+[02:00]     🔧 fmp_call  news/stock-news  symbols=['CMG'] limit=20
+[02:00]     🔧 web_search  "Chipotle securities class action "portion" farro konsum china closing b
+[02:00]     🔧 web_search  "Chipotle data breach employee late 2025 class action lawsuit"
+[02:01]     🔧 fmp_call  insiderTrades/insider-trade-statistics  symbol=CMG limit=100
+[02:05]     🔧 fmp_call  technicalIndicators/relative-strength-index  symbol=CMG periodLength=14 
+[02:05]     🔧 fmp_call  technicalIndicators/simple-moving-average  symbol=CMG periodLength=50 ti
+[02:05]     🔧 fmp_call  technicalIndicators/simple-moving-average  symbol=CMG periodLength=200 t
+[02:05]     🔧 fmp_call  technicalIndicators/standard-deviation  symbol=CMG periodLength=30 timef
+[02:05]     🔧 fmp_call  chart/historical-price-eod-full  symbol=CMG from_date=2023-01-01 to_date
+[02:05]     🔧 fmp_call  chart/historical-price-eod-full  symbol=SPY from_date=2023-01-01 to_date
+[02:07]     🔧 fmp_call  calendar/earnings-company  symbol=CMG limit=12
+[02:07]     🔧 fmp_call  news/stock-news  symbols=['CMG'] limit=50
+[02:07]     🔧 fmp_call  news/press-releases  symbols=['CMG'] limit=25
+[02:07]     🔧 fmp_call  analyst/financial-estimates  symbol=CMG period=quarter
+[02:07]     🔧 fmp_call  company/historical-employee-count  symbol=CMG limit=10
+[02:07]     🔧 fmp_call  insiderTrades/insider-trade-statistics  symbol=CMG
+[02:07]     🔧 fmp_catalog  senate
+[02:09]     🔧 ls  data
+[02:09]     🔧 web_search  "Chipotle Q4 2025 full year results revenue store count 2025"
+[02:09]     🔧 web_search  "Chipotle TAM total addressable market store growth target 7,000 restaur
+[02:15]     🔧 web_search  "Federal Reserve interest rate policy outlook 2026 rate cuts fed funds"
+[02:15]     🔧 web_search  "US consumer spending 2026 discretionary restaurants low income pressure
+[02:15]     🔧 web_search  "US labor market food service wages 2026 restaurant labor cost"
+[02:15]     🔧 web_search  "Chipotle CMG consumer spending headwinds 2026 same store sales"
+[02:15]     🔧 fmp_call  secFilings/secFilings  symbol=CMG limit=30
+[02:15]     🔧 web_search  "Chipotle international restaurants France Germany UK Canada number reve
+[02:15]     🔧 web_search  "Chipotle CMG Q4 2025 earnings revenue growth comp sales restaurant marg
+[02:15]     🔧 web_search  "fast casual restaurant industry 2025 tailwinds headwinds inflation valu
+[02:15]     🔧 web_search  "CAVA Shake Shack Wingstop 2025 same-store sales comp trend QSR"
+[02:18]   ✗ secFilings/secFilings: FMP MCP tool secFilings{'symbol': 'CMG', 'limit': 30, 'endpoint': 'secFilings'} failed: MCP error -32602: Input validation error: Invalid arguments for tool secFilings: [
+  {
+    "received": "secFilings",
+    "code": "invalid_enum_value",
+    "options": [
+      "8k-latest",
+      "all-industry-classification",
+      "company-search-by-cik",
+      "company-search-by-symbol",
+      "financials-latest",
+      "industry-classification-list",
+      "industry-classification-search",
+      "search-by-cik",
+      "search-by-form-type",
+      "search-by-name",
+      "search-by-symbol",
+      "sec-company-full-profile"
+    ],
+    "path": [
+      "endpoint"
+    ],
+    "message": "Invalid enum value. Expected '8k-latest' | 'all-industry-classification' | 'company-search-by-cik' | 'company-search-by-symbol' | 'financials-latest' | 'industry-classification-list' | 'industry-classification-search' | 'search-by-cik' | 'search-by-form-type' | 'search-by-name' | 'search-by-symbol' | 'sec-company-full-profile', received 'secFilings'"
+  }
+]
+[02:18]     🔧 fmp_call  statements/metrics-ratios-ttm  symbol=CMG
+[02:18]     🔧 fmp_catalog  analyst
+[02:20]     🔧 fmp_call  statements/income-statement  limit=5 symbol=CMG
+[02:20]     🔧 fmp_catalog  chart
+[02:20]     🔧 fmp_catalog  search
+[02:24]     🔧 fetch_page  https://www.chipotle.com/sustainability
+[02:24]     🔧 web_search  "Chipotle food safety outbreaks E.coli norovirus 2015 2016 history"
+[02:24]     🔧 web_search  "Chipotle board of directors chairman 2024 lead independent director com
+[02:24]     🔧 web_search  "Chipotle 2023 2024 controversy lawsuit wage theft scheduling"
+[02:26]     🔧 fetch_page  https://ir.chipotle.com/2026-02-03-CHIPOTLE-ANNOUNCES-FOURTH-QUARTER-AND
+[02:26]     🔧 fetch_page  https://ir.chipotle.com/2026-07-29-CHIPOTLE-RAISES-FULL-YEAR-COMPARABLE-
+[02:26]     🔧 web_search  "Chipotle CMG analyst price target 2026 EPS estimates consensus"
+[02:26]     🔧 web_search  "Chipotle CMG stock price today market cap"
+[02:26]     🔧 web_search  "Chipotle 2025 Q4 earnings sales traffic decline results"
+[02:26]     🔧 web_search  "Chipotle insider ownership management Brian Niccol concern bout"
+[02:29]     🔧 fmp_call  economics/economics-indicators  name=Unemployment Rate
+[02:29]     🔧 fmp_call  economics/economics-indicators  name=Real GDP
+[02:29]     🔧 fmp_call  economics/economics-calendar
+[02:29]     🔧 web_search  "equity risk premium Damodaran United States 2026 percentage"
+[02:30]   ✗ SerpApi request for 'CAVA Shake Shack Wingstop 2025 same-store sales comp trend QSR' failed: HTTPSConnectionPool(host='serpapi.com', port=443): Read timed out. (read timeout=15)
+[02:35]     🔧 fmp_call  news/stock-news  symbols=['CMG'] limit=15
+[02:35]     🔧 fmp_call  insiderTrades/insider-trading  symbol=CMG limit=30
+[02:35]     🔧 fmp_call  statements/ratios  symbol=CMG period=annual limit=5
+[02:36]     🔧 fmp_call  chart/historical-price-eod-full  symbol=CMG from_date=2022-01-01 to_date
+[02:36]     🔧 fmp_call  search/search-company-screener  marketCapMoreThan=45000000000 marketCapL
+[02:38]   ✗ statements/ratios: FMP MCP tool statements{'symbol': 'CMG', 'period': 'annual', 'limit': 5, 'endpoint': 'ratios'} failed: MCP error -32602: Input validation error: Invalid arguments for tool statements: [
+  {
+    "received": "ratios",
+    "code": "invalid_enum_value",
+    "options": [
+      "as-reported-balance-statements",
+      "as-reported-cashflow-statements",
+      "as-reported-financial-statements",
+      "as-reported-income-statements",
+      "balance-sheet-statement",
+      "balance-sheet-statement-growth",
+      "balance-sheet-statements-ttm",
+      "cashflow-statement",
+      "cashflow-statement-growth",
+      "cashflow-statements-ttm",
+      "enterprise-values",
+      "financial-reports-dates",
+      "financial-reports-form-10-k-json",
+      "financial-reports-form-10-k-xlsx",
+      "financial-scores",
+      "financial-statement-growth",
+      "income-statement",
+      "income-statement-growth",
+      "income-statements-ttm",
+      "key-metrics",
+      "key-metrics-ttm",
+      "latest-financial-statements",
+      "metrics-ratios",
+      "metrics-ratios-ttm",
+      "owner-earnings",
+      "revenue-geographic-segments",
+      "revenue-product-segmentation"
+    ],
+    "path": [
+      "endpoint"
+    ],
+    "message": "Invalid enum value. Expected 'as-reported-balance-statements' | 'as-reported-cashflow-statements' | 'as-reported-financial-statements' | 'as-reported-income-statements' | 'balance-sheet-statement' | 'balance-sheet-statement-growth' | 'balance-sheet-statements-ttm' | 'cashflow-statement' | 'cashflow-statement-growth' | 'cashflow-statements-ttm' | 'enterprise-values' | 'financial-reports-dates' | 'financial-reports-form-10-k-json' | 'financial-reports-form-10-k-xlsx' | 'financial-scores' | 'financial-statement-growth' | 'income-statement' | 'income-statement-growth' | 'income-statements-ttm' | 'key-metrics' | 'key-metrics-ttm' | 'latest-financial-statements' | 'metrics-ratios' | 'metrics-ratios-ttm' | 'owner-earnings' | 'revenue-geographic-segments' | 'revenue-product-segmentation', received 'ratios'"
+  }
+]
+[02:38]   ✗ insiderTrades/insider-trading: FMP MCP tool insiderTrades{'symbol': 'CMG', 'limit': 30, 'endpoint': 'insider-trading'} failed: MCP error -32602: Input validation error: Invalid arguments for tool insiderTrades: [
+  {
+    "received": "insider-trading",
+    "code": "invalid_enum_value",
+    "options": [
+      "acquisition-ownership",
+      "all-transaction-types",
+      "insider-trade-statistics",
+      "latest-insider-trade",
+      "search-insider-trades",
+      "search-reporting-name"
+    ],
+    "path": [
+      "endpoint"
+    ],
+    "message": "Invalid enum value. Expected 'acquisition-ownership' | 'all-transaction-types' | 'insider-trade-statistics' | 'latest-insider-trade' | 'search-insider-trades' | 'search-reporting-name', received 'insider-trading'"
+  }
+]
+[02:41]     🔧 fmp_catalog  secFilings
+[02:41]     🔧 fetch_page  https://www.justice.gov/archives/opa/pr/chipotle-mexican-grill-agrees-pa
+[02:41]     🔧 web_search  "Chipotle Scope 1 2 3 emissions 2024 sustainability report greenhouse ga
+[02:41]     🔧 web_search  "Chipotle packaging waste plastic recyclable compostable bowls 2024"
+[02:41]     🔧 web_search  "Chipotle diversity equity inclusion DEI 2024 2025 report"
+[02:43]     🔧 web_search  "US CPI inflation rate July 2026 year over year Fed inflation target"
+[02:43]     🔧 web_search  "Chipotle food cost inflation beef avocado 2026 commodity costs restaura
+[02:44]     🔧 web_search  "Chipotle Q1 2026 results comparable restaurant sales transactions first
+[02:44]     🔧 web_search  "Chipotle 2026 analyst EPS estimate growth strategy transaction turnarou
+[02:44]     🔧 web_search  "Chipotle international expansion 2026 Kuwait Middle East Mexico Europe 
+[02:44]     🔧 grep  CMG
+[02:44]     🔧 read_file  data/chart_historical-price-eod-full.json
+[02:45]     🔧 grep  2025-08-2
+[02:45]     🔧 glob  data/*.json
+[02:46]     🔧 web_search  "Chipotle Mexican Grill CEO Brian Niccol departure Starbucks August 2024
+[02:46]     🔧 web_search  "Chipotle Mexican Grill SEC enforcement DOJ settlement food safety 2020 
+[02:46]     🔧 web_search  "Chipotle E. coli outbreak 2015 norovirus 2016 2018 food safety reputati
+[02:46]     🔧 web_search  "Chipotle Mexican Grill board of directors independence chairman governa
+[02:46]     🔧 ls  /
+[02:47]     🔧 web_search  "Chipotle traffic decline 2025 same store sales challenges competition C
+[02:47]     🔧 web_search  "Chipotle shares outstanding 2025 market cap stock price"
+[02:48]     🔧 glob  **/statements_metrics-ratios.json
+[02:50]     🔧 web_search  "Chipotle new CEO who replaced Brian Niccol 2025 Scott Boatwright"
+[02:50]     🔧 web_search  "Chipotle stock overvalued valuation McDonald's Yum Brands P/E EV/EBITDA
+[02:50]     🔧 web_search  "Chipotle portion sizes food safety controversy 2025 sales impact"
+[02:50]     🔧 ls  /
+[02:52]     🔧 grep  content
+[02:57]     🔧 web_search  "Chipotle deferred prosecution agreement 2020 25 million food safety ins
+[02:58]     🔧 fmp_call  secFilings/search-by-symbol  symbol=CMG from_date=2024-01-01 to_date=202
+[02:59]     🔧 read_file  /data/cmg_price_full.json
+[03:05]     🔧 fetch_page  https://www.jdsupra.com/legalnews/chipotle-mexican-grill-enters-three-24
+[03:05]     🔧 write_todos  
+[03:05]     🔧 fetch_page  https://ir.chipotle.com/2026-02-03-CHIPOTLE-ANNOUNCES-FOURTH-QUARTER-AND
+[03:05]     🔧 ls  /large_tool_results
+[03:07]     🔧 write_todos  
+[03:07]     🔧 fetch_page  https://www.macrotrends.net/stocks/charts/CMG/chipotle-mexican-grill/rev
+[03:16]     🔧 web_search  "Chipotle Mexican Grill CFO Adam Rymer CFO turnover history Jack Jack Ha
+[03:16]     🔧 web_search  "Chipotle chairman Scott Maw board chairman 2024 2025 replaced Niccol"
+[03:16]     🔧 web_search  "Chipotle data breach ransomware 2023 cybersecurity operational risk"
+[03:16]     🔧 web_search  "Chipotle SEC enforcement action securities fraud settlement investigati
+[03:17]     🔧 write_todos  
+[03:18]     🔧 fetch_page  https://knowesg.com/esg-ratings/chipotle-mexican-grill-inc
+[03:18]     🔧 fetch_page  https://ir.chipotle.com/2026-04-22-CHIPOTLE-REPORTS-FIRST-CUMULATIVE-REA
+[03:18]     🔧 grep  10-K
+[03:19]     🔧 write_todos  
+[03:22]     🔧 write_todos  
+[03:27]     🔧 fetch_page  https://ir.chipotle.com/2026-04-29-CHIPOTLE-ANNOUNCES-FIRST-QUARTER-2026
+[03:27]     🔧 web_search  "Chipotle stock decline Q2 2026 analyst reaction price target cut re-rat
+[03:27]     🔧 write_todos  
+[03:28]     🔧 write_todos  
+[03:31]     🔧 fetch_page  https://ir.chipotle.com/board-of-directors
+[03:36]     🔧 grep  data/news_stock-news.json
+[03:36]     🔧 read_file  data/insiderTrades_insider-trade-statistics.json
+[03:36]     🔧 fmp_call  senate/senate-trading  symbol=CMG
+[03:36]     🔧 fmp_call  senate/house-trading  symbol=CMG
+[03:36]     🔧 fmp_call  analyst/price-target-consensus  symbol=CMG
+[03:36]     🔧 fmp_call  analyst/ratings-snapshot  symbol=CMG
+[03:36]     🔧 grep  content
+[03:38]     🔧 web_search  "Chipotle 2025 data breach employee information December 2025 notificati
+[03:38]     🔧 web_search  "Chipotle 2017 shareholder securities class action lawsuit food safety m
+[03:38]     🔧 fmp_call  news/search-stock-news  symbols=['CMG'] limit=30
+[03:48]     🔧 fetch_page  https://www.morningstar.com/stocks/xnys/cmg/sustainability
+[03:49]     🔧 read_file  /data/secFilings_search-by-symbol.json
+[03:51]     🔧 web_search  "Shake Shack fiscal 2025 same-store sales restaurant-level margin revenu
+[03:51]     🔧 web_search  "Wingstop 2025 same-store sales growth restaurant margin FY2025 results"
+[03:51]     🔧 web_search  "CAVA 2025 full year results revenue net new restaurants same store sale
+[03:52]   ✓ macro_researcher done  (25 tools, 11 model calls, 157.2s)
+[03:52]     · saved reports/macro_researcher.md
+[03:55]     🔧 fetch_page  https://stockanalysis.com/stocks/cmg/financials/
+[03:55]     🔧 web_search  "Chipotle full year revenue 2022 2021 2020 2019 billion annual"
+[03:58]   ✓ value_researcher done  (22 tools, 9 model calls, 162.9s)
+[03:58]     · saved reports/value_researcher.md
+[04:02]     🔧 glob  **/secFilings_search-by-symbol.json
+[04:04]   ✓ fin_risk_analyst done  (21 tools, 12 model calls, 168.5s)
+[04:04]     · saved reports/fin_risk_analyst.md
+[04:10]     🔧 write_todos  
+[04:10]   ✓ short_analyst done  (18 tools, 11 model calls, 175.5s)
+[04:10]     · saved reports/short_analyst.md
+[04:16]     🔧 write_todos  
+[04:18]     🔧 ls  /
+[04:20]     🔧 ls  /
+[04:20]     🔧 fmp_catalog  quote
+[04:28]     🔧 web_search  "McDonald's Yum Brands 2025 global comparable sales fourth quarter resul
+[04:28]     🔧 web_search  "Domino's Pizza Texas Roadhouse fiscal 2025 comparable sales results"
+[04:28]     🔧 web_search  "Chipotle 2025 digital sales percentage restaurant count unit AUV 2025"
+[04:28]     🔧 write_todos  
+[04:32]     🔧 glob  **/*.json
+[04:37]   ✓ quant_analyst done  (23 tools, 12 model calls, 202.5s)
+[04:37]     · saved reports/quant_analyst.md
+[04:39]   ✓ esg_analyst done  (33 tools, 19 model calls, 204.4s)
+[04:39]     · saved reports/esg_analyst.md
+[05:00]   ✓ growth_researcher done  (37 tools, 14 model calls, 224.7s)
+[05:00]     · saved reports/growth_researcher.md
+[05:01]     🔧 fetch_page  https://www.nrn.com/fast-casual/chipotle-wins-lawsuit-over-portion-sizes
+[05:01]     🔧 fetch_page  https://apnews.com/article/chipotle-union-store-closure-settlement-lawsu
+[05:01]     🔧 fetch_page  https://www.cnbc.com/2025/02/04/chipotle-ceo-says-about-50percent-of-the
+[05:02]   ✓ nonfin_risk_analyst done  (30 tools, 12 model calls, 226.7s)
+[05:02]     · saved reports/nonfin_risk_analyst.md
+[05:05]     🔧 glob  **/*.json
+[05:05]     🔧 grep  content
+[05:13]     🔧 ls  /data
+[05:13]     🔧 ls  /large_tool_results
+[05:26]     🔧 fetch_page  https://thechiefleader.com/stories/chipotle-may-have-violated-unionizati
+[05:26]     🔧 fetch_page  https://topclassactions.com/lawsuit-settlements/lawsuit-news/chipotle-wo
+[05:36]     🔧 read_file  /data/senate_house-trading.json
+[05:36]     🔧 read_file  data/insiderTrades_insider-trade-statistics.json
+[06:08]     🔧 write_todos  
+[06:10]     🔧 web_search  "Chipotle Google Trends search interest consumer demand 2026"
+[06:10]     🔧 web_search  "Chipotle app downloads ranking Sensor Tower Apptopia mobile ordering"
+[06:10]     🔧 web_search  "Placer.ai Chipotle foot traffic report monthly visits"
+[06:45]     🔧 web_search  "Chipotle CMG stock social media sentiment Reddit StockTwits retail inve
+[06:45]     🔧 web_search  "Chipotle hiring job postings crew members 2026 labor"
+[06:45]     🔧 fetch_page  https://www.placer.ai/anchor/articles/why-chipotle-and-mcdonalds-took-di
+[07:01]   ✓ sector_researcher done  (22 tools, 11 model calls, 346.3s)
+[07:01]     · saved reports/sector_researcher.md
+[07:17]   ✓ geo_legal_researcher done  (27 tools, 16 model calls, 362.1s)
+[07:17]     · saved reports/geo_legal_researcher.md
+[07:20]     🔧 fetch_page  https://www.placer.ai/anchor/articles/why-chipotle-and-mcdonalds-took-di
+[07:20]     🔧 fetch_page  https://apptopia.com/en/insights/chipotle-mexican-grill-mobile-app-perfo
+[07:20]     🔧 fetch_page  https://altindex.com/ticker/cmg/sentiment
+[08:03]     🔧 web_search  "Apptopia "Chipotle Engagement Deepens" sessions July 2026"
+[08:03]     🔧 fetch_page  https://restaurantbusinessonline.com/operations/chipotle-could-wrap-fisc
+[08:03]     🔧 fetch_page  https://altindex.com/ticker/cmg/job-posts
+[08:03]     🔧 web_search  "Chipotle CMG news August 2026 stock headlines"
+[09:14]     🔧 fetch_page  https://altindex.com/ticker/cmg/google-trends
+[09:14]     🔧 fetch_page  https://altindex.com/ticker/cmg/webpage-traffic
+[09:14]     🔧 fetch_page  https://www.stocktitan.net/news/CMG/
+[09:14]     🔧 fetch_page  https://apptopia.com/en/insights/chipotle-engagement-deepens-as-sessions
+[09:47]     🔧 web_search  "Chipotle Q2 2026 earnings July 29 comparable sales results stock reacti
+[09:47]     🔧 web_search  "chipotle.com website traffic Similarweb monthly visits 2026"
+[10:21]     🔧 web_search  "Chipotle salmonella outbreak 2026 impact stock traffic"
+[15:10]     🔧 write_todos  
+[18:16]   ✓ alt_data_analyst done  (49 tools, 17 model calls, 1020.9s)
+[18:16]     · saved reports/alt_data_analyst.md
+[18:54]   🔧 ls  /
+[19:00]   🔧 ls  /data
+[19:00]   🔧 ls  /large_tool_results
+[19:19]   🔧 write_todos  
+[19:48] → delegate  quant_engineer
+[19:48] → delegate  quant_engineer
+[19:48] → delegate  quant_engineer
+[19:48]   ▶ quant_engineer
+[19:48]   ▶ quant_engineer
+[19:48]   ▶ quant_engineer
+[20:03]     🔧 write_todos  
+[20:08]     🔧 write_todos  
+[20:10]     🔧 fmp_catalog  chart
+[20:10]     🔧 fmp_catalog  economics
+[20:16]     🔧 list_workspace  
+[20:16]     🔧 fmp_catalog  
+[20:19]     🔧 list_workspace  
+[20:19]     🔧 fmp_catalog  statements
+[20:24]     🔧 fmp_call  chart/historical-price-eod-full  symbol=CMG
+[20:24]     🔧 fmp_call  chart/historical-price-eod-full  symbol=SPY
+[20:24]     🔧 fmp_call  economics/treasury-rates
+[21:13]     🔧 run_python  29 lines  import json
+[22:04]     🔧 run_python  15 lines  import json
+[22:39]     🔧 run_python  51 lines  import json
+[22:48]     🔧 run_python  3 lines  import json
+[23:14]     🔧 fmp_call  economics/treasury-rates  from_date=2025-08-01 to_date=2026-08-21
+[23:14]     🔧 fmp_catalog  technicalIndicators
+[23:17]     🔧 run_python  52 lines  import json
+[23:34]     🔧 fmp_call  technicalIndicators/relative-strength-index  symbol=CMG periodLength=14 
+[26:09]     🔧 write_todos  
+[26:30]     🔧 write_todos  
+[26:30]     🔧 fmp_catalog  
+[26:39]     🔧 fmp_catalog  statements
+[26:39]     🔧 fmp_catalog  calendar
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=CMG period=annual limit=8
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=CAVA period=annual limit=3
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=SHAK period=annual limit=3
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=WING period=annual limit=3
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=TXRH period=annual limit=3
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=MCD period=annual limit=3
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=YUM period=annual limit=3
+[27:22]     🔧 fmp_call  statements/income-statement  symbol=DPZ period=annual limit=3
+[27:25]     🔧 run_python  127 lines  import json, math
+[27:38]     🔧 fmp_call  statements/as-reported-balance-statements  symbol=CMG limit=3
+[27:38]     🔧 fmp_call  statements/as-reported-income-statements  symbol=CMG limit=3
+[27:38]     🔧 fmp_call  statements/financial-reports-form-10-k-json  symbol=CMG year=2025 period
+[28:13]     🔧 fmp_call  statements/balance-sheet-statement  symbol=CMG period=annual limit=3
+[28:13]     🔧 fmp_call  statements/balance-sheet-statement  symbol=CAVA period=annual limit=2
+[29:28]     🔧 list_workspace  
+[29:34]     🔧 run_python  31 lines  import json, math
+[30:23]     🔧 write_todos  
+[31:22]   ✓ quant_engineer done  (14 tools, 11 model calls, 693.9s)
+[31:22]     · saved reports/quant_engineer.md
+[34:55]     🔧 run_python  96 lines  import json, os
+[35:18]     🔧 run_python  34 lines  import json
+[35:18]     🔧 web_search  "Chipotle 2025 10-K annual report operating lease rent expense footnote"
+[37:02]     🔧 fetch_page  https://www.sec.gov/Archives/edgar/data/1058090/000105809026000009/cmg-2
+[37:16]     🔧 web_search  "Chipotle "rental expense" operating leases 2025 million lease footnote"
+[37:16]     🔧 fetch_page  https://ir.chipotle.com/2026-02-03-CHIPOTLE-ANNOUNCES-FOURTH-QUARTER-AND
+[41:56]     🔧 web_search  "Chipotle 10-K "rental expense" "2025" lease disclosure million 2024 202
+[41:56]     🔧 web_search  ""Chipotle" FY2025 occupancy costs rent expense lease footnote "million"
+[43:56]     🔧 write_todos  
+[43:56]     🔧 run_python  184 lines  import json, statistics
+[45:33]     🔧 run_python  189 lines  import json, statistics
+[48:48]     🔧 run_python  190 lines  import json
+[49:44]     🔧 run_python  37 lines  import json
+[49:44]     🔧 web_search  "Chipotle CMG earnings surprise history EPS estimate vs actual by quarte
+[52:05]     🔧 write_todos  
+[52:41]     🔧 fetch_page  https://www.chartmill.com/stock/quote/CMG/earnings
+[52:41]     🔧 fetch_page  https://www.tradingkey.com/markets/stocks/cmg/earnings
+[54:33]   ✓ quant_engineer done  (21 tools, 15 model calls, 2084.7s)
+[54:33]     · saved reports/quant_engineer.md
+[54:35]     🔧 web_search  ""Chipotle" CMG "delivered earnings and revenue surprises" "quarter ende
+[54:35]     🔧 web_search  ""Chipotle" CMG "delivered earnings and revenue surprises" "quarter ende
+[54:35]     🔧 web_search  ""Chipotle" CMG "delivered earnings and revenue surprises" "quarter ende
+[55:28]     🔧 web_search  "Chipotle CMG Q2 2024 earnings surprise Zacks consensus estimate beat Ju
+[55:28]     🔧 web_search  ""Chipotle" CMG "delivered earnings and revenue surprises" "quarter ende
+[55:28]     🔧 web_search  ""Chipotle" CMG "delivered earnings and revenue surprises" "quarter ende
+[55:28]     🔧 web_search  ""Chipotle" CMG "delivered earnings and revenue surprises" "quarter ende
+[57:13]     🔧 fetch_page  https://markets.traderfox.com/nachrichten/7871541-chipotle-mexican-grill
+[57:13]     🔧 web_search  ""Chipotle" CMG "delivered earnings and revenue surprises" "quarter ende
+[57:13]     🔧 web_search  "Chipotle CMG second quarter 2024 earnings beat "July 24, 2024" EPS surp
+[59:22]     🔧 fetch_page  https://www.zacks.com/stock/research/CMG/earnings-calendar
+[60:46]     🔧 fetch_page  https://kalkine.com.au/news/stocks/will-chipotle-cmg-beat-estimates-agai
+[60:46]     🔧 fetch_page  https://www.nasdaq.com/articles/chipotle-mexican-grill-cmg-q2-earnings-a
+[64:41]     🔧 run_python  89 lines  import json, statistics
+[67:12]     🔧 write_todos  
+[69:38]   ✓ quant_engineer done  (38 tools, 19 model calls, 2990.2s)
+[69:38]     · saved reports/quant_engineer.md
+[70:22] → delegate  portfolio_strategist
+[70:22]   ▶ portfolio_strategist
+[71:00]     🔧 web_search  "Chipotle CMG quick service restaurant sector consumer discretionary cor
+[71:00]     🔧 web_search  "Chipotle Chipotle stock July 2026 salmonella outbreak trading traffic r
+[71:43]   ✓ portfolio_strategist done  (2 tools, 2 model calls, 80.6s)
+[71:43]     · saved reports/portfolio_strategist.md
+[72:54]   🔧 write_todos  
+[73:43] 
+[73:43] ==============================================================
+[73:43]   Research complete in 4423.3s
+[73:43]   Workspace : C:\Users\jason\EQResearch Agent\equity-researcher\runs\CMG_20260823T161415
+[73:43]   Memo      : outputs\CMG_20260823T161415.md
+[73:43]   JSON      : outputs\CMG_20260823T161415.json
+[73:43] ==============================================================

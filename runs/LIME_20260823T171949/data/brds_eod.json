@@ -1,0 +1,1 @@
+[{"status": "not_found", "endpoint": "historical-price-eod-full", "provided": "symbol=\"BRDS\"", "message": "No data returned for historical-price-eod-full with symbol=\"BRDS\". The identifier may not exist, or may have no data for this endpoint. Use the 'search' tool to verify the symbol/cik/name."}]

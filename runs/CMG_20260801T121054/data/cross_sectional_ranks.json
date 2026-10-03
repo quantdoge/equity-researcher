@@ -1,0 +1,78 @@
+{
+  "metrics": [
+    {
+      "symbol": "CMG",
+      "pe_ratio": 32.219487276991664,
+      "pe_ratio_pctile": 80.0,
+      "evToEBITDA": 24.876675576078462,
+      "evToEBITDA_pctile": 100.0,
+      "returnOnInvestedCapital": 0.1897050705855212,
+      "returnOnInvestedCapital_pctile": 80.0,
+      "pe_value_pctile": 80.0,
+      "ev_ebitda_value_pctile": 100.0,
+      "roic_value_pctile": 20.0
+    },
+    {
+      "symbol": "MCD",
+      "pe_ratio": 25.462623146093655,
+      "pe_ratio_pctile": 20.0,
+      "evToEBITDA": 18.589535528833014,
+      "evToEBITDA_pctile": 40.0,
+      "returnOnInvestedCapital": 0.17437644433151625,
+      "returnOnInvestedCapital_pctile": 60.0,
+      "pe_value_pctile": 20.0,
+      "ev_ebitda_value_pctile": 40.0,
+      "roic_value_pctile": 40.0
+    },
+    {
+      "symbol": "YUM",
+      "pe_ratio": 26.97616420782553,
+      "pe_ratio_pctile": 40.0,
+      "evToEBITDA": 19.136485806683435,
+      "evToEBITDA_pctile": 60.0,
+      "returnOnInvestedCapital": 0.28267678308894406,
+      "returnOnInvestedCapital_pctile": 100.0,
+      "pe_value_pctile": 40.0,
+      "ev_ebitda_value_pctile": 60.0,
+      "roic_value_pctile": 0.0
+    },
+    {
+      "symbol": "QSR",
+      "pe_ratio": 29.36703608247423,
+      "pe_ratio_pctile": 60.0,
+      "evToEBITDA": 16.173605610561054,
+      "evToEBITDA_pctile": 20.0,
+      "returnOnInvestedCapital": 0.06941994282427265,
+      "returnOnInvestedCapital_pctile": 0.0,
+      "pe_value_pctile": 60.0,
+      "ev_ebitda_value_pctile": 20.0,
+      "roic_value_pctile": 100.0
+    },
+    {
+      "symbol": "DRI",
+      "pe_ratio": 19.125145437971327,
+      "pe_ratio_pctile": 0.0,
+      "evToEBITDA": 12.365772635900946,
+      "evToEBITDA_pctile": 0.0,
+      "returnOnInvestedCapital": 0.1311242673076876,
+      "returnOnInvestedCapital_pctile": 40.0,
+      "pe_value_pctile": 0.0,
+      "ev_ebitda_value_pctile": 0.0,
+      "roic_value_pctile": 60.0
+    },
+    {
+      "symbol": "SBUX",
+      "pe_ratio": 52.58159448394743,
+      "pe_ratio_pctile": 100.0,
+      "evToEBITDA": 22.496499590986836,
+      "evToEBITDA_pctile": 80.0,
+      "returnOnInvestedCapital": 0.0848167367043074,
+      "returnOnInvestedCapital_pctile": 20.0,
+      "pe_value_pctile": 100.0,
+      "ev_ebitda_value_pctile": 80.0,
+      "roic_value_pctile": 80.0
+    }
+  ],
+  "revenue_growth_available": false,
+  "note": "Cross-sectional ranks computed over CMG, MCD, YUM, QSR, DRI, SBUX. WING missing due to API limits. Revenue growth unavailable for peers."
+}

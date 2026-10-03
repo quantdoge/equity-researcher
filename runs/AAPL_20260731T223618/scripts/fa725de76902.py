@@ -1,0 +1,1 @@
+import json,statistics;rows=json.load(open("data/rsi.json"));print(round(statistics.mean(x["rsi"] for x in rows),2))

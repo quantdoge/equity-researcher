@@ -1,0 +1,4 @@
+2026-09-26T18:44:12  START  symbol=AAPL agents=macro_researcher,esg_analyst concurrency=2 skip_synthesis=True timeout=900.0
+2026-09-26T18:47:33  DONE   macro_researcher  200.5s
+2026-09-26T18:48:30  DONE   esg_analyst  258.3s
+2026-09-26T18:48:30  END    elapsed=258.3s failures=none

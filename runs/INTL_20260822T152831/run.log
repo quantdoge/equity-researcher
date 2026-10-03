@@ -1,0 +1,14 @@
+[00:00] ==============================================================
+[00:00]   equity-researcher  [deepagents]
+[00:00]   Symbol    : INTL
+[00:00]   Session   : INTL_20260822T152831
+[00:00]   Workspace : C:\Users\jason\EQResearch Agent\equity-researcher\runs\INTL_20260822T152831
+[00:00]   State DB  : C:\Users\jason\EQResearch Agent\equity-researcher\runs\sessions.sqlite
+[00:00]   Resume    : python -m equity_mcp.orchestrator --last INTL_20260822T152831
+[00:00] ==============================================================
+[00:00] 
+[00:00] ==============================================================
+[00:00]   Run stopped: CancelledError:
+[00:00]   Finished agents are on disk: C:\Users\jason\EQResearch Agent\equity-researcher\runs\INTL_20260822T152831\reports
+[00:00]   Resume with: python -m equity_mcp.orchestrator --last INTL_20260822T152831
+[00:00] ==============================================================

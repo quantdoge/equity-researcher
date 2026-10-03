@@ -1,0 +1,1 @@
+import os, json; print(json.dumps({k: os.environ.get(k) for k in ["FMP_API_KEY","OPENROUTER_API_KEY","DATABASE_URL"]}))
