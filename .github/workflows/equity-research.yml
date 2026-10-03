@@ -1,0 +1,90 @@
+# Runs the full research pipeline for every ticker below, one at a time, and
+# commits each memo (outputs/) and run log (runs/) back to the branch.
+#
+# Edit the ticker list in `matrix.ticker`. Each ticker is its own job, so one
+# failure doesn't stop the rest, and GitHub's 6-hour job limit applies per
+# ticker rather than to the whole list.
+name: Equity research
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Queue overlapping runs rather than racing them on the push back to main.
+concurrency:
+  group: equity-research
+  cancel-in-progress: false
+
+jobs:
+  research:
+    name: research (${{ matrix.ticker }})
+    runs-on: ubuntu-latest
+    environment: DEV          # the secrets live in this GitHub Environment
+    timeout-minutes: 180
+    permissions:
+      contents: write         # to commit results back
+    strategy:
+      fail-fast: false        # one ticker failing doesn't cancel the others
+      max-parallel: 1         # sequential — also keeps OpenRouter rate limits in check
+      matrix:
+        ticker:
+          - AVGO
+          - AXP
+          - WMT
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Run research pipeline
+        env:
+          OPENROUTER_API_KEY:   ${{ secrets.OPENROUTER_API_KEY }}
+          FMP_API_KEY:          ${{ secrets.FMP_API_KEY }}
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          BRAVE_API_KEY:        ${{ secrets.BRAVE_API_KEY }}
+          SERP_API_KEY:         ${{ secrets.SERP_API_KEY }}
+          FRED_API_KEY:         ${{ secrets.FRED_API_KEY }}
+          SEC_USER_AGENT:       ${{ secrets.SEC_USER_AGENT }}
+          OPENROUTER_APP_URL:   ${{ secrets.OPENROUTER_APP_URL }}
+          OPENROUTER_APP_TITLE: ${{ secrets.OPENROUTER_APP_TITLE }}
+          DATABASE_URL:         ${{ secrets.DATABASE_URL }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          # A secret that isn't set arrives as "". Unset it so code that falls
+          # back to a default (e.g. SEC_USER_AGENT) gets the default, not "".
+          for v in ANTHROPIC_API_KEY BRAVE_API_KEY SERP_API_KEY FRED_API_KEY \
+                   SEC_USER_AGENT OPENROUTER_APP_URL OPENROUTER_APP_TITLE DATABASE_URL; do
+            [ -z "${!v}" ] && unset "$v"
+          done
+          python -m equity_mcp.orchestrator --symbol "${{ matrix.ticker }}"
+
+      # always(): a run that fails or times out still leaves every finished
+      # specialist's report in runs/<id>/reports/, which is worth keeping.
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Separately: one missing directory would make a combined add stage nothing.
+          for d in outputs runs; do [ -d "$d" ] && git add "$d"; done
+          if git diff --cached --quiet; then
+            echo "No results to commit."
+            exit 0
+          fi
+          # Pushes made with GITHUB_TOKEN don't trigger workflows; [skip ci] is belt and braces.
+          git commit -m "research: ${{ matrix.ticker }} memo [skip ci]"
+          # Earlier tickers in this run (or a human) may have pushed since checkout.
+          for attempt in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            echo "Push attempt $attempt failed; retrying..."
+            sleep $((attempt * 5))
+          done
+          exit 1
