@@ -1,0 +1,15 @@
+2026-10-03T15:02:27  START  symbol=NVO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-03T15:04:52  DONE   macro_researcher  144.5s
+2026-10-03T15:04:56  DONE   sector_researcher  148.4s
+2026-10-03T15:05:38  DONE   fin_risk_analyst  191.2s
+2026-10-03T15:06:52  DONE   growth_researcher  264.8s
+2026-10-03T15:08:03  DONE   short_analyst  144.5s
+2026-10-03T15:08:23  DONE   quant_analyst  207.3s
+2026-10-03T15:09:02  DONE   geo_legal_researcher  395.1s
+2026-10-03T15:09:23  DONE   esg_analyst  151.0s
+2026-10-03T15:10:06  DONE   nonfin_risk_analyst  314.2s
+2026-10-03T15:12:56  DONE   value_researcher  628.6s
+2026-10-03T15:13:26  DONE   alt_data_analyst  322.7s
+2026-10-03T15:17:32  DONE   portfolio_strategist  245.9s
+2026-10-03T15:19:47  DONE   head_of_research  135.0s
+2026-10-03T15:19:47  END    elapsed=1039.4s failures=none
