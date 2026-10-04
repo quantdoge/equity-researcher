@@ -1,0 +1,15 @@
+2026-10-04T01:14:23  START  symbol=MSFT agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-04T01:15:51  DONE   fin_risk_analyst  87.4s
+2026-10-04T01:16:00  DONE   geo_legal_researcher  96.7s
+2026-10-04T01:16:23  DONE   value_researcher  119.6s
+2026-10-04T01:16:35  DONE   sector_researcher  131.7s
+2026-10-04T01:16:37  DONE   growth_researcher  133.2s
+2026-10-04T01:17:06  DONE   macro_researcher  162.9s
+2026-10-04T01:17:27  DONE   nonfin_risk_analyst  96.1s
+2026-10-04T01:17:56  DONE   quant_analyst  115.4s
+2026-10-04T01:18:57  DONE   alt_data_analyst  140.2s
+2026-10-04T01:19:56  DONE   esg_analyst  200.6s
+2026-10-04T01:21:49  DONE   short_analyst  325.9s
+2026-10-04T01:25:10  DONE   portfolio_strategist  201.0s
+2026-10-04T01:26:43  DONE   head_of_research  93.2s
+2026-10-04T01:26:43  END    elapsed=739.7s failures=none
