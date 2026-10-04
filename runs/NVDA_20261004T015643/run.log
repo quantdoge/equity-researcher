@@ -1,0 +1,15 @@
+2026-10-04T01:56:43  START  symbol=NVDA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-04T01:57:03  DONE   sector_researcher  20.7s
+2026-10-04T01:59:00  DONE   nonfin_risk_analyst  116.7s
+2026-10-04T01:59:04  DONE   growth_researcher  141.7s
+2026-10-04T01:59:28  DONE   fin_risk_analyst  165.3s
+2026-10-04T02:00:15  DONE   geo_legal_researcher  212.4s
+2026-10-04T02:00:37  DONE   quant_analyst  97.2s
+2026-10-04T02:02:43  DONE   macro_researcher  360.1s
+2026-10-04T02:02:45  DONE   value_researcher  362.0s
+2026-10-04T02:03:13  DONE   alt_data_analyst  177.6s
+2026-10-04T02:03:32  DONE   short_analyst  267.8s
+2026-10-04T02:08:13  DONE   esg_analyst  525.1s
+2026-10-04T02:09:27  DONE   portfolio_strategist  74.3s
+2026-10-04T02:10:52  DONE   head_of_research  84.4s
+2026-10-04T02:10:52  END    elapsed=849.0s failures=none
