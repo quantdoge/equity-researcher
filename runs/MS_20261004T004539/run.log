@@ -1,0 +1,15 @@
+2026-10-04T00:45:39  START  symbol=MS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-04T00:46:51  DONE   growth_researcher  72.3s
+2026-10-04T00:47:53  DONE   sector_researcher  134.2s
+2026-10-04T00:47:55  DONE   geo_legal_researcher  135.6s
+2026-10-04T00:48:44  DONE   fin_risk_analyst  185.4s
+2026-10-04T00:49:06  DONE   quant_analyst  72.3s
+2026-10-04T00:49:08  DONE   short_analyst  73.4s
+2026-10-04T00:49:36  DONE   nonfin_risk_analyst  164.2s
+2026-10-04T00:49:59  DONE   value_researcher  259.9s
+2026-10-04T00:50:47  DONE   esg_analyst  122.3s
+2026-10-04T00:51:23  DONE   alt_data_analyst  137.9s
+2026-10-04T00:53:37  DONE   macro_researcher  478.2s
+2026-10-04T00:56:04  DONE   portfolio_strategist  146.4s
+2026-10-04T00:57:35  DONE   head_of_research  91.1s
+2026-10-04T00:57:35  END    elapsed=715.7s failures=none
