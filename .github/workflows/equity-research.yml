@@ -29,9 +29,14 @@ jobs:
       max-parallel: 1         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - COST
-          - NVO
-          - HIMS
+          - BAC
+          - C
+          - MS
+          - GS
+          - MSFT
+          - GOOG
+          - PLTR
+          - NVDA
 
     steps:
       - uses: actions/checkout@v4
