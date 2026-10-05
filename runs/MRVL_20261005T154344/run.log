@@ -1,0 +1,15 @@
+2026-10-05T15:43:44  START  symbol=MRVL agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-05T15:45:34  DONE   value_researcher  109.2s
+2026-10-05T15:45:52  DONE   fin_risk_analyst  127.6s
+2026-10-05T15:45:58  DONE   geo_legal_researcher  133.1s
+2026-10-05T15:46:22  DONE   sector_researcher  157.4s
+2026-10-05T15:46:31  DONE   nonfin_risk_analyst  57.1s
+2026-10-05T15:47:08  DONE   quant_analyst  75.7s
+2026-10-05T15:47:54  DONE   growth_researcher  249.3s
+2026-10-05T15:50:21  DONE   alt_data_analyst  230.4s
+2026-10-05T15:51:43  DONE   esg_analyst  321.3s
+2026-10-05T15:52:02  DONE   macro_researcher  497.4s
+2026-10-05T15:54:03  DONE   short_analyst  485.8s
+2026-10-05T15:55:39  DONE   portfolio_strategist  95.9s
+2026-10-05T15:56:28  DONE   head_of_research  48.9s
+2026-10-05T15:56:28  END    elapsed=763.6s failures=none
