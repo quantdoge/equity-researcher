@@ -33,6 +33,7 @@ jobs:
           - CMG
           - MRVL
           - NBIS
+          - GRMN
 
     steps:
       - uses: actions/checkout@v4
