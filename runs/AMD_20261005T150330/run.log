@@ -1,0 +1,15 @@
+2026-10-05T15:03:30  START  symbol=AMD agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-05T15:04:47  DONE   fin_risk_analyst  76.7s
+2026-10-05T15:05:14  DONE   growth_researcher  104.0s
+2026-10-05T15:06:01  DONE   macro_researcher  150.3s
+2026-10-05T15:06:34  DONE   quant_analyst  79.9s
+2026-10-05T15:06:54  DONE   sector_researcher  203.7s
+2026-10-05T15:07:37  DONE   geo_legal_researcher  246.7s
+2026-10-05T15:08:13  DONE   alt_data_analyst  79.4s
+2026-10-05T15:08:21  DONE   esg_analyst  106.7s
+2026-10-05T15:08:51  DONE   nonfin_risk_analyst  244.2s
+2026-10-05T15:09:40  DONE   value_researcher  369.4s
+2026-10-05T15:17:57  DONE   short_analyst  716.7s
+2026-10-05T15:22:02  DONE   portfolio_strategist  245.2s
+2026-10-05T15:22:46  DONE   head_of_research  43.8s
+2026-10-05T15:22:46  END    elapsed=1155.9s failures=none
