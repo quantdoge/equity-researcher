@@ -1,0 +1,15 @@
+2026-10-05T15:23:31  START  symbol=CMG agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-05T15:24:17  DONE   geo_legal_researcher  45.4s
+2026-10-05T15:24:59  DONE   growth_researcher  87.4s
+2026-10-05T15:25:13  DONE   fin_risk_analyst  102.1s
+2026-10-05T15:25:29  DONE   quant_analyst  30.1s
+2026-10-05T15:25:47  DONE   nonfin_risk_analyst  90.3s
+2026-10-05T15:26:39  DONE   value_researcher  188.0s
+2026-10-05T15:28:04  DONE   esg_analyst  155.4s
+2026-10-05T15:30:00  DONE   sector_researcher  389.2s
+2026-10-05T15:30:15  DONE   alt_data_analyst  268.5s
+2026-10-05T15:30:42  DONE   macro_researcher  430.6s
+2026-10-05T15:35:29  DONE   short_analyst  616.1s
+2026-10-05T15:41:04  DONE   portfolio_strategist  335.0s
+2026-10-05T15:42:58  DONE   head_of_research  113.7s
+2026-10-05T15:42:58  END    elapsed=1166.9s failures=none
