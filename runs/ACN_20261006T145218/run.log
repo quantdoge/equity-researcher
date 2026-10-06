@@ -1,0 +1,15 @@
+2026-10-06T14:52:18  START  symbol=ACN agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-06T14:53:39  DONE   sector_researcher  81.5s
+2026-10-06T14:53:40  DONE   macro_researcher  81.6s
+2026-10-06T14:55:03  DONE   fin_risk_analyst  165.4s
+2026-10-06T14:55:16  DONE   geo_legal_researcher  177.7s
+2026-10-06T14:56:10  DONE   quant_analyst  150.9s
+2026-10-06T14:57:01  DONE   growth_researcher  283.4s
+2026-10-06T14:57:41  DONE   nonfin_risk_analyst  241.9s
+2026-10-06T14:58:46  DONE   short_analyst  222.8s
+2026-10-06T14:59:15  DONE   esg_analyst  239.6s
+2026-10-06T14:59:34  DONE   alt_data_analyst  203.5s
+2026-10-06T15:01:19  DONE   value_researcher  541.1s
+2026-10-06T15:02:44  DONE   portfolio_strategist  84.8s
+2026-10-06T15:06:49  DONE   head_of_research  245.1s
+2026-10-06T15:06:49  END    elapsed=871.0s failures=none
