@@ -1,0 +1,15 @@
+2026-10-06T15:22:00  START  symbol=CRM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-06T15:24:55  DONE   sector_researcher  174.5s
+2026-10-06T15:25:31  DONE   fin_risk_analyst  211.1s
+2026-10-06T15:26:41  DONE   value_researcher  281.1s
+2026-10-06T15:26:48  DONE   growth_researcher  288.1s
+2026-10-06T15:28:12  DONE   quant_analyst  160.5s
+2026-10-06T15:29:53  DONE   macro_researcher  472.7s
+2026-10-06T15:30:49  DONE   geo_legal_researcher  528.4s
+2026-10-06T15:31:31  DONE   alt_data_analyst  198.9s
+2026-10-06T15:31:40  DONE   nonfin_risk_analyst  405.7s
+2026-10-06T15:34:25  DONE   esg_analyst  456.8s
+2026-10-06T15:36:57  DONE   short_analyst  616.2s
+2026-10-06T15:38:49  DONE   portfolio_strategist  111.1s
+2026-10-06T15:39:38  DONE   head_of_research  49.6s
+2026-10-06T15:39:38  END    elapsed=1058.0s failures=none
