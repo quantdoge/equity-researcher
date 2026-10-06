@@ -1,0 +1,15 @@
+2026-10-06T15:30:21  START  symbol=NOW agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-06T15:33:23  DONE   sector_researcher  182.3s
+2026-10-06T15:33:56  DONE   macro_researcher  215.0s
+2026-10-06T15:34:08  DONE   fin_risk_analyst  226.7s
+2026-10-06T15:35:36  DONE   geo_legal_researcher  314.8s
+2026-10-06T15:35:39  DONE   growth_researcher  317.4s
+2026-10-06T15:37:51  DONE   quant_analyst  235.3s
+2026-10-06T15:38:27  DONE   nonfin_risk_analyst  303.9s
+2026-10-06T15:39:07  DONE   short_analyst  299.7s
+2026-10-06T15:42:51  FAIL   value_researcher  750.3s  TimeoutError: 
+2026-10-06T15:43:01  DONE   esg_analyst  444.6s
+2026-10-06T15:44:08  DONE   alt_data_analyst  509.2s
+2026-10-06T15:46:30  DONE   portfolio_strategist  142.0s
+2026-10-06T15:47:54  DONE   head_of_research  84.5s
+2026-10-06T15:47:54  END    elapsed=1053.2s failures=value_researcher
