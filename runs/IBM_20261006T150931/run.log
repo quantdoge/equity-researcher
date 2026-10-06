@@ -1,0 +1,15 @@
+2026-10-06T15:09:31  START  symbol=IBM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-06T15:09:45  FAIL   geo_legal_researcher  13.6s  ReadError: 
+2026-10-06T15:09:48  FAIL   growth_researcher  16.8s  ReadError: 
+2026-10-06T15:10:42  FAIL   value_researcher  71.3s  ReadError: 
+2026-10-06T15:12:18  DONE   sector_researcher  166.9s
+2026-10-06T15:13:08  DONE   nonfin_risk_analyst  202.9s
+2026-10-06T15:13:10  DONE   fin_risk_analyst  219.0s
+2026-10-06T15:14:40  DONE   quant_analyst  292.0s
+2026-10-06T15:14:54  DONE   macro_researcher  322.4s
+2026-10-06T15:15:49  DONE   esg_analyst  210.9s
+2026-10-06T15:17:08  DONE   alt_data_analyst  240.2s
+2026-10-06T15:18:21  DONE   short_analyst  458.4s
+2026-10-06T15:20:41  DONE   portfolio_strategist  140.1s
+2026-10-06T15:21:06  DONE   head_of_research  25.3s
+2026-10-06T15:21:06  END    elapsed=695.1s failures=geo_legal_researcher,value_researcher,growth_researcher
