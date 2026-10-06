@@ -26,14 +26,15 @@ jobs:
       contents: write         # to commit results back
     strategy:
       fail-fast: false        # one ticker failing doesn't cancel the others
-      max-parallel: 1         # sequential — also keeps OpenRouter rate limits in check
+      max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - AMD
-          - CMG
-          - MRVL
-          - NBIS
-          - GRMN
+          - ACN
+          - OKTA
+          - ZS
+          - IBM
+          - CRM
+          - NOW
 
     steps:
       - uses: actions/checkout@v4
