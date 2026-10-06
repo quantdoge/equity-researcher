@@ -1,0 +1,15 @@
+2026-10-06T15:07:27  START  symbol=ZS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-06T15:07:47  FAIL   macro_researcher  19.6s  ReadError: 
+2026-10-06T15:10:10  DONE   sector_researcher  162.1s
+2026-10-06T15:10:23  DONE   fin_risk_analyst  175.4s
+2026-10-06T15:10:27  FAIL   growth_researcher  179.2s  ReadError: 
+2026-10-06T15:12:48  DONE   value_researcher  320.8s
+2026-10-06T15:13:06  DONE   quant_analyst  176.8s
+2026-10-06T15:14:37  DONE   geo_legal_researcher  429.6s
+2026-10-06T15:15:33  DONE   nonfin_risk_analyst  466.1s
+2026-10-06T15:16:19  DONE   esg_analyst  352.6s
+2026-10-06T15:16:45  DONE   alt_data_analyst  236.8s
+2026-10-06T15:19:37  DONE   short_analyst  554.4s
+2026-10-06T15:24:01  DONE   portfolio_strategist  263.8s
+2026-10-06T15:29:35  DONE   head_of_research  333.7s
+2026-10-06T15:29:35  END    elapsed=1327.3s failures=macro_researcher,growth_researcher
