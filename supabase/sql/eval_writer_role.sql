@@ -29,8 +29,11 @@ SELECT format('CREATE ROLE eval_writer LOGIN NOBYPASSRLS NOSUPERUSER NOCREATEDB 
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'eval_writer')
 \gexec
 
--- An already-existing role must also lack BYPASSRLS / superuser.
-ALTER ROLE eval_writer NOBYPASSRLS NOSUPERUSER;
+-- No ALTER ROLE ... NOSUPERUSER here: on Supabase the `postgres` role is not a
+-- superuser, and Postgres refuses to let a non-superuser touch the SUPERUSER
+-- attribute at all, even to clear it (42501). CREATE ROLE above already sets
+-- NOSUPERUSER NOBYPASSRLS; verify with
+--   SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = 'eval_writer';
 
 GRANT USAGE ON SCHEMA eval TO eval_writer;
 

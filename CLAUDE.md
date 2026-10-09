@@ -286,6 +286,69 @@ rerun skips work that is already stored unless `--force` is passed. Every
 successful call is cached in `eval.jev_calls` by state + questions + model, so
 `--force` after a one-question rubric edit only pays for the changed request.
 
+**Data dictionary.** Every table, view and column in `eval` is documented in the
+`datadict` schema, which has two tables: `datadict.tables` and `datadict.columns`.
+For each column it records: type, owner, dates, definition, real example values,
+value range, and what each value means. Read it through `datadict.v_data_dictionary`.
+In that view, a pass-through view column inherits its source column's text through
+`derived_from`.
+
+It is built by `supabase/migrations/20261010020000_datadict_schema.sql` and
+`…020100_datadict_eval_seed.sql`. The seed is idempotent, and it copies types
+from `pg_catalog`, so types are never written by hand.
+
+**Any migration that changes `eval` must update the seed in the same change.** When
+it's done, `SELECT * FROM datadict.v_coverage_gaps` must return 0 rows. That view
+lists undocumented columns, dropped columns, type changes and broken `derived_from`
+links.
+
+### Rollout status and next session: backfill (written 2026-10-10)
+
+Delete this subsection once the backfill is stored and the paused items are settled.
+
+**State at end of 2026-10-10.** Nothing here is committed yet.
+- Supabase project `equity-research-eval` (ref `zpnjlzrgzrtedkqumrph`) has the `eval` and `datadict` schemas applied.
+- 3 of the 35 `outputs/*.json` runs are evaluated and stored: `AVGO_20261003T135110`, `IBM_20261006T150931` and `NOW_20261006T153021`. That is 39 evaluations, about 1,380 metric results and 224 cached Jev calls.
+- `.env` holds `TYPESAFE_API_KEY` and `SUPABASE_EVAL_DB_URL`, the latter for the `eval_writer` role through the session pooler.
+
+**Backfill the other 32 runs.** This is about 2,140 Jev requests. Idempotency skips the three runs already stored, so `--all` is safe to use.
+
+```bash
+# 1. Offline checks. Both must pass before spending anything.
+uv run python -m equity_mcp.evaluation.evaluate --validate-rubrics
+uv run python -m equity_mcp.evaluation.evaluate --all --dry-run        # request count per run; ignores the store, so includes the 3 done runs
+
+# 2. Smoke test one run end to end, then check it landed.
+uv run python -m equity_mcp.evaluation.evaluate --symbol MSFT --latest
+
+# 3. The rest. Run it in the background and log it; rerunning resumes where it stopped.
+mkdir -p evals && uv run python -m equity_mcp.evaluation.evaluate --all --concurrency 4 2>&1 | tee evals/backfill.log
+
+# 4. If the database dropped at any point, replay what was parked.
+uv run python -m equity_mcp.evaluation.evaluate --flush-pending
+```
+
+Things to watch for during the backfill:
+- **The oldest files may have a pre-provenance layout.** These are `CMG_2026-07-31_gpt4omini.json`, `CMG_2026-08-01.json` and the August runs. They may be skipped or show more `agent_failed` and `degenerate` statuses. The dry run in step 1 shows which.
+- **A 401 or 403 from Jev stops the run** (`FatalJevError`). Check the key rather than retrying.
+- **Keep `--concurrency` at 4 or below.** The SDK already retries 429s with backoff.
+- **Check the result in SQL afterwards.** Expect 13 rows per complete run, with failed agents as status rows. `datadict.v_coverage_gaps` must still be empty.
+
+```sql
+SELECT r.symbol, count(*) AS evals, count(*) FILTER (WHERE e.status = 'complete') AS complete
+FROM eval.evaluations e JOIN eval.runs r USING (run_id) GROUP BY 1 ORDER BY 1;
+```
+
+**Still paused.** Do not do any of these until the user says so:
+- Adding the GitHub DEV secrets (`TYPESAFE_API_KEY`, `SUPABASE_EVAL_DB_URL`) and the variable `JEV_MODEL`.
+- Committing. A merge to `main` must carry `[skip ci]`.
+
+**Open decisions.** These were offered but not yet approved:
+- **NOW's geo-legal veto fired, probably wrongly.** Its `injected_or_offtopic_text` veto fired at p=0.54. Raising that veto's threshold to about 0.8 would fix it. This changes `rubric_sha`, which makes the stored runs eligible for re-evaluation; the Jev call cache keeps that cheap.
+- **`v_stance_pivot.avg_stance_expected` counts low-evidence stances.** The fix is a one-line filter in the view, and the matching dictionary entry should be updated with it.
+- **The datadict migrations are missing from Supabase's migration history.** They were applied through the Management API, not `apply_migration`.
+- **`SUPABASE_ACCESS_TOKEN` in `.env` should be revoked** in the Supabase dashboard once no more admin SQL is needed.
+
 ## External APIs
 
 | API | Key Variable | Required | Notes |

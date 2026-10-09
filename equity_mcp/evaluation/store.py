@@ -104,7 +104,15 @@ def write_pending(record: dict) -> None:
 
 
 class SupabaseStore:
-    """psycopg async writer for the eval schema. Falls back to pending JSONL on DB errors."""
+    """
+    psycopg writer for the eval schema. Falls back to pending JSONL on DB errors.
+
+    It uses the *synchronous* driver on a worker thread, not psycopg's async
+    connection. Async psycopg cannot run on Windows' default ProactorEventLoop,
+    and the store is called from inside other people's loops (the orchestrator's,
+    the CLI's), so it can't choose its loop. One connection, serialised by a
+    lock, is plenty: Jev latency dominates and writes are a handful per agent.
+    """
 
     kind = "supabase"
 
@@ -118,8 +126,8 @@ class SupabaseStore:
         import psycopg
 
         try:
-            self.conn = await psycopg.AsyncConnection.connect(
-                self.url, prepare_threshold=None, autocommit=False, connect_timeout=20
+            self.conn = await asyncio.to_thread(
+                psycopg.connect, self.url, prepare_threshold=None, autocommit=False, connect_timeout=20
             )
         except Exception as exc:
             # Unreachable database: keep evaluating, park every record in evals/pending/.
@@ -130,7 +138,11 @@ class SupabaseStore:
 
     async def __aexit__(self, *exc: Any) -> None:
         if self.conn is not None:
-            await self.conn.close()
+            await asyncio.to_thread(self.conn.close)
+
+    async def _run(self, fn, *args):
+        async with self._lock:
+            return await asyncio.to_thread(fn, *args)
 
     def _adapt(self, col: str, value: Any) -> Any:
         if col in _JSONB and value is not None:
@@ -139,54 +151,55 @@ class SupabaseStore:
             return Jsonb(value)
         return value
 
+    def _reset(self, exc: Exception) -> None:
+        print(f"[eval] database error: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
+        try:
+            self.conn.rollback()
+        except Exception:
+            pass
+
+    # ── reads ──
+
+    def _fetchone(self, sql: str, params: tuple):
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql, params)
+                row = cur.fetchone()
+            self.conn.rollback()
+            return row
+        except Exception as exc:
+            self._reset(exc)
+            return None
+
     async def already_evaluated(self, run_id: str, role: str, rubric_sha: str, model: str) -> bool:
         if self.conn is None:
             return False
-        async with self._lock:
-            try:
-                async with self.conn.cursor() as cur:
-                    await cur.execute(
-                        "SELECT 1 FROM eval.evaluations WHERE run_id=%s AND role=%s AND rubric_sha=%s "
-                        "AND jev_model=%s AND status IN ('complete','agent_failed','degenerate','missing')",
-                        (run_id, role, rubric_sha, model),
-                    )
-                    row = await cur.fetchone()
-                await self.conn.rollback()
-                return row is not None
-            except Exception as exc:
-                await self._reset(exc)
-                return False
+        row = await self._run(
+            self._fetchone,
+            "SELECT 1 FROM eval.evaluations WHERE run_id=%s AND role=%s AND rubric_sha=%s "
+            "AND jev_model=%s AND status IN ('complete','agent_failed','degenerate','missing')",
+            (run_id, role, rubric_sha, model),
+        )
+        return row is not None
 
     async def cached_call(self, cache_key: str) -> dict | None:
         if self.conn is None:
             return None
-        async with self._lock:
-            try:
-                async with self.conn.cursor() as cur:
-                    await cur.execute(
-                        "SELECT id, answers, jev_model_returned, request_id, input_tokens, output_tokens "
-                        "FROM eval.jev_calls WHERE cache_key=%s AND error IS NULL",
-                        (cache_key,),
-                    )
-                    row = await cur.fetchone()
-                await self.conn.rollback()
-            except Exception as exc:
-                await self._reset(exc)
-                return None
+        row = await self._run(
+            self._fetchone,
+            "SELECT id, answers, jev_model_returned, request_id, input_tokens, output_tokens "
+            "FROM eval.jev_calls WHERE cache_key=%s AND error IS NULL",
+            (cache_key,),
+        )
         if row is None:
             return None
         return {"store_id": row[0], "answers": row[1], "jev_model_returned": row[2], "request_id": row[3],
                 "input_tokens": row[4], "output_tokens": row[5], "error": None}
 
-    async def _reset(self, exc: Exception) -> None:
-        print(f"[eval] database error: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
-        try:
-            await self.conn.rollback()
-        except Exception:
-            pass
+    # ── writes ──
 
-    async def _upsert(self, cur, table: str, cols: tuple[str, ...], row: dict, conflict: str,
-                      update: bool = True, returning: str | None = None):
+    def _upsert(self, cur, table: str, cols: tuple[str, ...], row: dict, conflict: str,
+                update: bool = True, returning: str | None = None):
         values = [self._adapt(c, row.get(c)) for c in cols]
         placeholders = ", ".join(["%s"] * len(cols))
         if update:
@@ -197,37 +210,35 @@ class SupabaseStore:
         sql = f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders}) ON CONFLICT {conflict} {action}"
         if returning:
             sql += f" RETURNING {returning}"
-        await cur.execute(sql, values)
-        return await cur.fetchone() if returning else None
+        cur.execute(sql, values)
+        return cur.fetchone() if returning else None
 
     async def save(self, record: dict) -> str:
         if self.conn is None:
             self.fallbacks += 1
             write_pending(record)
             return "pending"
-        async with self._lock:
-            try:
-                await self._save(record)
-                return "supabase"
-            except Exception as exc:
-                await self._reset(exc)
-                self.fallbacks += 1
-                write_pending(record)
-                return "pending"
+        try:
+            await self._run(self._save, record)
+            return "supabase"
+        except Exception as exc:
+            self._reset(exc)
+            self.fallbacks += 1
+            write_pending(record)
+            return "pending"
 
-    async def _save(self, record: dict) -> None:
-        async with self.conn.transaction():
-            async with self.conn.cursor() as cur:
+    def _save(self, record: dict) -> None:
+        with self.conn.transaction():
+            with self.conn.cursor() as cur:
                 run = record["run"]
-                await self._upsert(cur, "eval.runs", _RUN_COLS, run, "(run_id)")
+                self._upsert(cur, "eval.runs", _RUN_COLS, run, "(run_id)")
                 if record.get("agent_output") is None:
                     return
-                await cur.execute("UPDATE eval.runs SET updated_at = now() WHERE run_id=%s", (run["run_id"],))
-                (output_id,) = await self._upsert(
+                (output_id,) = self._upsert(
                     cur, "eval.agent_outputs", _OUTPUT_COLS, record["agent_output"], "(run_id, role)",
                     returning="id",
                 )
-                await self._upsert(cur, "eval.rubrics", _RUBRIC_COLS, record["rubric"], "(rubric_sha)", update=False)
+                self._upsert(cur, "eval.rubrics", _RUBRIC_COLS, record["rubric"], "(rubric_sha)", update=False)
 
                 call_ids: dict[int, int] = {}
                 for call in record.get("calls", []):
@@ -235,32 +246,31 @@ class SupabaseStore:
                         call_ids[call["ref"]] = call["store_id"]
                         continue
                     if call.get("error") is None:
-                        (cid,) = await self._upsert(
+                        (cid,) = self._upsert(
                             cur, "eval.jev_calls", _CALL_COLS, call, "(cache_key) WHERE error IS NULL",
                             returning="id",
                         )
                     else:
-                        cols = ", ".join(_CALL_COLS)
-                        await cur.execute(
-                            f"INSERT INTO eval.jev_calls ({cols}) VALUES ({', '.join(['%s'] * len(_CALL_COLS))}) "
-                            "RETURNING id",
+                        cur.execute(
+                            f"INSERT INTO eval.jev_calls ({', '.join(_CALL_COLS)}) "
+                            f"VALUES ({', '.join(['%s'] * len(_CALL_COLS))}) RETURNING id",
                             [self._adapt(c, call.get(c)) for c in _CALL_COLS],
                         )
-                        (cid,) = await cur.fetchone()
+                        (cid,) = cur.fetchone()
                     call_ids[call["ref"]] = cid
 
                 ev = {**record["evaluation"], "agent_output_id": output_id}
-                (eval_id,) = await self._upsert(
+                (eval_id,) = self._upsert(
                     cur, "eval.evaluations", _EVAL_COLS, ev, "(run_id, role, rubric_sha, jev_model)",
                     returning="id",
                 )
-                await cur.execute("DELETE FROM eval.metric_results WHERE evaluation_id=%s", (eval_id,))
+                cur.execute("DELETE FROM eval.metric_results WHERE evaluation_id=%s", (eval_id,))
                 rows = []
                 for m in record.get("metrics", []):
                     m = {**m, "evaluation_id": eval_id, "jev_call_id": call_ids.get(m.get("call_ref"))}
                     rows.append([self._adapt(c, m.get(c)) for c in _METRIC_COLS])
                 if rows:
-                    await cur.executemany(
+                    cur.executemany(
                         f"INSERT INTO eval.metric_results ({', '.join(_METRIC_COLS)}) "
                         f"VALUES ({', '.join(['%s'] * len(_METRIC_COLS))})",
                         rows,
@@ -282,17 +292,18 @@ async def flush_pending() -> tuple[int, int]:
     saved = failed = 0
     files = sorted(PENDING_DIR.glob("*.jsonl")) if PENDING_DIR.exists() else []
     async with SupabaseStore(url) as store:
+        if store.conn is None:
+            raise SystemExit("evaluation database unreachable; nothing flushed")
         for path in files:
             remaining = []
             for line in path.read_text(encoding="utf-8").splitlines():
                 if not line.strip():
                     continue
-                record = json.loads(line)
                 try:
-                    await store._save(record)
+                    await store._run(store._save, json.loads(line))
                     saved += 1
                 except Exception as exc:
-                    await store._reset(exc)
+                    store._reset(exc)
                     remaining.append(line)
                     failed += 1
             if remaining:
