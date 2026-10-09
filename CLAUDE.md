@@ -26,7 +26,9 @@ equity_mcp/
 │   ├── web.py             # web_search + fetch_page
 │   ├── calculations/      # valuation, risk, quant, forensics (these query the DB)
 │   └── external/          # fred, sec_edgar, news, alt_data (external APIs)
-└── prompts/               # System prompt .md file per agent role
+├── prompts/               # System prompt .md file per agent role
+├── metrics/               # Jev evaluation rubric .yaml per agent role + _shared.yaml
+└── evaluation/            # Scores outputs/*.json with TypeSafe Jev → Supabase `eval` schema
 ```
 
 ## Orchestration: deepagents (default)
@@ -213,6 +215,76 @@ unaffected by any of this.
 3. Add the role to `ALL_ROLES` in `roles.py`
 4. Add it to the appropriate pipeline stage in `orchestrator.py`
 5. Tag any new tools with the new role set
+6. Add `metrics/<new_role>.yaml` (see Output Evaluation); `tests/test_eval_rubrics.py` fails until it exists
+
+## Output Evaluation (TypeSafe Jev)
+
+Every agent's report is scored by TypeSafe **Jev**. Jev is a typed "System One"
+classifier: it answers Noul (yes/no probability), Score (ordinal level) and
+Choice (one of N) questions about a supplied text. The rubric for each agent
+lives in `equity_mcp/metrics/<role>.yaml`, one file per role, plus
+`_shared.yaml`. The code lives in `equity_mcp/evaluation/`. Results go to a
+**separate** Supabase project, schema `eval`
+(`supabase/migrations/20261010000000_eval_schema.sql`).
+
+Each evaluation has two blocks that are stored apart and **never averaged together**:
+
+- **conviction**: what the agent concluded.
+  - Every agent is placed on the same shared Choice, STRONG SELL / SELL /
+    HOLD / BUY / STRONG BUY, with a Low/Medium/High conviction level.
+  - The agent's own headline enum is extracted in code and mapped to that
+    scale through the YAML's `native_to_stance`. Their agreement is stored.
+  - Each role also has 5-level **domain metrics**: profitability, liquidity
+    and solvency for value; E, S and G for ESG; and so on.
+- **alignment**: whether the output followed its prompt.
+  - Deterministic checks in code: sections, enums, tables, counts and
+    price-target arithmetic.
+  - Jev questions on evidence, balance and consistency.
+  - These combine into a weighted composite. Vetoes are listed separately.
+
+```bash
+uv run python -m equity_mcp.evaluation.evaluate --validate-rubrics          # offline, also in CI
+uv run python -m equity_mcp.evaluation.inspect value_researcher -v          # offline rubric debugger
+uv run python -m equity_mcp.evaluation.evaluate --all --dry-run             # request counts, no network
+uv run python -m equity_mcp.evaluation.evaluate --file outputs/AVGO_20261003T135110.json
+uv run python -m equity_mcp.orchestrator --symbol AAPL --evaluate           # score at the end of a run
+uv run python tests/test_eval_rubrics.py && uv run python tests/test_eval_extract.py && uv run python tests/test_eval_jev.py
+```
+
+Rules that came from Jev's documented behaviour, not taste:
+
+- **Code does what Jev can't.** Jev reads dates as text, counts badly and
+  degrades on long state, so code extracts enums, counts items and checks
+  arithmetic. Jev sees only the sections a question needs, capped at 12k chars.
+- **Score has no abstain option.** A request's `gate` Noul marks its siblings
+  `low_evidence` when it fails. A domain metric is sent only if code finds one
+  of its `evidence_terms`; otherwise it is `not_addressed`.
+- **Question ids are not sent to the model.** Every `instructions` must stand
+  on its own. Score levels are 0-based on the wire.
+- **Pin the model** (`JEV_MODEL=jev-1.13.0`). The CLI refuses `jev-latest`
+  unless `--allow-floating-model` is passed.
+- **The portfolio strategist and head of research are evaluated second.**
+  Their fidelity questions get a code-built `specialist_summary` of what the
+  specialists concluded and which ones failed.
+- **Editing a prompt requires a rubric review.** Each YAML pins
+  `source_prompt_sha256`, and `--validate-rubrics` fails on drift. After
+  review, update the hash (`--rehash-prompts` prints them). Editing a rubric
+  changes its `rubric_sha`, which makes past runs eligible for re-evaluation.
+- **Results are advisory until calibrated.** `calibrated: false` sets
+  `advisory=true` on every evaluation. Calibration means hand labels in
+  `eval.human_labels` and checking agreement in `eval.v_jev_human_agreement`.
+- **Evaluation never fails research.**
+  - `orchestrator --evaluate` and the CI step swallow every error into one
+    `EVAL` line in run.log.
+  - An unreachable database parks records in `evals/pending/` (gitignored).
+    Replay them with `--flush-pending`.
+  - A failed or degenerate agent gets a status and costs no calls, rather than
+    a score of zero.
+
+Idempotency: an evaluation is keyed on (run, role, rubric_sha, jev_model). A
+rerun skips work that is already stored unless `--force` is passed. Every
+successful call is cached in `eval.jev_calls` by state + questions + model, so
+`--force` after a one-question rubric edit only pays for the changed request.
 
 ## External APIs
 
@@ -226,6 +298,8 @@ unaffected by any of this.
 | FMP | `FMP_API_KEY` | Yes | **All 12 `db.py` tools**, plus every tool in `tools/external/news.py` |
 | Brave Search | `BRAVE_API_KEY` | One of these two | Preferred `web_search` provider |
 | SerpAPI | `SERP_API_KEY` | One of these two | Used when Brave is unset |
+| TypeSafe Jev | `TYPESAFE_API_KEY`, `JEV_MODEL` | Evaluation only | Scores agent outputs; `equity_mcp/evaluation/jev.py` |
+| Supabase (eval project) | `SUPABASE_EVAL_DB_URL` | Evaluation only | Separate project, session-pooler URL, `eval_writer` role; unset → `evals/results/` |
 
 ### FMP caching — use `fmp_cached`, not `fmp_get`
 

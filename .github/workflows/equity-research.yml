@@ -4,6 +4,14 @@
 # Edit the ticker list in `matrix.ticker`. Each ticker is its own job, so one
 # failure doesn't stop the rest, and GitHub's 6-hour job limit applies per
 # ticker rather than to the whole list.
+#
+# Every push to main triggers the FULL research matrix (one paid pipeline run per
+# ticker). Merges that only touch infrastructure (workflows, docs, eval tooling)
+# should carry [skip ci] in the commit message.
+#
+# After each ticker's pipeline, its newest output is scored with TypeSafe Jev
+# (equity_mcp.evaluation.evaluate). That step is best-effort: it can never fail
+# the job or block the commit.
 name: Equity research
 
 on:
@@ -44,6 +52,15 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      # Recorded before Install so the margin to the orchestrator's run stamp is
+      # tens of seconds, not a same-second tie. The evaluate step uses it to
+      # refuse any output older than this job (i.e. a checked-in one).
+      # The orchestrator stamps runs with the runner's LOCAL clock
+      # (datetime.now() in run_log.py); GitHub-hosted runners are UTC, so -u
+      # matches. On a self-hosted runner with a non-UTC TZ, drop the -u.
+      - name: Record job start stamp
+        run: echo "JOB_START=$(date -u +%Y%m%dT%H%M%S)" >> "$GITHUB_ENV"
+
       - name: Install
         run: pip install -e .
 
@@ -68,6 +85,34 @@ jobs:
             [ -z "${!v}" ] && unset "$v"
           done
           python -m equity_mcp.orchestrator --symbol "${{ matrix.ticker }}"
+
+      # Score this ticker's newest output with Jev and store it in the eval DB.
+      # always(): a partial run still writes an output JSON worth scoring.
+      # continue-on-error: an eval failure must never cost us the commit below.
+      # --require-newer-than: if the pipeline produced nothing, don't re-score
+      # an older checked-in output instead.
+      # Writes nothing under outputs/ or runs/; with no DB it falls back to
+      # evals/, which the commit step below does not stage.
+      - name: Evaluate outputs (Jev)
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 20
+        env:
+          TYPESAFE_API_KEY:     ${{ secrets.TYPESAFE_API_KEY }}
+          SUPABASE_EVAL_DB_URL: ${{ secrets.SUPABASE_EVAL_DB_URL }}
+          JEV_MODEL:            ${{ vars.JEV_MODEL || 'jev-1.13.0' }}
+          PYTHONUNBUFFERED: "1"
+        run: |
+          if [ -z "$TYPESAFE_API_KEY" ]; then
+            echo "::notice::TYPESAFE_API_KEY is not set; skipping Jev evaluation."
+            exit 0
+          fi
+          # As above: an unset secret arrives as "". Unset it so the CLI sees
+          # "no eval DB" rather than an empty connection string.
+          [ -z "$SUPABASE_EVAL_DB_URL" ] && unset SUPABASE_EVAL_DB_URL
+          python -m equity_mcp.evaluation.evaluate \
+            --symbol "${{ matrix.ticker }}" --latest \
+            --require-newer-than "$JOB_START"
 
       # always(): a run that fails or times out still leaves every finished
       # specialist's report in runs/<id>/reports/, which is worth keeping.

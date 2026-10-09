@@ -1,0 +1,348 @@
+# Macroeconomy researcher (rates, growth, inflation, currency and trade).
+#
+# conviction.domain_metrics: the report's own assessment of how the macro
+#   environment bears on this company, as 5-level Scores. Level 0 = very
+#   unfavourable to a long investor, level 4 = very favourable. A metric is
+#   sent to Jev only if code finds one of its evidence_terms in the selected
+#   section; otherwise it is "not_addressed".
+# alignment: did the output follow prompts/macro_researcher.md.
+#
+# Some reports put the rating on its own heading line ("## **Neutral ...**")
+# at the same level as "4. Macro Risk Rating", which would end that section
+# with an empty body. The rating section therefore also matches a heading that
+# starts with a rating word, and concatenates every match.
+#
+# The variables-table check requires GDP, CPI, Fed Funds and 10Y rows by
+# label. The dollar row is checked separately by regex, because table_present
+# matches row labels by substring and reports variously write "USD", "Dollar"
+# or "DXY".
+
+role: macro_researcher
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/macro_researcher.md
+source_prompt_sha256: "0d4a19edf8a5202b1be5ef37269c1522d7910ff29658635fa2d0b749bbefc6bd"
+calibrated: false
+
+background:
+  mandate: >
+    Macroeconomy researcher. Connects monetary policy, fiscal policy,
+    inflation and global capital flows to this specific company: the Fed Funds
+    path and yield curve, GDP and CPI/PCE trends, the company's interest-rate
+    sensitivity (valuation and refinancing), its exposure to the US dollar,
+    commodity inputs and import tariffs. Must use FRED data wherever available
+    and be precise with numbers and dates.
+  required_output: |
+    1. Macro Environment Summary (current stance: risk-on / risk-off / transitional)
+    2. Key Macro Variables Table (GDP growth, CPI, Fed Funds Rate, 10Y yield, USD index)
+    3. Company-Specific Macro Impact (positive / negative / neutral for each variable)
+    4. Macro Risk Rating: Favourable / Neutral / Unfavourable
+    5. One macro scenario that could materially surprise (bull or bear)
+
+sections:
+  summary: {heading: 'environment summary|macro summary|summary'}
+  variables: {heading: 'variables'}
+  impact: {heading: 'company[- ]specific|impact on'}
+  rating:
+    heading: 'macro risk rating|^(?:favou?rable|neutral|unfavou?rable)\b'
+    all_matches: true
+  scenario: {heading: 'scenario|surprise'}
+
+extract:
+  macro_rating:
+    section: rating
+    values: [Favourable, Neutral, Unfavourable]
+    aliases: {Favorable: Favourable, Unfavorable: Unfavourable}
+  macro_stance:
+    section: summary
+    values: [Risk-Off, Transitional, Risk-On]
+
+conviction:
+  native_rating: macro_rating
+  native_to_stance: {Favourable: BUY, Neutral: HOLD, Unfavourable: SELL}
+  domain_metrics:
+    interest_rate_sensitivity:
+      label: Interest-rate sensitivity
+      section: [impact, full]
+      evidence_terms: [interest rate, Fed Funds, rate cut, rate hike, 10Y, yield, discount rate, refinanc, duration, net interest]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        company's exposure to interest rates, taking into account both how
+        sensitive its earnings and valuation are to rates and the rate path
+        the report expects?
+      criteria:
+        - "Very adverse: highly rate-sensitive, and the expected rate path materially hurts earnings, refinancing or valuation"
+        - "Adverse: the expected rate path is a moderate drag on earnings or valuation"
+        - "Neutral: little sensitivity to rates, or helpful and harmful effects roughly offset"
+        - "Supportive: the expected rate path modestly helps earnings, funding costs or valuation"
+        - "Very supportive: the company is a clear beneficiary of the expected rate path"
+    growth_demand_sensitivity:
+      label: Growth / demand sensitivity
+      section: [impact, full]
+      evidence_terms: [GDP, recession, consumer spending, demand, cyclical, employment, unemployment, capex, slowdown, soft landing]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        outlook for demand for the company's products, given the path of
+        economic growth the report expects and how cyclical the company's
+        demand is?
+      criteria:
+        - "Very adverse: highly cyclical demand, and the expected growth path points to a material decline"
+        - "Adverse: slowing growth is expected to weigh on demand"
+        - "Neutral: demand is largely insensitive to the cycle, or the growth outlook is stable"
+        - "Supportive: the expected growth path modestly supports demand"
+        - "Very supportive: the growth backdrop or a structural spending wave strongly lifts demand"
+    inflation_input_cost_exposure:
+      label: Inflation / input-cost exposure
+      section: [impact, full]
+      evidence_terms: [inflation, CPI, PCE, input cost, wage, commodit, pricing power, cost pressure, energy cost, pass-through]
+      instructions: >
+        Based only on what this research report states, how well placed is the
+        company for the inflation and input-cost environment the report
+        describes, considering its cost structure and its ability to pass
+        costs on through prices?
+      criteria:
+        - "Very adverse: costs are rising faster than the company can raise prices, squeezing margins materially"
+        - "Adverse: inflation is a moderate margin headwind with only partial pass-through"
+        - "Neutral: limited cost exposure, or costs passed through roughly in full"
+        - "Supportive: strong pricing power more than offsets cost inflation"
+        - "Very supportive: inflation or rising output prices are a clear net benefit to margins"
+    fx_exposure:
+      label: Currency (FX) exposure
+      section: [impact, full]
+      evidence_terms: [dollar, USD, currency, FX, exchange rate, euro, yen, international revenue, translation, DXY]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        effect of currency movements on the company's reported results, given
+        its foreign exposure and the dollar trend the report expects?
+      criteria:
+        - "Very adverse: large foreign exposure, and the expected currency move materially reduces reported results"
+        - "Adverse: currency moves are a moderate drag on reported results"
+        - "Neutral: little foreign exposure, or currency effects roughly offset"
+        - "Supportive: currency moves modestly lift reported results"
+        - "Very supportive: large foreign exposure, and the expected currency move materially lifts reported results"
+    trade_tariff_exposure:
+      label: Trade / tariff exposure
+      section: [impact, full]
+      evidence_terms: [tariff, trade war, trade policy, import, export control, supply chain, customs, decoupling]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        effect of tariffs, trade policy and export controls on the company's
+        costs, supply chain and demand?
+      criteria:
+        - "Very adverse: tariffs or trade restrictions materially raise costs or cut demand, with no offset"
+        - "Adverse: a moderate tariff or trade drag, partly mitigated"
+        - "Neutral: little trade exposure, or effects roughly offset"
+        - "Supportive: trade policy modestly favours the company, for example by protecting it from imports"
+        - "Very supportive: the company is a clear beneficiary of tariffs, reshoring or trade policy"
+    overall_macro_tailwind:
+      label: Overall macro tailwind
+      section: [rating, impact, full]
+      evidence_terms: [tailwind, headwind, favourable, favorable, unfavourable, unfavorable, supportive, adverse, net]
+      instructions: >
+        Based only on what this research report states, taken as a whole, how
+        favourable is the current and expected macroeconomic environment for
+        this company?
+      criteria:
+        - "Strong headwind: the macro environment is materially hurting or expected to hurt the company"
+        - "Mild headwind: macro factors are a net negative but manageable"
+        - "Neutral: macro tailwinds and headwinds roughly offset"
+        - "Mild tailwind: macro factors are a net positive"
+        - "Strong tailwind: the macro environment clearly and materially supports the company"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [summary, variables, impact, rating, scenario], weight: 2}
+    - {id: macro_rating_parseable, kind: extract_ok, extract: macro_rating, weight: 2, veto: true}
+    - {id: stance_parseable, kind: extract_ok, extract: macro_stance, weight: 1}
+    - {id: variables_table, kind: table_present, section: variables, min_rows: 5, row_labels: [GDP, CPI, Fed Fund, 10Y], weight: 2}
+    - {id: dollar_variable_present, kind: min_matches, section: variables, pattern: '\bUSD\b|dollar|\bDXY\b', min: 1, weight: 1}
+    - {id: variables_numbers, kind: min_matches, section: variables, pattern: '\d+(?:\.\d+)?\s?(?:%|bp\b)', min: 5, dimension: quantification, weight: 1}
+    - id: variables_dated
+      kind: min_matches
+      section: variables
+      pattern: '\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?[\s\-]*''?\d{1,4}\b|\bq[1-4][\s\-'']*\d{2,4}\b|\b20\d{2}-\d{2}'
+      min: 3
+      dimension: quantification
+      weight: 1
+    # Labels written as words, or as +, -, ~ signs in a table cell ("| **+** |", "| **- / mixed** |").
+    - id: impact_calls
+      kind: min_matches
+      section: impact
+      pattern: '\b(?:positive|negative|neutral|mixed)\b|\|\s*\**\s*[+~\-–−]\s*(?:/[^|]*)?\**\s*\|'
+      min: 5
+      weight: 1
+
+  requests:
+    - id: macro_data_precision
+      state: [summary, variables]
+      gate: data_evaluable
+      questions:
+        data_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section describe the current macroeconomic
+            environment with actual data on growth, inflation or interest
+            rates, rather than being a placeholder or an error message?
+        official_source_named:
+          type: noul
+          dimension: evidence
+          weight: 2
+          instructions: >
+            Does the report section identify FRED, or the official source
+            behind a series such as the Federal Reserve, BLS, BEA or the US
+            Treasury, as the source of its macroeconomic figures?
+        figures_precise_and_dated:
+          type: score
+          dimension: quantification
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst must be precise with numbers and dates. How precisely
+            does the report section state its macroeconomic figures, giving
+            an exact value and the date or period each refers to?
+          criteria:
+            - "Mostly directional statements, such as 'rates are high', with few figures"
+            - "Figures are given, but most have no date or period"
+            - "Most figures have an exact value and a date or period"
+            - "Nearly every figure has an exact value and a specific month, quarter or date"
+        yield_curve_assessed:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section describe the shape of the yield curve,
+            such as normal, flat or inverted, and say what it signals about
+            recession risk?
+        stance_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: macro_stance
+          order_check: true
+          instructions: >
+            What overall market stance does the report section say the current
+            macroeconomic environment represents?
+          criteria:
+            Risk-Off: "The stance is risk-off"
+            Transitional: "The stance is transitional"
+            Risk-On: "The stance is risk-on"
+            not_stated: "No stance from this list is given, or it is split between several of them"
+
+    - id: company_transmission
+      state: [impact]
+      gate: impact_evaluable
+      questions:
+        impact_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section assess how specific macroeconomic
+            variables affect this particular company, rather than being a
+            placeholder or an error message?
+        per_variable_direction:
+          type: score
+          dimension: compliance
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst must label the impact of each macroeconomic variable
+            on the company as positive, negative or neutral. How completely
+            does the report section do this?
+          criteria:
+            - "No explicit positive, negative or neutral impact labels are given"
+            - "Impact labels are given for only some of the variables discussed"
+            - "Every variable has an impact label, but most labels lack a reason"
+            - "Every variable has an impact label with a mechanism specific to this company"
+        transmission_company_specific:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How specifically does the report section connect the macroeconomic
+            variables to this company's own business, such as its revenue mix
+            by region, cost structure, debt maturities, customer base or
+            pricing power?
+          criteria:
+            - "Generic: the effects described would apply to almost any company"
+            - "Partly specific: a few links to the company's business, the rest generic"
+            - "Mostly specific: most effects are traced through the company's own revenue, costs or balance sheet"
+            - "Fully specific: every effect is traced through named features of the company, with figures where available"
+        rate_sensitivity_covered:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section assess the company's interest-rate
+            sensitivity in terms of both the effect of rates on its valuation
+            and its refinancing or debt-maturity exposure, or state that the
+            company has no meaningful debt?
+        impact_quantified:
+          type: noul
+          dimension: quantification
+          weight: 1
+          instructions: >
+            Does the report section quantify at least one macro effect in
+            terms of the company itself, such as the share of revenue earned
+            abroad, earnings sensitivity to a 100 basis point rate move, or
+            the cost of a tariff?
+
+    - id: rating_and_scenario
+      state: [rating, scenario]
+      gate: scenario_evaluable
+      questions:
+        scenario_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section give a macro risk rating for the company
+            and describe at least one macroeconomic scenario, rather than
+            being a placeholder or an error message?
+        scenario_concrete:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How concrete is the macroeconomic surprise scenario in the report
+            section, in terms of a named trigger, its magnitude or timing, and
+            how it would affect this company's earnings or valuation?
+          criteria:
+            - "Generic: a vague possibility such as 'a recession could hurt the company'"
+            - "A named trigger, but no magnitude, timing or company-specific effect"
+            - "A named trigger and its effect on the company, but no magnitude or timing"
+            - "A named trigger with magnitude or thresholds and timing, traced to a specific effect on the company's earnings or valuation"
+        scenario_departs_from_base:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Is the surprise scenario in the report section a genuine departure
+            from the report's own base case, rather than a restatement of the
+            outlook it already expects?
+        scenario_signposts:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section name observable indicators or thresholds
+            that would signal the surprise scenario is starting to happen?
+        rating_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: macro_rating
+          order_check: true
+          instructions: >
+            What single macro risk rating does the report section give for
+            this company?
+          criteria:
+            Favourable: "The macro risk rating is Favourable"
+            Neutral: "The macro risk rating is Neutral"
+            Unfavourable: "The macro risk rating is Unfavourable"
+            not_stated: "No rating from this list is given, or it is split between several of them"

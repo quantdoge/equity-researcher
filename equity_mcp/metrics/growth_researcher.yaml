@@ -1,0 +1,392 @@
+# Growth researcher (Cathie Wood-style disruptive growth, TAM and catalysts).
+#
+# conviction.domain_metrics: the report's own assessment of the company's
+#   growth profile, as 5-level Scores. Level 0 = very unfavourable to a long
+#   investor, level 4 = very favourable. A metric is sent to Jev only if code
+#   finds one of its evidence_terms in the selected section; otherwise it is
+#   "not_addressed".
+# alignment: did the output follow prompts/growth_researcher.md.
+#
+# Valuation is not a numbered output section, but the prompt asks for P/S,
+# EV/revenue or PEG and the 5-year revenue the price implies. Reports put it
+# in the metrics table, the verdict, or an extra "Valuation" heading, so the
+# optional valuation section is tried first and the others are fallbacks.
+
+role: growth_researcher
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/growth_researcher.md
+source_prompt_sha256: "6f11fa7a76b3d09d0b306d268628844779090308dd53141639f1152533384147"
+calibrated: false
+
+background:
+  mandate: >
+    Cathie Wood-style growth researcher. Starts from the total addressable
+    market and how much of it the company can capture, then judges the
+    quality and durability of growth: 3-5 year revenue CAGR, organic versus
+    acquired growth, gross margin trajectory, Rule of 40, estimate revisions
+    and beat history. Accepts premium multiples only if growth is durable,
+    checking P/S, EV/revenue or PEG and whether the 5-year revenue the price
+    implies is achievable. Names near-term catalysts and the execution and
+    competitive risks to the thesis.
+  required_output: |
+    1. Growth Story (2-3 sentences on the disruptive thesis)
+    2. Key Growth Metrics Table (revenue CAGR, gross margin, Rule of 40, analyst estimates)
+    3. TAM Assessment and Penetration Opportunity
+    4. Upcoming Catalysts (3-5 bullets with timeline)
+    5. Alternative Data Signals (what non-financial data supports/refutes the thesis)
+    6. Growth Verdict: Strong Buy / Buy / Hold / Sell / Strong Sell
+    7. Key Risks (especially execution risk and competitive threats)
+
+sections:
+  story: {heading: 'growth story'}
+  metrics: {heading: 'growth metrics|metrics'}
+  tam: {heading: '\btam\b|addressable|penetration'}
+  catalysts: {heading: 'catalyst'}
+  alt_data: {heading: 'alternative data|alt(?:ernative)?[- ]data'}
+  verdict: {heading: 'verdict'}
+  risks: {heading: 'key risks|risks'}
+  valuation: {heading: 'valuation'}
+
+extract:
+  growth_verdict: {section: verdict, values: [Strong Buy, Buy, Hold, Sell, Strong Sell]}
+
+conviction:
+  native_rating: growth_verdict
+  native_to_stance: {Strong Buy: STRONG BUY, Buy: BUY, Hold: HOLD, Sell: SELL, Strong Sell: STRONG SELL}
+  domain_metrics:
+    revenue_growth:
+      label: Revenue growth
+      section: [metrics, story, full]
+      evidence_terms: [revenue growth, CAGR, YoY, y/y, growth rate, revenue]
+      instructions: >
+        Based only on what this research report states, how fast is the
+        company's revenue growing, over recent years and in the forward
+        estimates the report cites?
+      criteria:
+        - "Shrinking: revenue is declining"
+        - "Low: growth in low single digits, or below its market"
+        - "Moderate: growth in mid-to-high single digits"
+        - "Strong: double-digit growth, roughly 10-25% a year"
+        - "Very strong: growth above about 25% a year, sustained over several years"
+    growth_durability:
+      label: Growth durability
+      section: [story, metrics, full]
+      evidence_terms: [organic, durable, durability, sustain, decelerat, accelerat, recurring, backlog, RPO, visibility]
+      instructions: >
+        Based only on what this research report states, how durable is the
+        company's growth, meaning how likely it is to continue at a similar
+        rate for several years, considering whether it is organic, recurring
+        and visible?
+      criteria:
+        - "Fragile: growth is one-off, acquisition-driven or collapsing"
+        - "Weak: growth is decelerating sharply or depends on uncertain events"
+        - "Moderate: growth is mostly organic but slowing, with limited visibility"
+        - "Durable: organic, largely recurring growth that is holding steady, with good visibility"
+        - "Highly durable: organic growth that is holding or accelerating, backed by multi-year contracts, backlog or structural demand"
+    tam_penetration_runway:
+      label: TAM & penetration runway
+      section: [tam, full]
+      evidence_terms: [TAM, addressable, SAM, penetration, market share, runway, market opportunity]
+      instructions: >
+        Based only on what this research report states, how much room does the
+        company have to keep growing, given the size and growth of its
+        addressable market and how much of it the company already captures?
+      criteria:
+        - "Exhausted: the market is saturated or shrinking and the company already holds most of it"
+        - "Limited: a slow-growing market or high existing penetration leaves little room"
+        - "Moderate: meaningful room to grow, but the market or the company's share gains are modest"
+        - "Large: low penetration of a large or fast-growing market"
+        - "Vast: very low penetration of a very large, fast-growing or newly created market"
+    gross_margin_trajectory:
+      label: Gross margin trajectory
+      section: [metrics, full]
+      evidence_terms: [gross margin, gross profit]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        trend in the company's gross margin, the signal of whether it is
+        gaining leverage as it scales?
+      criteria:
+        - "Contracting sharply: gross margin falling materially year after year"
+        - "Declining: gross margin drifting down"
+        - "Stable: gross margin broadly flat"
+        - "Expanding: gross margin rising steadily"
+        - "Expanding strongly: gross margin rising materially, from an already high level or with clear scale leverage"
+    rule_of_40:
+      label: Rule of 40
+      section: [metrics, full]
+      evidence_terms: [rule of 40, rule-of-40, rule of forty]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        company's Rule of 40 score, meaning its revenue growth rate in percent
+        plus its free cash flow margin in percent, as the report gives it?
+      criteria:
+        - "Far below: a Rule of 40 score well under 40, below about 20"
+        - "Below: a score of roughly 20 to 35"
+        - "Around the threshold: a score of roughly 35 to 45"
+        - "Above: a score of roughly 45 to 60"
+        - "Far above: a score above about 60"
+    estimate_revision_momentum:
+      label: Estimate revision momentum
+      section: [metrics, alt_data, full]
+      evidence_terms: [revision, upgrade, downgrade, EPS estimate, consensus, beat, price target, raised]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        trend in analysts' earnings and revenue estimates and the company's
+        record against them?
+      criteria:
+        - "Sharply negative: estimates being cut materially, with recent misses"
+        - "Negative: estimates drifting down, or a mixed beat-and-miss record"
+        - "Flat: estimates broadly unchanged, with results roughly in line"
+        - "Positive: estimates rising, with a record of beats"
+        - "Strongly positive: estimates rising materially across years, with a consistent record of beats"
+    stock_price_momentum:
+      label: Stock price momentum
+      section: [alt_data, metrics, full]
+      evidence_terms: [YTD, year-to-date, 52-week, momentum, rally, drawdown, outperform, underperform, price/volume, share price]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        recent trend in the company's share price?
+      criteria:
+        - "Strongly negative: a deep, sustained decline or a recent collapse"
+        - "Negative: a downtrend or underperformance of its market"
+        - "Flat: no clear trend, or in line with its market"
+        - "Positive: an uptrend or outperformance of its market"
+        - "Strongly positive: a large, sustained rise, well ahead of its market"
+    valuation_vs_growth:
+      label: Valuation vs growth
+      section: [valuation, verdict, metrics, full]
+      evidence_terms: [P/S, price/sales, price-to-sales, EV/revenue, EV/sales, PEG, P/E, forward sales, multiple, valuation]
+      instructions: >
+        Based only on what this research report states, how attractive is the
+        stock's valuation relative to the growth the report expects, meaning
+        whether the multiple paid is justified by the rate and durability of
+        that growth?
+      criteria:
+        - "Very unattractive: the multiple implies growth far beyond what the report considers achievable"
+        - "Unattractive: the multiple prices in somewhat more growth than the report expects"
+        - "Fair: the multiple is roughly in line with the expected growth"
+        - "Attractive: the multiple implies less growth than the report expects"
+        - "Very attractive: the multiple implies far less growth than the report expects"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [story, metrics, tam, catalysts, alt_data, verdict, risks], weight: 2}
+    - {id: verdict_parseable, kind: extract_ok, extract: growth_verdict, weight: 2, veto: true}
+    - {id: metrics_table, kind: table_present, section: metrics, min_rows: 4, weight: 2}
+    - {id: metrics_numbers, kind: min_matches, section: metrics, pattern: '\d+(?:\.\d+)?\s?%', min: 6, dimension: quantification, weight: 1}
+    - {id: catalyst_items, kind: min_list_items, section: catalysts, min: 3, max: 5, weight: 1}
+    - id: catalysts_dated
+      kind: min_matches
+      section: catalysts
+      pattern: '\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{1,4}\b|\b[QH][1-4]\b|\b20\d{2}\b|\bFY\s?''?\d{2,4}\b'
+      min: 3
+      dimension: evidence
+      weight: 1
+    - {id: risk_items, kind: min_list_items, section: risks, min: 2, dimension: balance, weight: 1}
+
+  requests:
+    - id: market_opportunity
+      state: [tam, story]
+      gate: tam_evaluable
+      questions:
+        tam_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section discuss the size of the company's market
+            opportunity and its growth thesis in substance, rather than being
+            a placeholder or an error message?
+        tam_sized:
+          type: score
+          dimension: quantification
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst's first principle is "TAM first": size the market
+            opportunity before anything else. How well does the report section
+            size the company's total or serviceable addressable market?
+          criteria:
+            - "The addressable market is not sized"
+            - "A market size is asserted with no source, date or growth rate"
+            - "A market size is given with a source or a growth rate"
+            - "The total and serviceable markets are sized, with a source, a target year and a growth rate"
+        penetration_quantified:
+          type: noul
+          dimension: quantification
+          weight: 2
+          instructions: >
+            Does the report section state how much of its addressable market
+            the company captures today, as a share or a revenue-to-market
+            ratio, and compare it with the long-term potential?
+        differentiation_vs_peers:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section explain why this company, rather than a
+            named competitor, will capture the opportunity, citing a specific
+            advantage such as proprietary technology, data network effects or
+            platform dynamics?
+        tam_realism:
+          type: noul
+          dimension: balance
+          weight: 1
+          instructions: >
+            Does the report section question or qualify the market size it
+            uses, for example by noting that the figure is the company's own
+            estimate, that the market is contested, or that only part of it is
+            realistically serviceable?
+
+    - id: growth_quality_and_valuation
+      state: [metrics, verdict]
+      gate: metrics_evaluable
+      questions:
+        metrics_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section present the company's growth figures and a
+            final verdict, rather than being a placeholder or an error message?
+        organic_vs_acquired:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section say whether the company's revenue growth
+            is organic or driven by acquisitions?
+        implied_growth_tested:
+          type: score
+          dimension: compliance
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst must ask what revenue the current valuation implies
+            five years out and whether that is achievable. How well does the
+            report section do this?
+          criteria:
+            - "No implied future revenue or growth is discussed"
+            - "Valuation multiples are given, but the growth or revenue they imply is not"
+            - "The implied growth or future revenue is stated, without judging whether it is achievable"
+            - "The implied five-year revenue or growth is stated and explicitly compared with the report's own forecast to judge whether it is achievable"
+        multiple_justified_by_growth:
+          type: score
+          dimension: consistency
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst's rule is that high-growth companies deserve premium
+            multiples only if growth is durable. How explicitly does the
+            verdict weigh the valuation multiple, such as price-to-sales,
+            EV/revenue or PEG, against the rate and durability of growth?
+          criteria:
+            - "Valuation is ignored in reaching the verdict"
+            - "Valuation is mentioned, but not related to growth"
+            - "The multiple is related to the growth rate, but durability is not considered"
+            - "The multiple is explicitly weighed against both the growth rate and its durability, and the verdict follows from that"
+        verdict_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: growth_verdict
+          order_check: true
+          instructions: >
+            What single final growth verdict does the report section give for
+            this stock?
+          criteria:
+            Strong Buy: "The final verdict is Strong Buy"
+            Buy: "The final verdict is Buy"
+            Hold: "The final verdict is Hold"
+            Sell: "The final verdict is Sell"
+            Strong Sell: "The final verdict is Strong Sell"
+            not_stated: "No final verdict from this list is given, or it is split between several of them"
+
+    - id: catalysts_and_risks
+      state: [catalysts, risks]
+      gate: catalysts_evaluable
+      questions:
+        catalysts_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section list upcoming catalysts and risks for the
+            company, rather than being a placeholder or an error message?
+        catalysts_specific:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How specific are the upcoming catalysts in the report section, in
+            terms of a named event, its expected timing, and how it would
+            re-rate the stock?
+          criteria:
+            - "Generic themes, such as 'continued growth', with no named events or timing"
+            - "Named events, but with vague or missing timing"
+            - "Named events, most with a specific month, quarter or year"
+            - "Named events, each with specific timing and the effect it would have on the thesis or the stock"
+        execution_risk_addressed:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section identify an execution risk specific to the
+            company, such as failing to deliver a product roadmap, scale
+            capacity, integrate an acquisition or sustain its growth rate?
+        competitive_threat_named:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section name specific competitors or substitutes
+            that threaten the company, and explain how they could take share
+            or pressure pricing?
+
+    - id: alternative_data
+      state: [alt_data]
+      gate: alt_data_evaluable
+      questions:
+        alt_data_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section discuss alternative data signals about
+            the company, or explicitly report that such data was unavailable,
+            rather than being a placeholder or an error message?
+        alt_data_concrete:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How concrete are the non-financial data signals in the report
+            section, such as app downloads, web traffic, job postings or
+            Google Trends?
+          criteria:
+            - "No non-financial data signals are presented"
+            - "Signals are mentioned only in general terms, without figures or dates"
+            - "At least one concrete non-financial signal is given with figures"
+            - "Several concrete non-financial signals are given with figures, each linked to the growth thesis"
+        alt_data_refutes_considered:
+          type: noul
+          dimension: balance
+          weight: 1
+          instructions: >
+            Does the report section say whether each signal supports or
+            refutes the growth thesis, including reporting any signal that
+            runs against it?
+        only_market_data:
+          type: noul
+          dimension: compliance
+          weight: 1
+          good_when: false
+          instructions: >
+            Does the report section rely only on financial market data, such
+            as the share price, trading volume, analyst price targets or
+            earnings estimates, with no genuinely non-financial data presented
+            as an alternative data signal?

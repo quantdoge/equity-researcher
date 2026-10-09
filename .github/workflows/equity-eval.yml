@@ -1,0 +1,168 @@
+# Manual backfill: score existing outputs/*.json with TypeSafe Jev and store the
+# results in the eval DB. Never commits anything; the checkout is read-only.
+#
+# The per-ticker scoring of fresh runs happens inside equity-research.yml; this
+# workflow is for re-scoring history (new rubric, new Jev model, missed runs).
+#
+# dry_run defaults to true: a first click shows what would be scored without
+# spending API credits or writing to the DB.
+name: Equity eval (backfill)
+
+on:
+  workflow_dispatch:
+    inputs:
+      symbol:
+        description: "Ticker to score (empty = every output, i.e. --all)"
+        type: string
+        required: false
+        default: ""
+      since:
+        description: "Only outputs on/after this date (YYYY-MM-DD, optional)"
+        type: string
+        required: false
+        default: ""
+      roles:
+        description: "Space-separated roles, e.g. 'value quant' (empty = all)"
+        type: string
+        required: false
+        default: ""
+      blocks:
+        description: "Which scoring blocks to run"
+        type: choice
+        options: [both, conviction, alignment]
+        default: both
+      force:
+        description: "Re-score outputs that already have results (--force)"
+        type: boolean
+        default: false
+      dry_run:
+        description: "Dry run: list what would be scored, call nothing (--dry-run)"
+        type: boolean
+        default: true
+      order_check:
+        description: "Also run the order-sensitivity check (--order-check)"
+        type: boolean
+        default: false
+
+# One backfill at a time; queue rather than cancel a half-finished one.
+concurrency:
+  group: equity-eval
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    name: evaluate (${{ inputs.symbol || 'all' }})
+    runs-on: ubuntu-latest
+    environment: DEV          # the secrets live in this GitHub Environment
+    timeout-minutes: 120
+    permissions:
+      contents: read          # read-only: this workflow never commits
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -e .
+
+      # Offline, and cheap: a broken rubric fails here before any API spend.
+      - name: Validate rubrics
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python -m equity_mcp.evaluation.evaluate --validate-rubrics
+
+      # Inputs reach the script only through env:, never via ${{ inputs.* }}
+      # inside run: (GitHub's script-injection hardening guidance). They are
+      # validated, then passed as discrete array elements, so no input is ever
+      # parsed as shell.
+      - name: Evaluate
+        env:
+          TYPESAFE_API_KEY:     ${{ secrets.TYPESAFE_API_KEY }}
+          SUPABASE_EVAL_DB_URL: ${{ secrets.SUPABASE_EVAL_DB_URL }}
+          JEV_MODEL:            ${{ vars.JEV_MODEL || 'jev-1.13.0' }}
+          PYTHONUNBUFFERED: "1"
+          IN_SYMBOL:      ${{ inputs.symbol }}
+          IN_SINCE:       ${{ inputs.since }}
+          IN_ROLES:       ${{ inputs.roles }}
+          IN_BLOCKS:      ${{ inputs.blocks }}
+          IN_FORCE:       ${{ inputs.force }}
+          IN_DRY_RUN:     ${{ inputs.dry_run }}
+          IN_ORDER_CHECK: ${{ inputs.order_check }}
+        run: |
+          # A secret that isn't set arrives as "". Unset it so the CLI reports
+          # it as missing rather than trying an empty key / connection string.
+          for v in TYPESAFE_API_KEY SUPABASE_EVAL_DB_URL; do
+            [ -z "${!v}" ] && unset "$v"
+          done
+
+          args=()
+
+          symbol="$(echo "$IN_SYMBOL" | tr -d '[:space:]')"
+          if [ -n "$symbol" ]; then
+            if [[ ! "$symbol" =~ ^[A-Za-z0-9.-]{1,15}$ ]]; then
+              echo "::error::Invalid symbol: '$symbol'"
+              exit 1
+            fi
+            args+=(--symbol "${symbol^^}")
+          else
+            args+=(--all)
+          fi
+
+          since="$(echo "$IN_SINCE" | tr -d '[:space:]')"
+          if [ -n "$since" ]; then
+            if [[ ! "$since" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+              echo "::error::since must be YYYY-MM-DD, got '$since'"
+              exit 1
+            fi
+            args+=(--since "$since")
+          fi
+
+          read -ra roles <<< "$IN_ROLES"
+          if [ "${#roles[@]}" -gt 0 ]; then
+            for r in "${roles[@]}"; do
+              if [[ ! "$r" =~ ^[a-z_]+$ ]]; then
+                echo "::error::Invalid role: '$r'"
+                exit 1
+              fi
+            done
+            args+=(--roles "${roles[@]}")
+          fi
+
+          case "$IN_BLOCKS" in
+            both)       args+=(--blocks conviction alignment) ;;
+            conviction) args+=(--blocks conviction) ;;
+            alignment)  args+=(--blocks alignment) ;;
+            *) echo "::error::Invalid blocks: '$IN_BLOCKS'"; exit 1 ;;
+          esac
+
+          [ "$IN_FORCE" = "true" ]       && args+=(--force)
+          [ "$IN_DRY_RUN" = "true" ]     && args+=(--dry-run)
+          [ "$IN_ORDER_CHECK" = "true" ] && args+=(--order-check)
+
+          echo "evaluate ${args[*]}"
+
+          # Exit codes: 0 ok, 1 config error (fail), 2 partial errors (warn).
+          rc=0
+          python -m equity_mcp.evaluation.evaluate "${args[@]}" || rc=$?
+          case "$rc" in
+            0) ;;
+            2) echo "::warning::Evaluation finished with partial errors (exit 2); see the log above."
+               exit 0 ;;
+            *) echo "::error::Evaluation failed (exit $rc)."
+               exit "$rc" ;;
+          esac
+
+      # With no eval DB the CLI falls back to evals/ on the runner, which is
+      # discarded when the job ends. Keep it as an artifact instead of committing.
+      - name: Upload local eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evals-${{ github.run_id }}
+          path: evals/
+          if-no-files-found: ignore
+          retention-days: 14

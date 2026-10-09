@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import time
 from datetime import date
 from pathlib import Path
@@ -70,6 +71,7 @@ async def _run_deepagents(
     agents: list[str] | None = None,
     skip_synthesis: bool = False,
     runs_dir: Path | None = None,
+    evaluate: bool = False,
 ) -> dict:
     from equity_mcp.deep_agent_factory import RESEARCH_ROLES, run_research
     from equity_mcp.run_log import RunLog
@@ -135,6 +137,10 @@ async def _run_deepagents(
     result["date"] = date.today().isoformat()
     result["elapsed_seconds"] = elapsed
     result["run_id"] = run_log.name
+    # Which model and which prompt produced each report. Without these an
+    # evaluation can only infer the model from today's roles.py, and cannot
+    # tell whether a score change came from the agent or from a prompt edit.
+    result["models"], result["prompt_sha256"] = _provenance(result)
 
     run_log.event(
         f"END    elapsed={elapsed}s failures={','.join(result.get('failures') or []) or 'none'}"
@@ -156,8 +162,58 @@ async def _run_deepagents(
         out_file = output_dir / f"{symbol}_{run_log.stamp}.json"
         out_file.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
         print(f"Output saved → {out_file}\n", flush=True)
+    else:
+        out_file = None
+
+    if evaluate:
+        await _evaluate_run(result, out_file, run_log)
 
     return result
+
+
+def _provenance(result: dict) -> tuple[dict[str, str], dict[str, str]]:
+    """``(models, prompt_sha256)`` for every role that ran, best-effort."""
+    from equity_mcp.roles import AGENT_MODELS, DEFAULT_MODEL
+
+    ran = [r["agent_role"] for r in result.get("agent_results", [])]
+    if result.get("portfolio_brief") is not None:
+        ran.append("portfolio_strategist")
+    if result.get("investment_memo") is not None:
+        ran.append("head_of_research")
+    models = {role: AGENT_MODELS.get(role, DEFAULT_MODEL) for role in ran}
+    try:
+        from equity_mcp.evaluation.loader import prompt_sha256
+
+        shas = {role: prompt_sha256(role) for role in ran}
+    except Exception:
+        shas = {}
+    return models, shas
+
+
+async def _evaluate_run(result: dict, out_file: Path | None, run_log) -> None:
+    """
+    Score this run with Jev (--evaluate). Never raises.
+
+    The research is the product and the evaluation is a measurement of it, so
+    a missing key, an unreachable database or a Jev outage costs one EVAL line
+    in run.log, never the run.
+    """
+    try:
+        from equity_mcp.evaluation.evaluate import evaluate_result
+
+        out = await asyncio.wait_for(evaluate_result(result, out_file), timeout=900)
+        roles = out.get("roles", [])
+        errors = sum((r.get("evaluation") or {}).get("n_errors") or 0 for r in roles)
+        calls = sum(r.get("calls") or 0 for r in roles)
+        stances = ",".join(
+            f"{r['role'].split('_')[0]}={(r.get('evaluation') or {}).get('stance') or '-'}" for r in roles
+        )
+        run_log.event(f"EVAL   roles={len(roles)} calls={calls} errors={errors} stances={stances}")
+    except (Exception, SystemExit) as exc:
+        # SystemExit: a config refusal such as a floating model alias. The 900s ceiling is TimeoutError.
+        msg = f"{type(exc).__name__}: {exc}"[:300]
+        run_log.event(f"EVAL   FAILED {msg}")
+        print(f"[eval] skipped: {msg}", flush=True)
 
 
 # ── Legacy pipeline (Anthropic SDK direct) ────────────────────────────────────
@@ -291,6 +347,11 @@ def _parse_args() -> argparse.Namespace:
         "--timeout", type=float, default=None,
         help="Total wall-clock ceiling in seconds for the whole run (default: none)",
     )
+    parser.add_argument(
+        "--evaluate", action="store_true", default=os.getenv("EQR_EVALUATE") == "1",
+        help="Score the finished run with TypeSafe Jev (needs TYPESAFE_API_KEY; also EQR_EVALUATE=1). "
+             "Never fails the run.",
+    )
     return parser.parse_args()
 
 
@@ -304,7 +365,7 @@ async def _main_async(args: argparse.Namespace) -> None:
         result = await _run_deepagents(
             symbol, args.focus, output_dir, args.max_concurrency, args.timeout,
             agents=args.agents, skip_synthesis=args.skip_synthesis,
-            runs_dir=Path(args.runs_dir),
+            runs_dir=Path(args.runs_dir), evaluate=args.evaluate,
         )
 
     if result.get("skipped_synthesis"):

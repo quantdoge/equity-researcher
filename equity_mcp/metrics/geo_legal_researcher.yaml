@@ -1,0 +1,323 @@
+# Geopolitical and legal researcher (country risk, regulation, litigation, sanctions).
+#
+# conviction.domain_metrics: the report's own assessment of the company's
+#   geopolitical and legal exposure, as 5-level Scores. Level 0 = very
+#   unfavourable to a long investor (very high risk), level 4 = very
+#   favourable (very low risk). A metric is sent to Jev only if code finds one
+#   of its evidence_terms in the selected section; otherwise it is
+#   "not_addressed".
+# alignment: did the output follow prompts/geo_legal_researcher.md.
+#
+# The headline Low / Medium / High / Very High is a risk rating, not a buy or
+# sell call, so every value maps to a null stance. It is still extracted and
+# recorded; the stance comes from the shared stance question alone.
+#
+# Some reports put the rating on its own heading line ("## **MEDIUM**") at the
+# same level as "5. Overall ... Rating", which would end that section with an
+# empty body. The rating section therefore also matches a heading that is only
+# a rating word, and concatenates every match.
+
+role: geo_legal_researcher
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/geo_legal_researcher.md
+source_prompt_sha256: "5c0eac8260763dc293e7e7a2467ce4581052da04f74a5f40f132cc8b26045221"
+calibrated: false
+
+background:
+  mandate: >
+    Geopolitical and legal researcher. Maps every country and region where the
+    company operates or earns significant revenue and the risk of each
+    (political stability, rule of law, sanctions, US-China tensions, export
+    controls, tariffs, expropriation). Identifies active litigation,
+    government investigations and IP disputes with their size and likelihood,
+    and flags compliance risks such as FCPA, AML, sanctions and data privacy.
+    Must support all claims with sources from filings and news.
+  required_output: |
+    1. Geographic Risk Map (table: country, revenue exposure %, risk level)
+    2. Top 3 Geopolitical Risks (with probability and impact assessment)
+    3. Legal & Regulatory Highlights
+    4. Compliance Red Flags (if any)
+    5. Overall Geopolitical/Legal Risk Rating: Low / Medium / High / Very High
+
+sections:
+  risk_map: {heading: 'risk map|geographic (?:exposure|risk)'}
+  top_risks: {heading: 'top\s*(?:3|three)'}
+  legal: {heading: 'highlights|legal\s*(?:&|and)\s*regulatory(?!.*assess)'}
+  compliance: {heading: 'compliance'}
+  rating:
+    heading: 'overall.*rating|risk rating|^(?:low|medium|high|very high)\b[^a-z]*$|^(?:low|medium|high|very high)\s*[(—–-]'
+    all_matches: true
+
+extract:
+  risk_rating:
+    section: rating
+    values: [Low, Medium, High, Very High]
+    aliases: {Moderate: Medium}
+
+conviction:
+  native_rating: risk_rating
+  native_to_stance: {Low: null, Medium: null, High: null, Very High: null}
+  domain_metrics:
+    geographic_concentration_risk:
+      label: Geographic concentration risk
+      section: [risk_map, full]
+      evidence_terms: [revenue exposure, of revenue, of sales, international, region, country, concentration, China, Taiwan, emerging market]
+      instructions: >
+        Based only on what this research report states, how low is the risk
+        from where the company earns its revenue and runs its operations and
+        supply chain, considering both how risky those countries are and how
+        concentrated the company is in any one of them?
+      criteria:
+        - "Very high risk: a large share of revenue, operations or supply depends on one or more high-risk jurisdictions"
+        - "High risk: a material share of revenue or a critical supply link sits in a high-risk jurisdiction"
+        - "Moderate risk: some exposure to higher-risk jurisdictions, but not concentrated or critical"
+        - "Low risk: revenue and operations sit mainly in stable jurisdictions, with small higher-risk exposure"
+        - "Very low risk: revenue and operations sit almost entirely in stable, low-risk jurisdictions"
+    regulatory_risk:
+      label: Regulatory risk
+      section: [legal, full]
+      evidence_terms: [regulator, regulation, regulatory, legislation, antitrust, FTC, SEC, European Commission, rulemaking, Act]
+      instructions: >
+        Based only on what this research report states, how low is the risk
+        that regulators, new rules or pending legislation materially harm the
+        company's business model, revenue or costs?
+      criteria:
+        - "Very high risk: an adverse regulatory action or law is underway that threatens a core part of the business"
+        - "High risk: active regulatory scrutiny or pending rules that could materially cut revenue or raise costs"
+        - "Moderate risk: meaningful regulation or scrutiny, but with limited expected financial impact"
+        - "Low risk: a stable regulatory environment with only routine oversight"
+        - "Very low risk: lightly regulated, with no material regulatory action or pending legislation"
+    litigation_enforcement_risk:
+      label: Litigation & enforcement risk
+      section: [legal, full]
+      evidence_terms: [lawsuit, litigation, class action, settlement, DOJ, investigation, fine, penalty, court, enforcement, subpoena]
+      instructions: >
+        Based only on what this research report states, how low is the risk
+        that active or likely lawsuits, government investigations or
+        enforcement actions cause the company material financial or
+        operational harm?
+      criteria:
+        - "Very high risk: a pending case or investigation could impose damages, fines or remedies large relative to the company"
+        - "High risk: several material active cases or investigations with a plausible adverse outcome"
+        - "Moderate risk: active matters that are manageable in size, or large matters unlikely to go against the company"
+        - "Low risk: only routine litigation, or major matters already resolved"
+        - "Very low risk: no material litigation, investigations or enforcement actions"
+    sanctions_export_control_exposure:
+      label: Sanctions & export-control exposure
+      section: [compliance, top_risks, full]
+      evidence_terms: [sanction, export control, OFAC, entity list, BIS, embargo, dual-use, Russia, Iran]
+      instructions: >
+        Based only on what this research report states, how low is the
+        company's exposure to sanctions and export controls, meaning the risk
+        that such rules cut off revenue, customers or supply, or that the
+        company breaches them?
+      criteria:
+        - "Very high exposure: sanctions or export controls already cut off material revenue or supply, or a violation is alleged"
+        - "High exposure: a material share of revenue or supply is subject to, or at clear risk of, sanctions or export controls"
+        - "Moderate exposure: some affected products, customers or regions, with limited financial impact"
+        - "Low exposure: minor exposure handled by routine compliance screening"
+        - "Very low exposure: no meaningful sanctions or export-control exposure"
+    political_trade_tariff_risk:
+      label: Political, trade & tariff risk
+      section: [top_risks, full]
+      evidence_terms: [tariff, trade war, trade tension, trade friction, political, election, nationali, expropriation, repatriation, decoupling]
+      instructions: >
+        Based only on what this research report states, how low is the risk
+        that political decisions, such as tariffs, trade disputes, government
+        policy shifts, expropriation or capital controls, materially harm the
+        company?
+      criteria:
+        - "Very high risk: political or trade action is already materially hurting revenue, margins or assets, and could worsen"
+        - "High risk: a likely political or trade development would materially hurt revenue, margins or assets"
+        - "Moderate risk: real political or tariff exposure, but with limited or mitigated financial impact"
+        - "Low risk: little exposure to tariffs or political intervention"
+        - "Very low risk: essentially insulated from tariffs, trade disputes and political intervention"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [risk_map, top_risks, legal, compliance, rating], weight: 2}
+    - {id: risk_rating_parseable, kind: extract_ok, extract: risk_rating, weight: 2, veto: true}
+    - {id: risk_map_table, kind: table_present, section: risk_map, min_rows: 3, columns: [exposure, risk], weight: 2}
+    - {id: risk_map_percentages, kind: min_matches, section: risk_map, pattern: '\d+(?:\.\d+)?\s?%', min: 3, dimension: quantification, weight: 1}
+    - id: top_risk_items
+      kind: min_matches
+      section: top_risks
+      pattern: '(?m)^(?!.*\btop\s*(?:3|three)\b)\s*(?:#{1,6}\s*)?(?:[-*]\s+)?(?:\*\*|\*)?\s*(?:risk\s*[1-9]|r[1-9]\b|[①②③④⑤]|[1-9][.)]\s)'
+      min: 3
+      weight: 1
+    - {id: risk_probabilities, kind: min_matches, section: top_risks, pattern: '\bprob(?:ability|able|\b|\.)', min: 3, weight: 1}
+    - {id: risk_impacts, kind: min_matches, section: top_risks, pattern: '\bimpact\b', min: 3, weight: 1}
+
+  requests:
+    - id: geographic_exposure
+      state: [risk_map, top_risks]
+      gate: exposure_evaluable
+      questions:
+        exposure_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section map the company's exposure to named
+            countries or regions and describe specific geopolitical risks,
+            rather than being a placeholder or an error message?
+        exposure_sourced:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well are the company's revenue exposure figures by country or
+            region tied to a source, such as the segment note of a named
+            filing and its fiscal year, with any estimates clearly labelled as
+            estimates?
+          criteria:
+            - "No revenue exposure figures are given, or figures appear with no source and no labelling"
+            - "Figures are given, but few are sourced and estimates are not distinguished from disclosed figures"
+            - "Most figures carry a source or are clearly labelled as estimates"
+            - "Every figure is tied to a named filing or source and period, or explicitly labelled as an estimate with its basis"
+        probability_and_impact:
+          type: score
+          dimension: compliance
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst must give each of the top three geopolitical risks
+            both a probability and an impact assessment. How fully does the
+            report section do this?
+          criteria:
+            - "Risks are listed without probability or impact assessments"
+            - "Probability or impact is given for only some risks, or only one of the two is given"
+            - "Every top risk has both a probability and an impact, stated as labels with little reasoning"
+            - "Every top risk has both a probability and an impact, each justified, with the impact tied to the company's revenue, margins or assets"
+        risks_company_specific:
+          type: noul
+          dimension: evidence
+          weight: 2
+          instructions: >
+            Is each of the top geopolitical risks tied to the company's own
+            exposure, such as a named country's share of revenue, a specific
+            supplier, facility, customer or product, rather than described as
+            a general world event?
+        major_flashpoints_addressed:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section state the company's exposure to US-China
+            tensions and to Russia-related sanctions, either describing that
+            exposure or explicitly saying it is immaterial?
+
+    - id: legal_and_compliance
+      state: [legal, compliance]
+      gate: legal_evaluable
+      questions:
+        legal_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section discuss the company's legal, regulatory or
+            compliance situation in substance, naming specific matters,
+            regulators or laws, or explicitly stating that none were found,
+            rather than being a placeholder or an error message?
+        legal_claims_sourced:
+          type: score
+          dimension: evidence
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst must support all claims with sources such as SEC
+            filings or news articles. How consistently does the report section
+            attribute its legal and regulatory claims to a specific source,
+            such as a named case or court, a regulator's action, a filing, or a
+            dated news report?
+          criteria:
+            - "Claims are made with no sources, case names or dates"
+            - "A few claims are sourced or dated; most are bare assertions"
+            - "Most claims name a case, regulator, filing or dated news source"
+            - "Nearly every claim is tied to a named case, regulator action, filing or dated news source"
+        matter_size_and_likelihood:
+          type: score
+          dimension: quantification
+          weight: 2
+          min_level: 2
+          instructions: >
+            For the active lawsuits and government investigations it
+            discusses, how well does the report section state the size of the
+            exposure, such as damages sought, fines or remedies, and the
+            likelihood of an adverse outcome?
+          criteria:
+            - "Matters are named with neither size nor likelihood"
+            - "Size or likelihood is given for some matters only"
+            - "Size and likelihood are given for the main matters"
+            - "Size, likelihood and current status are given for every material matter, or the section credibly states there are no material matters"
+        compliance_areas_covered:
+          type: score
+          dimension: compliance
+          weight: 1
+          min_level: 2
+          instructions: >
+            The analyst must flag compliance risks in four areas: anti-bribery
+            (FCPA), anti-money-laundering (AML), sanctions, and data privacy.
+            How completely does the report section address these areas,
+            counting an explicit statement that no issue was found as
+            addressing an area?
+          criteria:
+            - "None of these compliance areas is addressed"
+            - "Some areas are addressed and others are silently omitted"
+            - "All four areas are addressed, at least briefly"
+        confirmed_vs_unconfirmed:
+          type: noul
+          dimension: honesty
+          weight: 1
+          instructions: >
+            Does the report section distinguish matters that are confirmed,
+            such as filed cases or announced investigations, from reports,
+            allegations or possibilities that it could not confirm? Answer yes
+            as well if every matter it mentions is evidently confirmed.
+
+    - id: rating_discipline
+      state: [rating, top_risks]
+      gate: rating_evaluable
+      questions:
+        rating_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section give an overall geopolitical and legal
+            risk rating for the company, rather than being a placeholder or an
+            error message?
+        rating_covers_both:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the reasoning behind the overall risk rating weigh both the
+            company's geopolitical exposure and its legal and regulatory
+            exposure, rather than only one of them?
+        rating_change_triggers:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section say what specific developments would move
+            the overall risk rating up or down?
+        rating_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: risk_rating
+          order_check: true
+          instructions: >
+            What single overall geopolitical and legal risk rating does the
+            report section give the company?
+          criteria:
+            Low: "The overall risk rating is Low"
+            Medium: "The overall risk rating is Medium"
+            High: "The overall risk rating is High"
+            Very High: "The overall risk rating is Very High"
+            not_stated: "No rating from this list is given, or it is split between several of them"

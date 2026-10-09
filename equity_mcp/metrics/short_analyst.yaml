@@ -1,0 +1,340 @@
+# Short / contrarian analyst (forensic accounting, red flags, bear thesis).
+#
+# conviction.domain_metrics: the report's own assessment of the company, as
+#   5-level Scores, oriented like every other role: level 0 = very unfavourable
+#   to a long investor (severe red flags, a compelling short), level 4 = very
+#   favourable (clean, no credible bear case). A metric is sent to Jev only if
+#   code finds one of its evidence_terms in the selected section; otherwise it
+#   is "not_addressed".
+# Reject Short Thesis maps to null: rejecting a short is not a buy call, so the
+#   stance then comes from the shared stance Choice.
+# earnings_quality is read by the head of research's fraud_override check: keep the id.
+# alignment: did the output follow prompts/short_analyst.md.
+
+role: short_analyst
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/short_analyst.md
+source_prompt_sha256: "e32b4ab2481dbf8d203b25e23452624606e7a91fe02042cb6e6fb8ee004fbefb"
+calibrated: false
+
+background:
+  mandate: >
+    Short-seller and contrarian analyst in the mould of Jim Chanos or
+    Hindenburg Research. Tests earnings quality (Beneish M-Score, accruals,
+    cash conversion), looks for financial red flags (receivables or inventory
+    outgrowing revenue, aggressive capitalisation), moat erosion and
+    management or governance red flags, and asks whether a credible bear case
+    exists. "Always present the other side — if the bull case is stronger, say
+    so. Your value is in rigour, not reflexive bearishness."
+  required_output: |
+    1. Earnings Quality Assessment (rating: High / Medium / Low / Fraudulent Risk)
+    2. Key Red Flags Found (list, with data supporting each)
+    3. Beneish M-Score and Accruals Analysis
+    4. Competitive Threat Assessment
+    5. Management Red Flags (if any)
+    6. Short Thesis Summary: is there a credible bear case?
+    7. Contrarian Rating: Strong Short / Short / No Edge / Reject Short Thesis
+
+sections:
+  earnings_quality: {heading: 'earnings quality'}
+  red_flags: {heading: 'red flags found|key red flag'}
+  beneish: {heading: 'beneish|m-score|accrual'}
+  competitive: {heading: 'competitive|moat'}
+  management: {heading: 'management'}
+  bear_case: {heading: 'short thesis|bear case'}
+  contrarian: {heading: 'contrarian'}
+
+extract:
+  earnings_quality:
+    section: earnings_quality
+    values: [High, Medium, Low, Fraudulent Risk]
+    aliases: {Fraud Risk: Fraudulent Risk}
+  # Searched from the first "Contrarian Rating" in the whole report rather than from a
+  # section, because some reports give it as a bold line at the end of the short-thesis
+  # section with no heading of its own. In every current report that first mention is
+  # the rating itself. Trade-off: an anchored window has no heading-bold priority, so
+  # qualifiers such as "(not Strong Short)" or "tactical short" set `hedged` on most
+  # reports. The value is still the first one named and is correct; treat `hedged` as
+  # noise for this extract. The section form avoided that but missed such reports,
+  # failing a veto on a report that plainly states its rating.
+  contrarian_rating:
+    section: full
+    anchor: 'contrarian rating'
+    body_chars: 150
+    values: [Strong Short, Short, No Edge, Reject Short Thesis]
+    aliases: {Reject the Short Thesis: Reject Short Thesis}
+
+conviction:
+  native_rating: contrarian_rating
+  native_to_stance: {Strong Short: STRONG SELL, Short: SELL, No Edge: HOLD, Reject Short Thesis: null}
+  domain_metrics:
+    earnings_quality:
+      label: Earnings quality
+      section: [earnings_quality, beneish, full]
+      evidence_terms: [cash conversion, accruals, operating cash flow, OCF, free cash flow, FCF, net income, earnings quality]
+      instructions: >
+        Based only on what this research report states, how well are the
+        company's reported earnings backed by cash, as shown by cash conversion
+        and the accruals ratio?
+      criteria:
+        - "Very poor: earnings far exceed operating cash flow, with high or rising accruals, or signs of fabrication"
+        - "Poor: cash persistently lags earnings, or earnings rely on aggressive non-cash items"
+        - "Fair: cash roughly tracks earnings, with some quality concerns"
+        - "Good: operating cash flow at or above net income, with low accruals"
+        - "Excellent: cash well above earnings consistently, with negative accruals and no quality concerns"
+    accounting_red_flags:
+      label: Accounting red flags
+      section: [beneish, full]
+      evidence_terms: [Beneish, M-Score, manipulat, capitaliz, capitalis, revenue recognition, auditor, restatement]
+      instructions: >
+        Based only on what this research report states, how serious are the
+        signs of accounting manipulation or aggressive accounting, such as the
+        Beneish M-Score, aggressive capitalisation of expenses, revenue
+        recognition choices or auditor issues?
+      criteria:
+        - "Severe: strong manipulation signals or evidence of misstatement that the report treats as real"
+        - "Significant: a manipulation flag or aggressive accounting the report considers genuine"
+        - "Moderate: a borderline flag or some aggressive choices, with a plausible benign explanation"
+        - "Minor: scores in the safe range, with small or isolated concerns"
+        - "Clean: no manipulation signals and conservative accounting"
+    working_capital_red_flags:
+      label: Working-capital red flags
+      section: [red_flags, full]
+      evidence_terms: [receivable, DSO, days sales, DSRI, inventory, channel stuffing, working capital, collections]
+      instructions: >
+        Based only on what this research report states, how serious are the
+        working-capital warning signs, such as receivables growing faster than
+        revenue, rising inventory days or slowing collections?
+      criteria:
+        - "Severe: receivables or inventory far outgrowing revenue in a pattern consistent with channel stuffing or pulled-forward sales"
+        - "Significant: receivables or inventory clearly outgrowing revenue, without a convincing explanation"
+        - "Moderate: some working-capital drift with a plausible explanation"
+        - "Minor: working capital broadly in line with revenue"
+        - "Clean: receivables and inventory stable or improving relative to revenue"
+    moat_erosion:
+      label: Moat erosion
+      section: [competitive, full]
+      evidence_terms: [moat, gross margin, market share, competit, commoditi, pricing power, new entrant, switching]
+      instructions: >
+        Based only on what this research report states, how much is the
+        company's competitive position eroding, as shown by gross margin
+        trends, market share, new entrants or commoditisation?
+      criteria:
+        - "Collapsing: margins and share already falling sharply to competitors or substitutes"
+        - "Eroding: visible margin or share loss, or credible competitors gaining ground"
+        - "Contested: real competitive threats, but no erosion in the numbers yet"
+        - "Stable: competitive position holding, with only distant threats"
+        - "Strengthening: margins and share stable or rising, with no credible threat"
+    management_governance_red_flags:
+      label: Management & governance red flags
+      section: [management, full]
+      evidence_terms: [insider, Form 4, related-party, related party, auditor, promotional, compensation, governance]
+      instructions: >
+        Based only on what this research report states, how serious are the
+        red flags about management behaviour and governance, such as
+        large-scale insider selling, related-party dealings, auditor changes or
+        promotional language that outruns delivery?
+      criteria:
+        - "Severe: self-dealing, auditor turnover or misleading statements that the report treats as genuine warning signs"
+        - "Significant: heavy discretionary insider selling or promotional claims well ahead of results"
+        - "Moderate: some concerns, such as routine but large plan sales or optimistic guidance"
+        - "Minor: isolated or routine issues only"
+        - "Clean: no management or governance red flags found"
+    bear_thesis_credibility:
+      label: Bear thesis credibility
+      section: [bear_case, contrarian, full]
+      evidence_terms: [bear case, short thesis, downside, catalyst, overvalu, squeeze, bull case, the other side]
+      instructions: >
+        Based only on what this research report states, how credible and
+        compelling is the case for shorting the stock?
+      criteria:
+        - "Compelling short: a well-evidenced bear case with large downside and identifiable catalysts"
+        - "Credible short: a real bear case, but dependent on catalysts or timing"
+        - "Balanced: bear and bull arguments roughly offset; no clear edge either way"
+        - "Weak bear case: the bear arguments are thin or already reflected in the price"
+        - "No credible bear case: the report rejects the short thesis, and the bull case is clearly stronger"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [earnings_quality, red_flags, beneish, competitive, management, bear_case, contrarian], weight: 2}
+    - {id: contrarian_parseable, kind: extract_ok, extract: contrarian_rating, weight: 2, veto: true}
+    - {id: earnings_quality_parseable, kind: extract_ok, extract: earnings_quality, weight: 2}
+    - id: red_flag_items
+      kind: min_matches
+      section: red_flags
+      # Counts list items in every format the reports use. min_list_items misses the
+      # "**RF-1 — …**" / "**Red Flag #1 — …**" bold-paragraph lists, which are real lists.
+      # Alternatives: bullet | numbered item | table row with a bold or numbered first
+      # cell (header rows are neither) | bold label ending in a number.
+      pattern: '(?m)^[ \t]*(?:[-*•][ \t]+\S|\d+[.)][ \t]+\S|\|[ \t]*(?:\*\*|#?\d+[ \t]*\|)|\*\*[^*\n]{0,12}?\d+[ \t]*[—–:.)-])'
+      min: 3
+      dimension: evidence
+      weight: 1
+    - id: m_score_value
+      kind: min_matches
+      section: beneish
+      # an M-Score figure, e.g. "M-Score: −1.856", "M-Score of -2.61" or "Beneish: −2.614"
+      pattern: '(?:m[\s-]?score|beneish)\W[^\n]{0,60}?[-−–+]?\s?\d+\.\d+'
+      min: 1
+      dimension: quantification
+      weight: 1
+    - {id: red_flag_numbers, kind: min_matches, section: red_flags, pattern: '\d+(?:\.\d+)?\s*(?:%|x\b|×)|\$\s?\d[\d,.]*', min: 4, dimension: quantification, weight: 1}
+
+  requests:
+    - id: forensic_evidence
+      state: [earnings_quality, red_flags, beneish]
+      gate: forensics_evaluable
+      questions:
+        forensics_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the text contain a substantive forensic analysis of the
+            company's earnings quality and red flags, rather than a placeholder
+            or an error message?
+        red_flags_data_backed:
+          type: score
+          dimension: evidence
+          weight: 3
+          min_level: 2
+          instructions: >
+            Each red flag must be listed with the data that supports it. How well
+            is each red flag in the text backed by specific figures, such as
+            growth rates, ratios or dollar amounts with their periods?
+          criteria:
+            - "Unsupported: flags are asserted with no figures"
+            - "Thin: some flags carry figures, others are bare assertions"
+            - "Mostly supported: most flags carry specific figures"
+            - "Fully supported: every flag carries specific figures with periods, and states its severity"
+        beneish_interpreted:
+          type: noul
+          dimension: compliance
+          weight: 2
+          instructions: >
+            Does the text interpret the Beneish M-Score against a threshold, such
+            as -1.78 or -2.22, and explain which components or circumstances
+            drive the reading, rather than only stating the number?
+        cash_vs_earnings:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the text compare reported earnings with cash generation, for
+            example through the cash conversion ratio (operating cash flow
+            divided by net income) or the accruals ratio, giving figures?
+        earnings_quality_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: earnings_quality
+          order_check: true
+          instructions: >
+            What single earnings quality rating does the text assign to the
+            company?
+          criteria:
+            High: "The earnings quality rating is High"
+            Medium: "The earnings quality rating is Medium"
+            Low: "The earnings quality rating is Low"
+            Fraudulent Risk: "The earnings quality rating is Fraudulent Risk"
+            not_stated: "No earnings quality rating from this list is given, or it is split between several of them"
+
+    - id: bear_case_balance
+      state: [bear_case, contrarian]
+      gate: bear_case_evaluable
+      questions:
+        bear_case_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the text contain a substantive short-thesis summary and a
+            contrarian rating, rather than a placeholder or an error message?
+        other_side_presented:
+          type: score
+          dimension: balance
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst must always present the other side and say so if the
+            bull case is stronger. How fairly does the text present the bull
+            case against the short thesis?
+          criteria:
+            - "Absent: no bull case is presented"
+            - "Token: the bull case is mentioned briefly and dismissed without evidence"
+            - "Presented: the bull case is stated with specific evidence"
+            - "Weighed: the bull case is stated with evidence and explicitly weighed against the bear case to reach the rating"
+        rating_proportionate:
+          type: score
+          dimension: consistency
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst's value lies in rigour, not reflexive bearishness. How
+            well does the strength of the contrarian rating match the strength
+            of the evidence presented, in either direction?
+          criteria:
+            - "Mismatched: the rating is much more bearish, or much more dismissive of the short, than the evidence presented"
+            - "Stretched: the rating leans further than the evidence supports"
+            - "Proportionate: the rating's strength matches the evidence, including No Edge or rejecting the short when the evidence is weak"
+        bear_case_mechanism:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the text say what would have to happen for the bear case to play
+            out, such as a specific catalyst, trigger or piece of evidence to
+            watch for, or say explicitly that no credible bear case exists?
+        contrarian_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: contrarian_rating
+          order_check: true
+          instructions: >
+            What single contrarian rating does the text give for this stock?
+          criteria:
+            Strong Short: "The contrarian rating is Strong Short"
+            Short: "The contrarian rating is Short"
+            No Edge: "The contrarian rating is No Edge"
+            Reject Short Thesis: "The contrarian rating is Reject Short Thesis"
+            not_stated: "No contrarian rating from this list is given, or it is split between several of them"
+
+    - id: moat_and_management
+      state: [competitive, management]
+      gate: moat_management_evaluable
+      questions:
+        moat_management_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the text contain a substantive assessment of the company's
+            competitive threats and of its management, rather than a placeholder
+            or an error message?
+        moat_erosion_evidenced:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well does the text support its view of competitive threats with
+            evidence of moat erosion or durability, such as the gross margin
+            trend, market share, new entrants, commoditisation or departing
+            customers and employees, backed by figures?
+          criteria:
+            - "Asserted: the view has no supporting evidence"
+            - "Qualitative: named competitors or threats, but no figures"
+            - "Partly quantified: some figures, such as a margin trend or share data, behind the view"
+            - "Well quantified: the view rests on figures such as gross margin history or market share change, with named competitors"
+        management_flags_evidenced:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the text assess management using specific evidence, such as
+            insider selling amounts, related-party transactions, auditor changes
+            or promotional claims compared with actual delivery, or state
+            explicitly that no such red flags were found?

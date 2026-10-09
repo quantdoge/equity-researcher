@@ -1,0 +1,434 @@
+# Portfolio strategist (synthesis layer). Pass 2: evaluated after the eleven
+# specialists, because its fidelity to them is part of what is judged.
+#
+# conviction.domain_metrics: the brief's own portfolio assessment, as 5-level
+#   Scores. Level 0 = very unfavourable to a long investor, level 4 = very
+#   favourable. A metric is sent to Jev only if code finds one of its
+#   evidence_terms in the selected section; otherwise it is "not_addressed".
+# alignment: did the output follow prompts/portfolio_strategist.md. Requests
+#   with `context: [crossagent]` also receive the specialist summary (each
+#   specialist's stance and conviction, failed specialists, short-seller
+#   flags), so the brief can be checked against what the team actually said.
+#
+# Real briefs use numbered markdown headings ("## 7. Final Portfolio Action:
+# **PASS (new money) / REDUCE (held)**"). Split actions parse to the first
+# value named and are flagged hedged; that is the action for new money in
+# almost every brief.
+
+role: portfolio_strategist
+rubric_version: 1
+pass: 2
+includes: [_shared]
+source_prompt: equity_mcp/prompts/portfolio_strategist.md
+source_prompt_sha256: "db231453b5f213567ae63fe6833a80cb1d1326a5b8bfdb758792a4acc669f2af"
+calibrated: false
+
+background:
+  mandate: >
+    Portfolio strategist and synthesis layer. Does no original research:
+    aggregates the specialists' conviction, weighting each view by evidence
+    quality and domain relevance; separates consensus from contested views; and
+    resolves conflicts, with fraud risk flagged by the short analyst taking
+    precedence over a bullish value view. Sizes the position by conviction and
+    risk (3-5% high conviction and low risk; 1-3% medium conviction or
+    elevated risk; 0.5-1% or pass for low conviction or several risk flags),
+    using Kelly logic. Assesses portfolio fit and sets stop-loss, thesis
+    invalidation and trim rules.
+  required_output: |
+    1. Agent Conviction Summary Table:
+       | Agent | View | Conviction | Key Finding |
+    2. Consensus Assessment (agreement level: High / Medium / Low / Split)
+    3. Position Sizing Recommendation (% of portfolio, with rationale)
+    4. Portfolio Fit Analysis (sector, factor, correlation considerations)
+    5. Entry Strategy (all at once vs scale-in, given current price vs target)
+    6. Risk Management Rules (stop-loss, thesis invalidation, trim trigger)
+    7. Final Portfolio Action: Initiate / Add / Hold / Reduce / Exit / Pass
+
+sections:
+  conviction_table: {heading: 'conviction summary|agent conviction|agent summary'}
+  consensus: {heading: 'consensus'}
+  sizing: {heading: 'position sizing|sizing'}
+  fit: {heading: 'portfolio fit|fit analysis'}
+  entry: {heading: 'entry'}
+  risk_rules: {heading: 'risk management'}
+  action: {heading: 'final portfolio action|portfolio action'}
+
+extract:
+  portfolio_action: {section: action, values: [Initiate, Add, Hold, Reduce, Exit, Pass]}
+  consensus:
+    section: consensus
+    values: [High, Medium, Low, Split]
+    aliases: {Moderate: Medium}
+
+conviction:
+  native_rating: portfolio_action
+  native_to_stance: {Initiate: BUY, Add: BUY, Hold: HOLD, Pass: HOLD, Reduce: SELL, Exit: STRONG SELL}
+  domain_metrics:
+    consensus_strength:
+      label: Specialist consensus for owning
+      section: [consensus, conviction_table, full]
+      evidence_terms: [consensus, agree, agreement, split, contested, dispute, unanimous, disagree]
+      instructions: >
+        Based only on what this portfolio brief states, how strongly do the
+        research specialists, taken together, agree that the stock is
+        attractive to own?
+      criteria:
+        - "Broad agreement against owning: most specialists are negative or flag serious risks"
+        - "Leaning against: more specialists are negative than positive"
+        - "Split or neutral: positive and negative views roughly offset"
+        - "Leaning in favour: more specialists are positive than negative"
+        - "Broad agreement in favour: most specialists are positive, with few dissenting views"
+    risk_reward_asymmetry:
+      label: Risk/reward asymmetry
+      section: [sizing, entry, full]
+      evidence_terms: [upside, downside, risk/reward, risk-reward, asymmetr, edge, expected value, Kelly, odds, bear case, bull case]
+      instructions: >
+        Based only on what this portfolio brief states, how does the potential
+        upside from the current price compare with the potential downside?
+      criteria:
+        - "Strongly negative: downside far exceeds upside; the expected edge is clearly negative"
+        - "Negative: downside somewhat exceeds upside"
+        - "Balanced: upside and downside roughly equal; little or no edge"
+        - "Positive: upside somewhat exceeds downside"
+        - "Strongly positive: upside far exceeds downside; a large expected edge"
+    position_sizing_appropriateness:
+      label: Recommended position size
+      section: [sizing, action, full]
+      evidence_terms: ['%', position, weight, starter, cap, tranche, size, Kelly]
+      instructions: >
+        Based only on what this portfolio brief states, how large a position in
+        the stock does it recommend for new capital?
+      criteria:
+        - "None: no position, or exit any existing position"
+        - "Token: a speculative position of about 1% or less, or only conditional on future events"
+        - "Small: a starter of about 1-2% of the portfolio"
+        - "Standard: about 2-3% of the portfolio"
+        - "Full: a high-conviction position of about 3-5% of the portfolio"
+    portfolio_fit_diversification:
+      label: Portfolio fit / diversification
+      section: [fit, full]
+      evidence_terms: [correlation, correlated, concentration, sector, factor, beta, diversif, overweight, exposure, tilt]
+      instructions: >
+        Based only on what this portfolio brief states, how well does the stock
+        fit a diversified portfolio, considering sector concentration, factor
+        tilts and correlation with likely existing holdings?
+      criteria:
+        - "Very poor fit: adds heavily to concentrated, highly correlated or high-beta exposure"
+        - "Poor fit: adds to an existing concentration or an unwanted factor tilt"
+        - "Neutral fit: neither adds to concentration nor diversifies"
+        - "Good fit: modest correlation with likely holdings and some diversification benefit"
+        - "Excellent fit: low correlation and a clear diversification or hedging benefit"
+    risk_management_specificity:
+      label: Downside control
+      section: [risk_rules, full]
+      evidence_terms: [stop, stop-loss, invalidat, trim, exit, trigger, drawdown, rebalance]
+      instructions: >
+        Based only on what this portfolio brief states, how well defined and
+        protective are the rules that limit losses on this position?
+      criteria:
+        - "None: no stop-loss, invalidation or trim rules; downside is open-ended"
+        - "Vague: rules are mentioned but have no level or trigger"
+        - "Partial: some rules have a specific level or trigger, others do not"
+        - "Specific: stop-loss, thesis invalidation and trim rules each have a specific level or trigger"
+        - "Tight and specific: precise, measurable rules that cap the loss at a stated level"
+    entry_timing:
+      label: Entry timing
+      section: [entry, action, full]
+      evidence_terms: [entry, scale-in, scale in, tranche, all at once, all-at-once, ladder, pullback, wait, chase]
+      instructions: >
+        Based only on what this portfolio brief states, how attractive is the
+        current price as a point to buy the stock?
+      criteria:
+        - "Do not enter: the brief says to wait for a large decline or for the thesis to be confirmed before buying any"
+        - "Wait: buy only after a meaningful pullback or a specific event"
+        - "Partial: a small starter now, with most of the position reserved for later triggers"
+        - "Scale in from now: begin building the position at the current price in tranches"
+        - "Enter now: the current price is an attractive entry for the full position"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [conviction_table, consensus, sizing, fit, entry, risk_rules, action], weight: 2}
+    - {id: action_parseable, kind: extract_ok, extract: portfolio_action, weight: 2, veto: true}
+    - {id: consensus_parseable, kind: extract_ok, extract: consensus, weight: 1}
+    - id: conviction_table_present
+      kind: table_present
+      section: conviction_table
+      columns: [Agent, View, Conviction, Key Finding]
+      min_rows: 6
+      weight: 2
+    - {id: failed_specialists_in_table, kind: failures_acknowledged, section: conviction_table, dimension: honesty, weight: 2}
+    - {id: fraud_takes_precedence, kind: fraud_override, extract: portfolio_action, dimension: consistency, weight: 0, veto: true}
+    # The prompt sizes by conviction and risk; `consensus` is the agreement level,
+    # which is not the same thing. "HIGH agreement to the downside" plus a Pass
+    # lands in the 3-5% band and fails. So the banded check is a weight-0
+    # diagnostic, the scored check is the 5% ceiling every band shares (no
+    # extract → band 0-5%), and band adherence proper is the Jev question
+    # sizing_follows_rules.
+    - {id: size_within_band, kind: position_size_band, section: sizing, extract: consensus, dimension: consistency, weight: 0}
+    - {id: size_within_cap, kind: position_size_band, section: sizing, dimension: consistency, weight: 1}
+    - id: risk_rule_levels
+      kind: min_matches
+      section: risk_rules
+      pattern: '\$\s?\d|[-−–]?\d+(?:\.\d+)?\s*%'
+      min: 2
+      dimension: quantification
+      weight: 1
+
+  requests:
+    - id: strategist_team_fidelity
+      state: [conviction_table, consensus]
+      context: [crossagent]
+      gate: synthesis_evaluable
+      questions:
+        synthesis_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section summarise the individual research
+            specialists' views of the stock, and does the specialist summary
+            list at least one specialist view to compare them with?
+        views_match_specialists:
+          type: score
+          dimension: fidelity
+          weight: 3
+          min_level: 2
+          instructions: >
+            Compare the view the report section attributes to each specialist
+            with that specialist's rating and stance in the specialist summary.
+            How faithfully does the report section represent the specialists'
+            views?
+          criteria:
+            - "Misrepresented: one or more specialists' views are reversed in direction, such as a bullish specialist shown as bearish"
+            - "Distorted: no reversals, but several views are shown materially stronger or weaker than the specialist summary"
+            - "Mostly faithful: every direction matches, with a few views shaded somewhat stronger or weaker"
+            - "Faithful: every view matches the specialist summary in direction and strength"
+        failed_specialists_not_invented:
+          type: noul
+          dimension: honesty
+          weight: 2
+          instructions: >
+            For every specialist that the specialist summary lists as failed or
+            missing, does the report section either mark that specialist as
+            unavailable or leave it out, rather than giving it a view and a key
+            finding as if its report had been received? Answer yes if the
+            specialist summary lists no failed or missing specialists.
+          criteria:
+            true: "Failed or missing specialists are marked unavailable or omitted, or there are none"
+            false: "A failed or missing specialist is given a view or finding as if its report existed"
+        consensus_vs_contested:
+          type: noul
+          dimension: compliance
+          weight: 2
+          instructions: >
+            Does the report section separate the views on which several
+            specialists agree from the views on which they disagree, naming the
+            specialists on each side of a disagreement?
+        conflicts_resolved:
+          type: score
+          dimension: consistency
+          weight: 2
+          min_level: 2
+          instructions: >
+            The strategist is required to weight each specialist's view by the
+            quality of its evidence and its relevance to the decision, and to
+            resolve conflicts explicitly. How explicitly does the report section
+            resolve disagreements between specialists?
+          criteria:
+            - "Ignored: disagreements are not mentioned"
+            - "Noted only: disagreements are listed but left unresolved"
+            - "Resolved by assertion: one side is preferred without reasons, or by a simple head count"
+            - "Resolved with reasons: one side is preferred because of the quality of its evidence or its relevance to the decision, stated explicitly"
+        consensus_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: consensus
+          order_check: true
+          instructions: >
+            What overall level of agreement among the specialists does the
+            report section state?
+          criteria:
+            High: "Agreement is stated to be High"
+            Medium: "Agreement is stated to be Medium"
+            Low: "Agreement is stated to be Low"
+            Split: "Agreement is stated to be Split"
+            not_stated: "No agreement level from this list is given, or it is divided between several of them"
+
+    - id: strategist_sizing_and_action
+      state: [consensus, sizing, action]
+      context: [crossagent]
+      gate: sizing_evaluable
+      questions:
+        sizing_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section give a position size recommendation and a
+            final portfolio action for the stock, rather than a placeholder or
+            an error message?
+        sizing_follows_rules:
+          type: score
+          dimension: consistency
+          weight: 3
+          min_level: 2
+          instructions: >
+            The strategist's sizing rules are: 3-5% of the portfolio for high
+            conviction with low risk; 1-3% for medium conviction or elevated
+            risk; 0.5-1% or no position for low conviction or several risk
+            flags. Given the conviction and risk that the report section itself
+            describes, how faithfully does the recommended size follow these
+            rules?
+          criteria:
+            - "Violates the rules: the size is larger than the stated conviction and risk allow, with no explanation"
+            - "Loosely follows: the size is near the right band, but the link to conviction and risk is not made"
+            - "Follows: the size sits in the band that matches the stated conviction and risk"
+            - "Follows explicitly: the size is placed in its band with the conviction and risk that put it there stated"
+        edge_reasoning:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section justify the position size by reasoning about
+            the expected edge against the odds, such as the expected upside set
+            against the downside, in the spirit of the Kelly criterion?
+        fraud_flag_precedence:
+          type: noul
+          dimension: fidelity
+          weight: 2
+          instructions: >
+            The strategist's rule is that a fraud or severe earnings-quality
+            warning from the short-seller analyst takes precedence over bullish
+            views. If the specialist summary's short-seller flags show high or
+            fraudulent earnings-quality risk, does the report section give that
+            warning precedence in its size and action? Answer yes if the
+            specialist summary shows no such warning.
+          criteria:
+            true: "No such warning exists, or the warning visibly limits the size or action"
+            false: "A high or fraudulent earnings-quality warning exists and the size or action ignores it"
+        action_consistent_with_size:
+          type: noul
+          dimension: consistency
+          weight: 2
+          instructions: >
+            Is the final portfolio action consistent with the recommended
+            position size, for example Pass or Exit with no new position, and
+            Initiate or Add with a positive size?
+        action_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: portfolio_action
+          order_check: true
+          instructions: >
+            What single final portfolio action does the report section give as
+            its headline? If it gives different actions for different holders,
+            such as one for new money and another for existing positions, choose
+            the action it names first.
+          criteria:
+            Initiate: "The final action is Initiate"
+            Add: "The final action is Add"
+            Hold: "The final action is Hold"
+            Reduce: "The final action is Reduce"
+            Exit: "The final action is Exit"
+            Pass: "The final action is Pass"
+            not_stated: "No final action from this list is given, or it is split between several of them with no primary one"
+
+    - id: strategist_fit_and_entry
+      state: [fit, entry]
+      gate: fit_entry_evaluable
+      questions:
+        fit_entry_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section discuss how the stock fits a portfolio or how
+            to enter the position, rather than being a placeholder or an error
+            message?
+        fit_dimensions_covered:
+          type: score
+          dimension: compliance
+          weight: 2
+          min_level: 2
+          instructions: >
+            The strategist is required to assess portfolio fit through sector
+            concentration, factor exposure and correlation with existing
+            holdings. How fully does the report section cover these?
+          criteria:
+            - "Not covered: no portfolio fit discussion"
+            - "Thin: one consideration, discussed generically"
+            - "Partial: two or more considerations, with little supporting data"
+            - "Full: sector, factor and correlation considerations, each backed by data such as correlations, beta or sector weight"
+        fit_turned_into_instruction:
+          type: noul
+          dimension: actionability
+          weight: 1
+          instructions: >
+            Does the report section turn its fit analysis into a concrete
+            portfolio instruction, such as a cap on combined exposure to similar
+            holdings, a position to trim to fund this one, or a hedge?
+        entry_plan_specific:
+          type: score
+          dimension: actionability
+          weight: 2
+          min_level: 2
+          instructions: >
+            How specific is the entry plan in the report section?
+          criteria:
+            - "No entry plan"
+            - "Generic: 'scale in' or 'buy on weakness' with no triggers or sizes"
+            - "Partial: tranches with either price or event triggers, or with sizes, but not both"
+            - "Specific: each tranche has a price or event trigger and a size"
+        entry_tied_to_price_vs_target:
+          type: noul
+          dimension: consistency
+          weight: 1
+          instructions: >
+            Does the report section base its choice between buying all at once
+            and scaling in on where the current price stands relative to the
+            target price or fair value?
+
+    - id: strategist_risk_rules
+      state: [risk_rules]
+      gate: risk_rules_evaluable
+      questions:
+        risk_rules_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section set out risk management rules for the
+            position, rather than being a placeholder or an error message?
+        stop_loss_defined:
+          type: noul
+          dimension: actionability
+          weight: 2
+          instructions: >
+            Does the report section define a stop-loss as a specific price, a
+            specific percentage loss from entry, or a named fundamental trigger?
+          criteria:
+            true: "A stop-loss is given as a price, a percentage loss or a named fundamental trigger"
+            false: "No stop-loss, or only a vague intention to limit losses"
+        invalidation_specific:
+          type: score
+          dimension: actionability
+          weight: 2
+          min_level: 2
+          instructions: >
+            How specific are the conditions under which the report section says
+            the investment thesis would be invalidated?
+          criteria:
+            - "No invalidation conditions are given"
+            - "Generic conditions that would apply to any stock, such as 'fundamentals deteriorate'"
+            - "Company-specific conditions, but without measurable thresholds"
+            - "Company-specific conditions with measurable thresholds or dated events"
+        trim_trigger_defined:
+          type: noul
+          dimension: actionability
+          weight: 1
+          instructions: >
+            Does the report section define when to trim the position, such as a
+            price level, a share of intrinsic value, or a maximum portfolio
+            weight?

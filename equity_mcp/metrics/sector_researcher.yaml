@@ -1,0 +1,337 @@
+# Sector economy researcher (industry structure, cycle and peer benchmarking).
+#
+# conviction.domain_metrics: the report's own assessment of the sector and of
+#   the company's place in it, as 5-level Scores. Level 0 = very unfavourable
+#   to a long investor, level 4 = very favourable. A metric is sent to Jev only
+#   if code finds one of its evidence_terms in the selected section; otherwise
+#   it is "not_addressed".
+# alignment: did the output follow prompts/sector_researcher.md.
+#
+# The prompt's framework (Porter's Five Forces, HHI, cycle position) is not a
+# numbered output section, so those requests read the whole report.
+
+role: sector_researcher
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/sector_researcher.md
+source_prompt_sha256: "71c92f6cf7cb5d6450b22298ad653cb57342cb13dd14c7657201ac16348aadb7"
+calibrated: false
+
+background:
+  mandate: >
+    Sector economy researcher. Analyses the industry the company operates in:
+    market size and growth, concentration (HHI, top-3 share), barriers to
+    entry and a Porter's Five Forces assessment. Places the sector in its
+    cycle (early growth, mature, declining) using input costs, capacity
+    utilisation and pricing power, and benchmarks the company against the
+    sector median on revenue growth and margins. Must be quantitative wherever
+    possible.
+  required_output: |
+    1. Sector Overview (3-4 sentences)
+    2. Key Tailwinds (3 bullets)
+    3. Key Headwinds (3 bullets)
+    4. Peer Comparison Table
+    5. Target Company's Competitive Position (strong / average / weak, with rationale)
+    6. Sector Rating: Attractive / Neutral / Unattractive
+
+sections:
+  overview: {heading: 'sector overview|overview'}
+  tailwinds: {heading: 'tailwind'}
+  headwinds: {heading: 'headwind'}
+  peers: {heading: 'peer'}
+  position: {heading: 'competitive position'}
+  rating: {heading: 'sector rating'}
+
+extract:
+  sector_rating: {section: rating, values: [Attractive, Neutral, Unattractive]}
+  competitive_position: {section: position, values: [Strong, Average, Weak]}
+
+conviction:
+  native_rating: sector_rating
+  native_to_stance: {Attractive: BUY, Neutral: HOLD, Unattractive: SELL}
+  domain_metrics:
+    sector_growth:
+      label: Sector growth
+      section: [overview, rating, full]
+      evidence_terms: [market size, growth rate, CAGR, growing, grew, expanding, contracting, shrinking, demand]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        growth outlook for the sector the company operates in, meaning the
+        expected growth of total sector revenue or demand over the next few
+        years?
+      criteria:
+        - "Shrinking: sector revenue or demand is declining"
+        - "Stagnant: sector growth is flat or below GDP growth"
+        - "Moderate: sector growth roughly in line with GDP or in low-to-mid single digits"
+        - "Strong: sector growth clearly above GDP, in high single or low double digits"
+        - "Very strong: rapid structural growth, in mid-teens or higher, expected to last several years"
+    competitive_intensity:
+      label: Competitive intensity
+      section: [overview, position, full]
+      evidence_terms: [competition, competitive, rivalry, oligopoly, fragmented, concentrat, HHI, price war, consolidat, market share]
+      instructions: >
+        Based only on what this research report states, how benign is
+        competition within the sector for its incumbents, meaning how little
+        rivalry, price competition and pressure from substitutes the
+        incumbents face?
+      criteria:
+        - "Cut-throat: a fragmented sector or one with price wars, commoditised products or strong substitutes"
+        - "Intense: many capable rivals competing heavily on price, with margins under pressure"
+        - "Moderate: real competition, but rational pricing and some differentiation"
+        - "Benign: a concentrated sector with rational competition and differentiated products"
+        - "Very benign: a near-monopoly or tight oligopoly with little price competition"
+    barriers_to_entry:
+      label: Barriers to entry
+      section: [overview, position, full]
+      evidence_terms: [barrier, capital intensity, capital-intensive, switching cost, network effect, licens, regulatory hurdle, charter, economies of scale, entrant]
+      instructions: >
+        Based only on what this research report states, how high are the
+        barriers that keep new competitors out of the sector, such as capital
+        intensity, regulation, network effects, scale economies or switching
+        costs?
+      criteria:
+        - "Negligible: new entrants can join easily and cheaply"
+        - "Low: some obstacles, but entry is common and regularly succeeds"
+        - "Moderate: entry needs meaningful capital, scale or approvals, but does happen"
+        - "High: entry requires large capital, regulatory approval or scale that few can reach"
+        - "Very high: entry is practically impossible because of capital, regulation, network effects or entrenched switching costs"
+    cycle_position:
+      label: Sector cycle position
+      section: [rating, overview, full]
+      evidence_terms: [cycle, early-stage, early growth, early-growth, mature, late-cycle, late cycle, declin, upcycle, downturn, inflection, recovery]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        point the sector has reached in its business or structural cycle for
+        an investor buying now?
+      criteria:
+        - "Declining: the sector is in structural decline or entering a cyclical downturn"
+        - "Late-cycle or peaking: growth and pricing are at or past their peak, with a slowdown expected"
+        - "Mature: stable, GDP-like growth with no clear cyclical direction"
+        - "Expanding: mid-cycle or recovering, with demand and pricing improving"
+        - "Early growth: early in a structural growth phase or upcycle, with years of expansion ahead"
+    competitive_position_vs_peers:
+      label: Competitive position vs peers
+      section: [position, peers]
+      evidence_terms: [peer, rank, market share, gaining, losing, leader, laggard, median, ahead of, behind]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        company's competitive position compared with its sector peers, in
+        terms of scale, growth, market share and profitability?
+      criteria:
+        - "Very weak: a clear laggard, losing share and trailing peers on growth and margins"
+        - "Weak: below the peer median on most measures"
+        - "Average: around the peer median, neither gaining nor losing share materially"
+        - "Strong: above the peer median on most measures and holding or gaining share"
+        - "Very strong: the sector leader, ahead of nearly all peers on growth, share and margins"
+    relative_margins_pricing_power:
+      label: Relative margins / pricing power
+      section: [peers, position, full]
+      evidence_terms: [gross margin, operating margin, net margin, EBITDA margin, margin, pricing power, price increase]
+      instructions: >
+        Based only on what this research report states, how strong are the
+        company's margins and pricing power compared with its sector peers?
+      criteria:
+        - "Very weak: margins far below the peer median, with little or no pricing power"
+        - "Weak: margins below the peer median, or pricing under pressure"
+        - "Average: margins near the peer median, with ordinary pricing power"
+        - "Strong: margins above the peer median, with evident pricing power"
+        - "Very strong: among the highest margins in the sector, with demonstrated ability to raise prices"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [overview, tailwinds, headwinds, peers, position, rating], weight: 2}
+    - {id: sector_rating_parseable, kind: extract_ok, extract: sector_rating, weight: 2, veto: true}
+    - {id: position_parseable, kind: extract_ok, extract: competitive_position, weight: 1}
+    - {id: peer_table, kind: table_present, section: peers, min_rows: 3, weight: 2}
+    - {id: tailwind_items, kind: min_list_items, section: tailwinds, min: 3, weight: 1}
+    - {id: headwind_items, kind: min_list_items, section: headwinds, min: 3, dimension: balance, weight: 1}
+    - {id: peer_numbers, kind: min_matches, section: peers, pattern: '\d+(?:\.\d+)?\s?%', min: 8, dimension: quantification, weight: 1}
+    - {id: overview_numbers, kind: min_matches, section: overview, pattern: '\d+(?:\.\d+)?\s?(?:%|x\b|bn\b|billion|trillion|[BT]\b)|\$\s?\d', min: 2, dimension: quantification, weight: 1}
+
+  requests:
+    - id: sector_structure
+      state: [full]
+      gate: structure_evaluable
+      questions:
+        structure_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report contain a substantive analysis of the company's
+            sector, describing its size, its main competitors or its
+            competitive dynamics, rather than a placeholder or an error message?
+        market_size_quantified:
+          type: noul
+          dimension: quantification
+          weight: 1
+          instructions: >
+            Does the report state both the size of the sector, such as its
+            total revenue or market value, and its growth rate, each as a
+            figure?
+          criteria:
+            true: "Both a sector size and a sector growth rate are given as figures"
+            false: "Sector size or sector growth is missing, or is described only in words"
+        concentration_quantified:
+          type: noul
+          dimension: quantification
+          weight: 2
+          instructions: >
+            Does the report measure how concentrated the sector is, using a
+            Herfindahl-Hirschman Index (HHI), the combined market share of the
+            top three or top few players, or the market shares of named
+            competitors?
+          criteria:
+            true: "Concentration is measured with an HHI or with market-share figures"
+            false: "Concentration is described only in words, such as 'oligopoly' or 'fragmented', or not at all"
+        five_forces_coverage:
+          type: score
+          dimension: compliance
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst is asked for a Porter's Five Forces assessment of the
+            sector: rivalry among existing competitors, threat of new
+            entrants, bargaining power of suppliers, bargaining power of
+            buyers, and threat of substitutes. Whether or not the report uses
+            that name, how fully does it assess these five forces?
+          criteria:
+            - "None of the forces is assessed"
+            - "One or two forces are mentioned in passing"
+            - "Three or four forces are assessed, or all five only superficially"
+            - "All five forces are assessed, each with a direction and supporting evidence"
+        barriers_specific:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report name the specific barriers to entry in the sector,
+            such as capital intensity, regulation, network effects, scale or
+            switching costs, and say how strong they are?
+        cycle_position_evidenced:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst must say where the sector is in its cycle (early
+            growth, mature or declining) and support it with indicators such
+            as demand growth, input cost trends, capacity utilisation or
+            pricing power. How well does the report do this?
+          criteria:
+            - "The sector's cycle position is not stated"
+            - "A cycle position is stated with no supporting indicators"
+            - "A cycle position is stated and supported by one kind of indicator"
+            - "A cycle position is stated and supported by several indicators, such as demand, input costs, capacity utilisation and pricing"
+
+    - id: peer_benchmarking
+      state: [peers, position]
+      gate: peers_evaluable
+      questions:
+        peers_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section compare the company with named peer
+            companies using financial figures, rather than being a placeholder
+            or an error message?
+        benchmark_vs_median:
+          type: score
+          dimension: compliance
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst must benchmark the company's revenue growth and its
+            gross and operating margins against the sector median. How
+            completely does the report section do this?
+          criteria:
+            - "No comparison of the company's growth or margins with peers"
+            - "Peers' figures are listed, but the company is not explicitly compared with a median or average"
+            - "The company is compared with a sector median or average on growth or on margins, but not both"
+            - "The company's revenue growth and its gross and operating margins are each compared with a stated sector median or average"
+        share_shifts_identified:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section say which named peers are gaining or
+            losing market share?
+        position_consistent_with_peers:
+          type: score
+          dimension: consistency
+          weight: 2
+          min_level: 2
+          instructions: >
+            How consistent is the company's competitive position rating
+            (strong, average or weak) with where the company actually stands
+            in the peer comparison figures given in the report section?
+          criteria:
+            - "Contradicted: the rating conflicts with the company's standing in the peer figures"
+            - "Unsupported: the rating is asserted without reference to the peer figures"
+            - "Mostly consistent: the rating fits the peer figures, but the link is only implied"
+            - "Fully consistent: the rationale cites the company's rank or gap against peers and the rating follows from it"
+        position_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: competitive_position
+          order_check: true
+          instructions: >
+            What competitive position does the report section assign to the
+            target company relative to its sector peers?
+          criteria:
+            Strong: "The company's competitive position is rated strong"
+            Average: "The company's competitive position is rated average"
+            Weak: "The company's competitive position is rated weak"
+            not_stated: "No position from this list is given, or it is split between several of them"
+
+    - id: rating_discipline
+      state: [tailwinds, headwinds, rating]
+      gate: rating_evaluable
+      questions:
+        rating_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section list sector tailwinds and headwinds and
+            give an overall rating of the sector, rather than being a
+            placeholder or an error message?
+        drivers_specific:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How specific and well evidenced are the sector tailwinds and
+            headwinds listed in the report section?
+          criteria:
+            - "Generic: drivers that would apply to almost any sector, such as 'the economy' or 'competition'"
+            - "Specific to the sector, but stated without figures or sources"
+            - "Specific, with some drivers backed by figures, dates or named sources"
+            - "Specific, each driver backed by a figure, date or named source and a mechanism by which it affects the sector"
+        rating_is_about_sector:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section base its sector rating on the
+            attractiveness of the sector as a whole, meaning its growth,
+            structure and cycle position, rather than on the target company's
+            own prospects or share price?
+        rating_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: sector_rating
+          order_check: true
+          instructions: >
+            What single overall rating of the sector's attractiveness does the
+            report section give?
+          criteria:
+            Attractive: "The sector is rated Attractive"
+            Neutral: "The sector is rated Neutral"
+            Unattractive: "The sector is rated Unattractive"
+            not_stated: "No rating from this list is given, or it is split between several of them"
