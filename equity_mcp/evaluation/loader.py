@@ -108,6 +108,14 @@ class LoadedRubric:
     def pass_(self) -> int:
         return self.rubric.pass_
 
+    def snapshot_row(self) -> dict:
+        """The eval.rubrics row for this rubric (read back by the eval.v_rubric_* views)."""
+        return {
+            "rubric_sha": self.sha, "role": self.role, "rubric_version": self.rubric.rubric_version,
+            "shared_version": self.shared.shared_version, "source_prompt_sha256": self.rubric.source_prompt_sha256,
+            "calibrated": self.rubric.calibrated, "content": self.content,
+        }
+
     def prompt_drift(self) -> str | None:
         """A message if the prompt changed since the rubric was written, else None."""
         current = prompt_sha256(self.role)

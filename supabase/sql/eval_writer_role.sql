@@ -53,7 +53,16 @@ GRANT SELECT ON
     eval.v_role_scorecard,
     eval.v_metric_trend,
     eval.v_jev_human_agreement,
-    eval.v_pipeline_reliability
+    eval.v_pipeline_reliability,
+    eval.v_rubric_current,
+    eval.v_rubric_roles,
+    eval.v_rubric_sections,
+    eval.v_rubric_extracts,
+    eval.v_rubric_stance_map,
+    eval.v_rubric_checks,
+    eval.v_rubric_questions,
+    eval.v_rubric_criteria,
+    eval.v_rubric_metrics
 TO eval_writer;
 
 -- RLS policies: full access for eval_writer on every table.

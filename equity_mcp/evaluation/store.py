@@ -112,23 +112,34 @@ class SupabaseStore:
     and the store is called from inside other people's loops (the orchestrator's,
     the CLI's), so it can't choose its loop. One connection, serialised by a
     lock, is plenty: Jev latency dominates and writes are a handful per agent.
+
+    The pooler can drop that connection mid-backfill. Every operation therefore
+    reconnects first if the connection is closed, and retries once if it died
+    during the call. The retry is safe because each write is one transaction of
+    upserts. Without this a single drop sent every later record to pending and,
+    worse, made ``already_evaluated`` answer False, re-spending Jev calls on
+    runs that were already stored.
     """
 
     kind = "supabase"
+    _RECONNECT_BACKOFF_S = 60.0
 
     def __init__(self, url: str) -> None:
         self.url = url
         self.conn = None
         self.fallbacks = 0
+        self.reconnects = 0
+        self._next_reconnect = 0.0
         self._lock = asyncio.Lock()
 
-    async def __aenter__(self) -> SupabaseStore:
+    def _connect(self):
         import psycopg
 
+        return psycopg.connect(self.url, prepare_threshold=None, autocommit=False, connect_timeout=20)
+
+    async def __aenter__(self) -> SupabaseStore:
         try:
-            self.conn = await asyncio.to_thread(
-                psycopg.connect, self.url, prepare_threshold=None, autocommit=False, connect_timeout=20
-            )
+            self.conn = await asyncio.to_thread(self._connect)
         except Exception as exc:
             # Unreachable database: keep evaluating, park every record in evals/pending/.
             print(f"[eval] warning: evaluation database unreachable ({type(exc).__name__}: {exc}); "
@@ -142,7 +153,44 @@ class SupabaseStore:
 
     async def _run(self, fn, *args):
         async with self._lock:
-            return await asyncio.to_thread(fn, *args)
+            return await asyncio.to_thread(self._call, fn, *args)
+
+    def _healthy(self) -> bool:
+        return self.conn is not None and not self.conn.closed and not self.conn.broken
+
+    def _reconnect(self) -> bool:
+        """Replace a dead connection. Backs off after a failure so an outage costs one connect timeout a minute."""
+        import time
+
+        if time.monotonic() < self._next_reconnect:
+            return False
+        try:
+            self.conn.close()
+        except Exception:
+            pass
+        try:
+            self.conn = self._connect()
+        except Exception as exc:
+            self._next_reconnect = time.monotonic() + self._RECONNECT_BACKOFF_S
+            print(f"[eval] database reconnect failed ({type(exc).__name__}: {exc}); "
+                  f"retrying in {self._RECONNECT_BACKOFF_S:.0f}s", file=sys.stderr, flush=True)
+            return False
+        self.reconnects += 1
+        print("[eval] reconnected to evaluation database", file=sys.stderr, flush=True)
+        return True
+
+    def _call(self, fn, *args):
+        if not self._healthy() and not self._reconnect():
+            raise ConnectionError("evaluation database connection is down")
+        try:
+            return fn(*args)
+        except Exception:
+            if self._healthy():
+                raise
+            # The connection died during the call, not the statement: reconnect and retry once.
+            if not self._reconnect():
+                raise
+            return fn(*args)
 
     def _adapt(self, col: str, value: Any) -> Any:
         if col in _JSONB and value is not None:
@@ -161,12 +209,15 @@ class SupabaseStore:
     # ── reads ──
 
     def _fetchone(self, sql: str, params: tuple):
+        with self.conn.cursor() as cur:
+            cur.execute(sql, params)
+            row = cur.fetchone()
+        self.conn.rollback()
+        return row
+
+    async def _read(self, sql: str, params: tuple):
         try:
-            with self.conn.cursor() as cur:
-                cur.execute(sql, params)
-                row = cur.fetchone()
-            self.conn.rollback()
-            return row
+            return await self._run(self._fetchone, sql, params)
         except Exception as exc:
             self._reset(exc)
             return None
@@ -174,8 +225,7 @@ class SupabaseStore:
     async def already_evaluated(self, run_id: str, role: str, rubric_sha: str, model: str) -> bool:
         if self.conn is None:
             return False
-        row = await self._run(
-            self._fetchone,
+        row = await self._read(
             "SELECT 1 FROM eval.evaluations WHERE run_id=%s AND role=%s AND rubric_sha=%s "
             "AND jev_model=%s AND status IN ('complete','agent_failed','degenerate','missing')",
             (run_id, role, rubric_sha, model),
@@ -185,8 +235,7 @@ class SupabaseStore:
     async def cached_call(self, cache_key: str) -> dict | None:
         if self.conn is None:
             return None
-        row = await self._run(
-            self._fetchone,
+        row = await self._read(
             "SELECT id, answers, jev_model_returned, request_id, input_tokens, output_tokens "
             "FROM eval.jev_calls WHERE cache_key=%s AND error IS NULL",
             (cache_key,),
@@ -226,6 +275,48 @@ class SupabaseStore:
             self.fallbacks += 1
             write_pending(record)
             return "pending"
+
+    async def save_rubrics(self, rows: list[dict]) -> dict[str, bool]:
+        """
+        Store rubric snapshots without evaluating anything (``--sync-rubrics``).
+
+        Returns {rubric_sha: newly inserted}. Unlike ``save`` there is no pending
+        fallback: a sync that cannot reach the database has nothing worth parking.
+        """
+        if self.conn is None:
+            raise ConnectionError("evaluation database unreachable")
+        try:
+            return await self._run(self._save_rubrics, rows)
+        except Exception as exc:
+            self._reset(exc)
+            raise
+
+    def _save_rubrics(self, rows: list[dict]) -> dict[str, bool]:
+        inserted = {}
+        with self.conn.transaction():
+            with self.conn.cursor() as cur:
+                for row in rows:
+                    new = self._upsert(cur, "eval.rubrics", _RUBRIC_COLS, row, "(rubric_sha)",
+                                       update=False, returning="rubric_sha")
+                    inserted[row["rubric_sha"]] = new is not None
+        return inserted
+
+    def _fetch_current(self) -> dict[str, str]:
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT role, rubric_sha FROM eval.v_rubric_current")
+            rows = cur.fetchall()
+        self.conn.rollback()
+        return dict(rows)
+
+    async def current_rubrics(self) -> dict[str, str]:
+        """{role: rubric_sha} of the snapshot eval.v_rubric_current treats as in force."""
+        if self.conn is None:
+            return {}
+        try:
+            return await self._run(self._fetch_current)
+        except Exception as exc:
+            self._reset(exc)
+            return {}
 
     def _save(self, record: dict) -> None:
         with self.conn.transaction():

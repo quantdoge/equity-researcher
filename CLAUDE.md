@@ -244,11 +244,13 @@ Each evaluation has two blocks that are stored apart and **never averaged togeth
 
 ```bash
 uv run python -m equity_mcp.evaluation.evaluate --validate-rubrics          # offline, also in CI
+uv run python -m equity_mcp.evaluation.evaluate --sync-rubrics              # push YAML to eval.rubrics, no Jev calls
 uv run python -m equity_mcp.evaluation.inspect value_researcher -v          # offline rubric debugger
 uv run python -m equity_mcp.evaluation.evaluate --all --dry-run             # request counts, no network
 uv run python -m equity_mcp.evaluation.evaluate --file outputs/AVGO_20261003T135110.json
 uv run python -m equity_mcp.orchestrator --symbol AAPL --evaluate           # score at the end of a run
 uv run python tests/test_eval_rubrics.py && uv run python tests/test_eval_extract.py && uv run python tests/test_eval_jev.py
+uv run python tests/test_eval_rubric_views.py
 ```
 
 Rules that came from Jev's documented behaviour, not taste:
@@ -286,6 +288,35 @@ rerun skips work that is already stored unless `--force` is passed. Every
 successful call is cached in `eval.jev_calls` by state + questions + model, so
 `--force` after a one-question rubric edit only pays for the changed request.
 
+**Rubric views.** `eval.v_rubric_*` (`supabase/migrations/20261011000000_eval_rubric_views.sql`)
+unnest `eval.rubrics.content`, so the YAML is readable in SQL with no extra
+tables. Start with `v_rubric_roles`, which shows the mandate, the required
+output and the counts. The other views are:
+
+- `v_rubric_sections`: section name to heading regex.
+- `v_rubric_extracts`: the values code pulls out by regex.
+- `v_rubric_stance_map`: the agent's own rating to the shared stance.
+- `v_rubric_checks`: the deterministic checks.
+- `v_rubric_questions`: every Jev question in the conviction, domain and
+  alignment blocks, with its exact instructions.
+- `v_rubric_criteria`: one row per answer option.
+- `v_rubric_metrics`: questions and checks at the grain of `metric_results`.
+
+Points to keep in mind when querying:
+
+- Every view has `is_current` and keeps every past `rubric_sha`.
+- To see what a past evaluation was asked, join on the evaluation's own hash,
+  not `is_current`:
+  `metric_results m → evaluations e → v_rubric_metrics rm ON (rm.rubric_sha, rm.block, rm.metric_id) = (e.rubric_sha, m.block, m.question_id)`.
+- `metric_results.score` is an expected level, so match it to a criterion with
+  `v_rubric_criteria.level = round(m.score)`.
+- jsonb does not keep object-key order, so the YAML order of questions,
+  sections and options is lost.
+- A rubric appears only once it has been evaluated or synced. Run
+  `--sync-rubrics` after editing a YAML.
+- A YAML reverted to an older, already-stored version is reported as `stale`
+  (exit 2). This is because `v_rubric_current` ranks by `created_at`.
+
 **Data dictionary.** Every table, view and column in `eval` is documented in the
 `datadict` schema, which has two tables: `datadict.tables` and `datadict.columns`.
 For each column it records: type, owner, dates, definition, real example values,
@@ -302,42 +333,23 @@ it's done, `SELECT * FROM datadict.v_coverage_gaps` must return 0 rows. That vie
 lists undocumented columns, dropped columns, type changes and broken `derived_from`
 links.
 
-### Rollout status and next session: backfill (written 2026-10-10)
+### Rollout status (updated 2026-10-10)
 
-Delete this subsection once the backfill is stored and the paused items are settled.
+Delete this subsection once the paused items and open decisions below are settled.
 
-**State at end of 2026-10-10.** Nothing here is committed yet.
-- Supabase project `equity-research-eval` (ref `zpnjlzrgzrtedkqumrph`) has the `eval` and `datadict` schemas applied.
-- 3 of the 35 `outputs/*.json` runs are evaluated and stored: `AVGO_20261003T135110`, `IBM_20261006T150931` and `NOW_20261006T153021`. That is 39 evaluations, about 1,380 metric results and 224 cached Jev calls.
-- `.env` holds `TYPESAFE_API_KEY` and `SUPABASE_EVAL_DB_URL`, the latter for the `eval_writer` role through the session pooler.
+**Backfill: done 2026-10-10.** All 35 `outputs/*.json` runs are in Supabase project
+`equity-research-eval` (ref `zpnjlzrgzrtedkqumrph`): 357 evaluations, 13,469 metric
+results and 2,213 Jev calls with 0 errors, and `datadict.v_coverage_gaps` is empty.
+- 6 legacy-layout files are stored as `runs` rows with `skip_reason = 'legacy schema: no agent_results'`. They are `AMD_20260822`, `CMG_2026-07-31_gpt4omini`, `CMG_2026-08-01`, `CMG_20260823`, `LIME` and `LTH`.
+- The two `AAPL_20260926` runs were `--agents` subsets, so they hold 2 and 4 evaluations, not 13.
+- `evals/pending_superseded/AVGO_20261003T135110.jsonl` is a duplicate re-evaluation of a stored run. It is deliberately not flushed, so the originals stay. It can be deleted.
+- A new run is scored with `orchestrator --evaluate`, or with `evaluate --symbol X --latest`.
 
-**Backfill the other 32 runs.** This is about 2,140 Jev requests. Idempotency skips the three runs already stored, so `--all` is safe to use.
+The backfill found two bugs, both now fixed:
+- `evaluate_result`'s legacy-skip path entered and exited a store it did not own, which closed the CLI's shared connection.
+- `SupabaseStore` never reconnected. After that, every record went to `evals/pending/` and `already_evaluated` returned False, which re-spent Jev calls on stored runs.
 
-```bash
-# 1. Offline checks. Both must pass before spending anything.
-uv run python -m equity_mcp.evaluation.evaluate --validate-rubrics
-uv run python -m equity_mcp.evaluation.evaluate --all --dry-run        # request count per run; ignores the store, so includes the 3 done runs
-
-# 2. Smoke test one run end to end, then check it landed.
-uv run python -m equity_mcp.evaluation.evaluate --symbol MSFT --latest
-
-# 3. The rest. Run it in the background and log it; rerunning resumes where it stopped.
-mkdir -p evals && uv run python -m equity_mcp.evaluation.evaluate --all --concurrency 4 2>&1 | tee evals/backfill.log
-
-# 4. If the database dropped at any point, replay what was parked.
-uv run python -m equity_mcp.evaluation.evaluate --flush-pending
-```
-
-Things to watch for during the backfill:
-- **The oldest files may have a pre-provenance layout.** These are `CMG_2026-07-31_gpt4omini.json`, `CMG_2026-08-01.json` and the August runs. They may be skipped or show more `agent_failed` and `degenerate` statuses. The dry run in step 1 shows which.
-- **A 401 or 403 from Jev stops the run** (`FatalJevError`). Check the key rather than retrying.
-- **Keep `--concurrency` at 4 or below.** The SDK already retries 429s with backoff.
-- **Check the result in SQL afterwards.** Expect 13 rows per complete run, with failed agents as status rows. `datadict.v_coverage_gaps` must still be empty.
-
-```sql
-SELECT r.symbol, count(*) AS evals, count(*) FILTER (WHERE e.status = 'complete') AS complete
-FROM eval.evaluations e JOIN eval.runs r USING (run_id) GROUP BY 1 ORDER BY 1;
-```
+Now the skip path only enters a store it owns, and `SupabaseStore._call` reconnects and retries once.
 
 **Still paused.** Do not do any of these until the user says so:
 - Adding the GitHub DEV secrets (`TYPESAFE_API_KEY`, `SUPABASE_EVAL_DB_URL`) and the variable `JEV_MODEL`.

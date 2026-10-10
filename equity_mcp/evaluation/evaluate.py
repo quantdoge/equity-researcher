@@ -5,6 +5,7 @@ Score research outputs against the metrics/<role>.yaml rubrics with TypeSafe Jev
     python -m equity_mcp.evaluation.evaluate --all --dry-run
     python -m equity_mcp.evaluation.evaluate --symbol NOW --latest --roles value head
     python -m equity_mcp.evaluation.evaluate --validate-rubrics
+    python -m equity_mcp.evaluation.evaluate --sync-rubrics
 
 For each agent in a run it:
 1. Parses the report and runs the deterministic checks.
@@ -245,11 +246,7 @@ async def evaluate_role(
         "agent_model": agent_model, "agent_model_inferred": inferred,
         "elapsed_seconds": record["elapsed_seconds"], "extracts": _jsonable_extracts(extracts),
     }
-    rubric_row = {
-        "rubric_sha": loaded.sha, "role": role, "rubric_version": loaded.rubric.rubric_version,
-        "shared_version": loaded.shared.shared_version, "source_prompt_sha256": loaded.rubric.source_prompt_sha256,
-        "calibrated": loaded.rubric.calibrated, "content": loaded.content,
-    }
+    rubric_row = loaded.snapshot_row()
     evaluation: dict[str, Any] = {
         "run_id": run["run_id"], "role": role, "rubric_sha": loaded.sha, "jev_model": model,
         "evaluator_version": EVALUATOR_VERSION, "pass": loaded.pass_, "advisory": not loaded.rubric.calibrated,
@@ -343,7 +340,12 @@ async def evaluate_result(
     if run["schema_kind"] != "agent_results_v1":
         out["skipped"] = run["skip_reason"]
         if not dry_run:
-            async with store:
+            # Enter the store only if it is ours: exiting a caller's store closes the
+            # connection it shares across every run (the CLI's --all loop does this).
+            if own_store:
+                async with store:
+                    await store.save({"run": run, "agent_output": None})
+            else:
                 await store.save({"run": run, "agent_output": None})
         return out
 
@@ -475,6 +477,67 @@ def select_files(args: argparse.Namespace) -> list[Path]:
     return files
 
 
+async def sync_rubrics(rubrics: dict[str, LoadedRubric], store: Any, *, dry_run: bool = False) -> list[dict]:
+    """
+    Store rubric snapshots in eval.rubrics without calling Jev, so the
+    eval.v_rubric_* views show a YAML edit before its first evaluation.
+
+    ``stale`` means the snapshot already existed but v_rubric_current picks a
+    newer one for the role: the YAML was reverted to an older version, which
+    keeps its original created_at.
+    """
+    if dry_run:
+        return [{"role": role, "sha": lr.sha, "status": "dry_run"} for role, lr in rubrics.items()]
+    inserted = await store.save_rubrics([lr.snapshot_row() for lr in rubrics.values()])
+    current = await store.current_rubrics()
+    out = []
+    for role, lr in rubrics.items():
+        status = "new" if inserted.get(lr.sha) else "unchanged"
+        if current.get(role, lr.sha) != lr.sha:
+            status = "stale"
+        out.append({"role": role, "sha": lr.sha, "status": status, "current": current.get(role)})
+    return out
+
+
+def _sync_main(args: argparse.Namespace) -> int:
+    roles = list(ALL_ROLES)
+    if args.roles:
+        from equity_mcp.orchestrator import _resolve_roles
+        roles = _resolve_roles(args.roles, ALL_ROLES)
+    try:
+        problems = validate_all()
+    except RubricError as exc:
+        problems = [str(exc)]
+    if problems:
+        for prob in problems:
+            print(f"  ✗ {prob}", file=sys.stderr)
+        print("Rubrics invalid: nothing synced.", file=sys.stderr)
+        return 1
+    store = make_store(False)
+    if store.kind != "supabase" and not args.dry_run:
+        print("error: --sync-rubrics needs SUPABASE_EVAL_DB_URL", file=sys.stderr)
+        return 1
+
+    async def _go() -> list[dict]:
+        if args.dry_run:
+            return await sync_rubrics(load_all(roles), store, dry_run=True)
+        async with store:
+            return await sync_rubrics(load_all(roles), store)
+
+    try:
+        rows = asyncio.run(_go())
+    except Exception as exc:
+        print(f"[eval] sync failed: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
+        return 1
+    for r in rows:
+        note = f"  (v_rubric_current still picks {r['current'][:12]}: YAML reverted to an older snapshot)" \
+            if r["status"] == "stale" else ""
+        print(f"{r['role']:<24} {r['status']:<9} {r['sha'][:12]}{note}", flush=True)
+    counts = {s: sum(r["status"] == s for r in rows) for s in ("new", "unchanged", "stale", "dry_run")}
+    print(", ".join(f"{n} {s}" for s, n in counts.items() if n), flush=True)
+    return 2 if counts["stale"] else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m equity_mcp.evaluation.evaluate", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -496,6 +559,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-store", action="store_true", help="write results to evals/results/ instead of Supabase")
     p.add_argument("--flush-pending", action="store_true", help="replay evals/pending/ into Supabase and exit")
     p.add_argument("--validate-rubrics", action="store_true", help="validate metrics/*.yaml and exit")
+    p.add_argument("--sync-rubrics", action="store_true",
+                   help="store the current metrics/*.yaml in eval.rubrics (no Jev calls) and exit")
     p.add_argument("--rehash-prompts", action="store_true", help="print each prompt's sha256 and exit")
     p.add_argument("--list-models", action="store_true", help="list Jev models available to the key and exit")
     args = p.parse_args(argv)
@@ -506,6 +571,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  ✗ {prob}", flush=True)
         print(f"{'OK' if not problems else 'INVALID'}: {len(ALL_ROLES)} rubrics + _shared.yaml", flush=True)
         return 1 if problems else 0
+    if args.sync_rubrics:
+        return _sync_main(args)
     if args.rehash_prompts:
         for role in ALL_ROLES:
             print(f"{role:<24} source_prompt_sha256: \"{prompt_sha256(role)}\"")
