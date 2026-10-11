@@ -28,7 +28,8 @@ equity_mcp/
 │   └── external/          # fred, sec_edgar, news, alt_data (external APIs)
 ├── prompts/               # System prompt .md file per agent role
 ├── metrics/               # Jev evaluation rubric .yaml per agent role + _shared.yaml
-└── evaluation/            # Scores outputs/*.json with TypeSafe Jev → Supabase `eval` schema
+├── evaluation/            # Scores outputs/*.json with TypeSafe Jev → Supabase `eval` schema
+└── hparams/               # Per-run config snapshots (limits, prompts, models, tool access) → `hparams` schema
 ```
 
 ## Orchestration: deepagents (default)
@@ -360,6 +361,62 @@ Now the skip path only enters a store it owns, and `SupabaseStore._call` reconne
 - **`v_stance_pivot.avg_stance_expected` counts low-evidence stances.** The fix is a one-line filter in the view, and the matching dictionary entry should be updated with it.
 - **The datadict migrations are missing from Supabase's migration history.** They were applied through the Management API, not `apply_migration`.
 - **`SUPABASE_ACCESS_TOKEN` in `.env` should be revoked** in the Supabase dashboard once no more admin SQL is needed.
+
+## Hyperparameters (`hparams`)
+
+Every run is tied to the exact configuration that produced it. This means
+- the tool timeout and thread pool,
+- each agent's model, token budget, recursion limit and task,
+- the prompt and budget block it was actually given,
+- and the tool access matrix.
+
+A score change can then be traced to the agent, a prompt edit, or a limit change.
+Code: `equity_mcp/hparams/`. Schema: `hparams` in the eval project
+(`supabase/migrations/20261011000200_hparams_schema.sql` and `…210_hparams_views.sql`).
+Queries: `supabase/docs/hparams_views.md`.
+
+- **Snapshots are content-addressed.**
+  - `config_sha` is the sha256 of a canonical JSON of runtime limits, agents, tools and tags, plus a hash of each watched source file.
+  - Identical code gives an identical config, however it was observed.
+  - Text bodies live once in `hparams.texts`. `system_prompt_sha` uses `loader.prompt_sha256`'s convention, so it joins to `eval.rubrics.source_prompt_sha256`.
+- **Read from live module state, never re-implemented.**
+  - The composed prompt, tools and model kwargs are what the real builders pass to `create_react_agent` / `create_deep_agent` / `init_chat_model`. Capturing stubs replace those calls for the duration.
+  - This is why capture runs *before* the fan-out.
+  - `tests/test_hparams_snapshot.py` checks a snapshot against `test_tool_access` counts, the rubric loader, and a fresh render. It also checks that no patch survives the build.
+- **Runtime capture.** The orchestrator writes `runs/<id>/config.json` at START and puts `config_sha` and `run_params` (concurrency, timeout, agents, focus, skip_synthesis) in the result. Like RunLog it never raises: a failure is one `CONFIG FAILED` line.
+- **Ingest.** `evaluate_result` links the run (`hparams.run_configs`, `link_basis='recorded_in_run'`) after storing its evaluations.
+  - It runs outside their transactions, so it can never cost an evaluation.
+  - It parks the payload in `evals/pending_hparams/` when the database is down.
+  - A config's provenance only ever upgrades (inferred < reconstructed_from_git < captured_at_runtime), and so does a run's link_basis.
+- **Backfill.** Runs from before capture are reconstructed from git: `git archive` writes the tree to a temp dir, and the current `snapshot.py` runs against it in a subprocess.
+  - CI runs ran their trigger commit, so they are `git_checkout`.
+  - Local runs used uncommitted trees, so they are `inferred`. Their notes say why.
+  - The JPM run's 600 s agent timeout was never committed. It is inferred from a `TimeoutError` at 600.5 s.
+  - Reconstructed configs have `libs = NULL`, because CI installs floating versions and `uv.lock` is not committed.
+
+```bash
+uv run python -m equity_mcp.hparams snapshot                    # today's config, no database
+uv run python -m equity_mcp.hparams verify [--db]               # consistency (and stored rows)
+uv run python -m equity_mcp.hparams sync --backfill --dry-run   # plan: 29 runs, 25 git_checkout, 4 inferred
+uv run python -m equity_mcp.hparams sync --backfill
+uv run python -m equity_mcp.hparams sync --from-run-dir runs/<id>   # a captured run not yet evaluated
+uv run python -m equity_mcp.hparams sync --flush-pending
+uv run python tests/test_hparams_snapshot.py && uv run python tests/test_hparams_backfill.py
+```
+
+**Backfill: done 2026-10-11.**
+- 29 runs are linked: 25 `git_checkout` and 4 `inferred`. The 6 legacy runs stay unlinked.
+- They resolve to 3 configs:
+  - cb0a21f, with a 900 s agent timeout: AAPL ×2.
+  - An inferred JPM config with a 600 s timeout.
+  - `22b40e62…`, with a 750 s timeout: XOM and every CI run. It is still the current code.
+- `verify --db` passes.
+
+Rules:
+
+- **Any migration that changes `hparams` must update `datadict`** (`…000300_datadict_hparams_seed.sql`), the same rule as `eval`. `datadict.v_coverage_gaps` covers both schemas and must return 0 rows. `hparams.v_config_integrity` must return 0 rows too.
+- **A new tunable constant belongs in the snapshot.** Add it to `runtime` in `snapshot.py`, plus a `config_runtime` column, its datadict entry and a test. Otherwise it changes runs silently, visible only as a `module_sha256` change.
+- **Bump `SNAPSHOT_VERSION` when what is hashed changes.**
 
 ## External APIs
 

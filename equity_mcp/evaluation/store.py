@@ -35,6 +35,9 @@ from equity_mcp.evaluation.loader import REPO_ROOT
 
 PENDING_DIR = REPO_ROOT / "evals" / "pending"
 RESULTS_DIR = REPO_ROOT / "evals" / "results"
+# Hyperparameter snapshots and run links (equity_mcp/hparams). Replayed after
+# PENDING_DIR, because a run link needs its eval.runs row to exist first.
+PENDING_HPARAMS_DIR = REPO_ROOT / "evals" / "pending_hparams"
 
 _RUN_COLS = ("run_id", "symbol", "run_date", "source_path", "source_sha256", "schema_kind",
              "skipped_synthesis", "failures", "elapsed_seconds", "git_sha", "skip_reason")
@@ -57,7 +60,9 @@ _METRIC_COLS = ("evaluation_id", "question_id", "block", "variant", "kind", "rub
                 "deterministic_value", "detail", "code_extract", "agreement", "normalized", "passed", "status",
                 "error", "jev_call_id")
 _JSONB = {"extracts", "content", "answers", "stance_probabilities", "domain_profile", "alignment_dimensions",
-          "probabilities"}
+          "probabilities",
+          # hparams (equity_mcp/hparams/ingest.py JSONB_COLS)
+          "libs", "provider_routing", "agent_model_overrides", "extra", "input_schema", "overrides"}
 
 
 def _jsonable(record: dict) -> str:
@@ -92,6 +97,33 @@ class LocalStore:
         except OSError as exc:
             print(f"[eval] warning: could not write local result: {exc}", file=sys.stderr, flush=True)
             return "dropped"
+
+    async def save_hparams(self, payload: dict) -> str:
+        try:
+            out = RESULTS_DIR / "hparams"
+            out.mkdir(parents=True, exist_ok=True)
+            (out / f"{_hparams_key(payload)}.json").write_text(
+                json.dumps(payload, default=str, ensure_ascii=False, indent=1), encoding="utf-8")
+            return "local"
+        except OSError as exc:
+            print(f"[eval] warning: could not write local hparams: {exc}", file=sys.stderr, flush=True)
+            return "dropped"
+
+
+def _hparams_key(payload: dict) -> str:
+    links = payload.get("links") or []
+    if links:
+        return links[0]["run_id"]
+    return "config_" + payload["snapshot"]["config"]["config_sha"][:16]
+
+
+def write_pending_hparams(payload: dict) -> None:
+    try:
+        PENDING_HPARAMS_DIR.mkdir(parents=True, exist_ok=True)
+        with (PENDING_HPARAMS_DIR / f"{_hparams_key(payload)}.jsonl").open("a", encoding="utf-8") as fh:
+            fh.write(_jsonable(payload) + "\n")
+    except OSError as exc:
+        print(f"[eval] warning: could not write pending hparams: {exc}", file=sys.stderr, flush=True)
 
 
 def write_pending(record: dict) -> None:
@@ -318,6 +350,33 @@ class SupabaseStore:
             self._reset(exc)
             return {}
 
+    async def save_hparams(self, payload: dict) -> str:
+        """
+        Store a hyperparameter snapshot and/or run links (equity_mcp/hparams/ingest.py).
+
+        Same fallback as ``save``: an unreachable database or a failed write parks
+        the payload in evals/pending_hparams/.
+        """
+        if self.conn is None:
+            self.fallbacks += 1
+            write_pending_hparams(payload)
+            return "pending"
+        try:
+            await self._run(self._save_hparams, payload)
+            return "supabase"
+        except Exception as exc:
+            self._reset(exc)
+            self.fallbacks += 1
+            write_pending_hparams(payload)
+            return "pending"
+
+    def _save_hparams(self, payload: dict) -> dict:
+        from equity_mcp.hparams.ingest import write
+
+        with self.conn.transaction():
+            with self.conn.cursor() as cur:
+                return write(cur, payload, self._adapt)
+
     def _save(self, record: dict) -> None:
         with self.conn.transaction():
             with self.conn.cursor() as cur:
@@ -376,29 +435,30 @@ def make_store(no_store: bool) -> LocalStore | SupabaseStore:
 
 
 async def flush_pending() -> tuple[int, int]:
-    """Replay evals/pending/*.jsonl into Supabase. Returns (saved, failed)."""
+    """Replay evals/pending/*.jsonl, then evals/pending_hparams/*.jsonl, into Supabase. Returns (saved, failed)."""
     url = os.getenv("SUPABASE_EVAL_DB_URL", "").strip()
     if not url:
         raise SystemExit("SUPABASE_EVAL_DB_URL is not set")
     saved = failed = 0
-    files = sorted(PENDING_DIR.glob("*.jsonl")) if PENDING_DIR.exists() else []
     async with SupabaseStore(url) as store:
         if store.conn is None:
             raise SystemExit("evaluation database unreachable; nothing flushed")
-        for path in files:
-            remaining = []
-            for line in path.read_text(encoding="utf-8").splitlines():
-                if not line.strip():
-                    continue
-                try:
-                    await store._run(store._save, json.loads(line))
-                    saved += 1
-                except Exception as exc:
-                    store._reset(exc)
-                    remaining.append(line)
-                    failed += 1
-            if remaining:
-                path.write_text("\n".join(remaining) + "\n", encoding="utf-8")
-            else:
-                path.unlink()
+        for pending_dir, save in ((PENDING_DIR, store._save), (PENDING_HPARAMS_DIR, store._save_hparams)):
+            files = sorted(pending_dir.glob("*.jsonl")) if pending_dir.exists() else []
+            for path in files:
+                remaining = []
+                for line in path.read_text(encoding="utf-8").splitlines():
+                    if not line.strip():
+                        continue
+                    try:
+                        await store._run(save, json.loads(line))
+                        saved += 1
+                    except Exception as exc:
+                        store._reset(exc)
+                        remaining.append(line)
+                        failed += 1
+                if remaining:
+                    path.write_text("\n".join(remaining) + "\n", encoding="utf-8")
+                else:
+                    path.unlink()
     return saved, failed

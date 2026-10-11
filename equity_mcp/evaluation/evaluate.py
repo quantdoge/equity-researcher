@@ -389,6 +389,14 @@ async def evaluate_result(
                                       summary=summary, ctx=ctx, **common)
             out["roles"].append(res)
 
+        # Tie the run to the config it captured (runs/<id>/config.json). After the
+        # roles, because the link references the eval.runs row they upserted; and
+        # outside their transactions, so an hparams fault cannot cost an evaluation.
+        if not dry_run:
+            from equity_mcp.hparams.ingest import ingest_run
+
+            out["hparams"] = await ingest_run(store, result)
+
     if own_runner and own_store:
         async with store, runner:
             await _go()

@@ -82,3 +82,42 @@ BEGIN
     END LOOP;
 END
 $$;
+
+-- =============================================================================
+-- hparams: run after 20261011000200_hparams_schema.sql and _views.sql.
+-- Append-only, except the observation metadata of a config (provenance may be
+-- upgraded, dates widened) and a run's link (replaced only by a better one;
+-- the rank guard is in equity_mcp/hparams/ingest.py). No DELETE anywhere.
+-- =============================================================================
+
+GRANT USAGE ON SCHEMA hparams TO eval_writer;
+
+GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA hparams TO eval_writer;
+GRANT UPDATE (provenance, effective_at, last_seen_at, source_git_sha, source_git_dirty, gaps, libs, label, notes)
+    ON hparams.configs TO eval_writer;
+GRANT UPDATE ON hparams.run_configs TO eval_writer;
+
+GRANT EXECUTE ON FUNCTION hparams.config_diff(text, text),
+                          hparams.provenance_rank(text),
+                          hparams.link_basis_rank(text)
+    TO eval_writer;
+
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOREACH t IN ARRAY ARRAY[
+        'configs', 'texts', 'config_runtime', 'config_agents',
+        'tool_defs', 'config_tools', 'config_role_tools', 'run_configs'
+    ] LOOP
+        EXECUTE format('DROP POLICY IF EXISTS eval_writer_read ON hparams.%I', t);
+        EXECUTE format('CREATE POLICY eval_writer_read ON hparams.%I FOR SELECT TO eval_writer USING (true)', t);
+        EXECUTE format('DROP POLICY IF EXISTS eval_writer_insert ON hparams.%I', t);
+        EXECUTE format('CREATE POLICY eval_writer_insert ON hparams.%I FOR INSERT TO eval_writer WITH CHECK (true)', t);
+    END LOOP;
+    FOREACH t IN ARRAY ARRAY['configs', 'run_configs'] LOOP
+        EXECUTE format('DROP POLICY IF EXISTS eval_writer_update ON hparams.%I', t);
+        EXECUTE format('CREATE POLICY eval_writer_update ON hparams.%I FOR UPDATE TO eval_writer USING (true) WITH CHECK (true)', t);
+    END LOOP;
+END
+$$;

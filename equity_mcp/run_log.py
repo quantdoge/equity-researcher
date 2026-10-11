@@ -10,6 +10,7 @@ So each run gets a directory::
 
     runs/<SYMBOL>_<TIMESTAMP>/
         run.log          # timestamped events, appended as they happen
+        config.json      # hyperparameter snapshot the run started with (hparams/)
         reports/         # one <role>.md per agent, written the moment it lands
         result.json      # the full result dict, at the end
 
@@ -113,6 +114,15 @@ class RunLog:
             self._warn(f"could not serialise result: {exc}")
             return
         self._write(self.dir / "result.json", payload)
+
+    def config(self, payload: dict[str, Any]) -> None:
+        """Write the hyperparameter snapshot the run started with (equity_mcp/hparams/capture.py)."""
+        try:
+            text = json.dumps(payload, indent=1, ensure_ascii=False, default=str)
+        except (TypeError, ValueError) as exc:
+            self._warn(f"could not serialise config: {exc}")
+            return
+        self._write(self.dir / "config.json", text)
 
     # ── Internals ─────────────────────────────────────────────────────────────
 

@@ -100,6 +100,17 @@ async def _run_deepagents(
         f"concurrency={max_concurrency} skip_synthesis={skip_synthesis} timeout={timeout}"
     )
 
+    # What this invocation changed on top of the code defaults, and the config
+    # those defaults amount to. Captured before the fan-out: the snapshot stubs
+    # the agent builders for a moment, which is only safe while none is running.
+    from equity_mcp.hparams.capture import capture_config
+
+    run_params = {
+        "max_concurrency": max_concurrency, "timeout_s": timeout, "agents_requested": roles,
+        "focus": focus or "", "skip_synthesis": skip_synthesis,
+    }
+    captured = await capture_config(run_log, run_params)
+
     start = time.time()
 
     def _report(r: dict) -> None:
@@ -141,6 +152,8 @@ async def _run_deepagents(
     # evaluation can only infer the model from today's roles.py, and cannot
     # tell whether a score change came from the agent or from a prompt edit.
     result["models"], result["prompt_sha256"] = _provenance(result)
+    result["run_params"] = run_params
+    result["config_sha"] = captured["config_sha"] if captured else None
 
     run_log.event(
         f"END    elapsed={elapsed}s failures={','.join(result.get('failures') or []) or 'none'}"
