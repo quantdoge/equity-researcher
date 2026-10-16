@@ -9,3 +9,5 @@ venv/
 *.egg-info/
 .env
 **.sqlite
+# Local evaluation results and the pending fallback (equity_mcp/evaluation/store.py)
+evals/

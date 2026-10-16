@@ -1,0 +1,328 @@
+# Non-financial risk analyst (governance, regulatory, operational, reputational, fraud).
+#
+# conviction.domain_metrics: the report's own assessment of the company, as
+#   5-level Scores. Level 0 = very unfavourable to a long investor (very high
+#   risk), level 4 = very favourable (very low risk). A metric is sent to Jev
+#   only if code finds one of its evidence_terms in the selected section;
+#   otherwise it is "not_addressed".
+# The headline rating is a risk level, not a buy/sell call, so every value of
+#   overall_risk maps to null: the stance comes from the shared stance Choice.
+# alignment: did the output follow prompts/nonfin_risk_analyst.md.
+
+role: nonfin_risk_analyst
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/nonfin_risk_analyst.md
+source_prompt_sha256: "8c2635a24cc9d82134409364893fcc979a8928de91f111f8f7acdc83a112e936"
+calibrated: false
+
+background:
+  mandate: >
+    Non-financial risk analyst covering the risks that do not show on the
+    balance sheet: governance (board independence, CEO/Chair duality,
+    compensation alignment, related-party transactions, Form 4 insider
+    activity), regulatory and legal exposure (SEC/DOJ actions, litigation,
+    pending approvals, privacy rules), operational risk (supplier
+    concentration, cybersecurity, key-person dependency) and reputational risk.
+    Must also flag potential fraud indicators and escalate red flags that could
+    destroy shareholder value.
+  required_output: |
+    1. Governance Quality Rating: Strong / Adequate / Weak (with evidence)
+    2. Regulatory Risk Summary (active investigations, fines, pending approvals)
+    3. Insider Activity Analysis (net buying vs selling over past 12 months)
+    4. Top Operational Risks (3 bullets)
+    5. Reputational Risk Assessment
+    6. Overall Non-Financial Risk Rating: Low / Moderate / High / Critical
+    7. Red Flags Requiring Escalation (if any)
+
+sections:
+  governance: {heading: 'governance'}
+  regulatory: {heading: 'regulatory'}
+  insider: {heading: 'insider'}
+  operational: {heading: 'operational'}
+  reputational: {heading: 'reputation'}
+  overall: {heading: 'overall'}
+  escalation: {heading: 'red flag|escalat'}
+
+extract:
+  governance_rating: {section: governance, values: [Strong, Adequate, Weak]}
+  overall_risk:
+    section: overall
+    values: [Low, Moderate, High, Critical]
+    aliases: {Medium: Moderate}
+
+conviction:
+  native_rating: overall_risk
+  native_to_stance: {Low: null, Moderate: null, High: null, Critical: null}
+  domain_metrics:
+    governance_quality:
+      label: Governance quality
+      section: [governance, full]
+      evidence_terms: [board, independen, duality, chairman, compensation, dual-class, related-party, related party]
+      instructions: >
+        Based only on what this research report states, how sound is the
+        company's corporate governance, meaning board independence and
+        oversight, separation of power at the top, and alignment of executive
+        pay with shareholders?
+      criteria:
+        - "Very weak: entrenched control or oversight failures, such as self-dealing, a captive board or pay that rewards failure"
+        - "Weak: material structural weaknesses, such as CEO/Chair duality with a weak board, dual-class control or misaligned pay"
+        - "Adequate: broadly sound governance with one or two notable concerns"
+        - "Strong: an independent, engaged board and pay clearly tied to shareholder outcomes"
+        - "Exemplary: best-practice governance with no material concerns"
+    insider_activity_signal:
+      label: Insider activity signal
+      section: [insider, full]
+      evidence_terms: [insider, Form 4, 10b5-1, net selling, net buying, open-market, open market, sold]
+      instructions: >
+        Based only on what this research report states, what does insider
+        trading activity over roughly the past 12 months signal about how
+        insiders view the stock?
+      criteria:
+        - "Strongly negative: heavy discretionary net selling by several senior executives or directors, outside scheduled plans"
+        - "Negative: notable net selling that the report treats as more than routine"
+        - "Neutral: routine or scheduled plan sales, option-related transactions or negligible activity, with no meaningful signal"
+        - "Positive: some discretionary open-market buying by insiders"
+        - "Strongly positive: significant open-market net buying by several senior insiders"
+    regulatory_exposure:
+      label: Regulatory & legal exposure
+      section: [regulatory, full]
+      evidence_terms: [SEC, DOJ, FTC, antitrust, investigation, enforcement, lawsuit, litigation]
+      instructions: >
+        Based only on what this research report states, how exposed is the
+        company to regulatory and legal action, such as investigations,
+        enforcement, fines, litigation or blocked approvals?
+      criteria:
+        - "Severe: active enforcement or litigation that could threaten the business model or impose very large penalties"
+        - "High: several material active investigations, lawsuits or regulatory threats"
+        - "Moderate: some active matters with limited or bounded financial exposure"
+        - "Low: minor or routine matters only"
+        - "Very low: no material regulatory or legal matters identified"
+    operational_concentration:
+      label: Operational concentration
+      section: [operational, full]
+      evidence_terms: [supplier, supply chain, concentration, single-source, sole-source, foundry, customer, dependen]
+      instructions: >
+        Based only on what this research report states, how exposed are the
+        company's operations to concentration in suppliers, customers,
+        facilities or inputs?
+      criteria:
+        - "Severe: a single supplier, customer or site whose loss would cripple the business, with no fallback"
+        - "High: heavy dependence on a few suppliers, customers or sites"
+        - "Moderate: some concentration, partly mitigated by alternatives"
+        - "Low: diversified suppliers and customers, with limited dependence"
+        - "Very low: no meaningful operational concentration identified"
+    cyber_key_person_risk:
+      label: Cyber & key-person risk
+      section: [operational, full]
+      evidence_terms: [cyber, breach, ransomware, hack, key-person, key person, founder, succession]
+      instructions: >
+        Based only on what this research report states, how exposed is the
+        company to a damaging cybersecurity incident or to the loss of a key
+        executive, taking whichever of the two the report treats as greater?
+      criteria:
+        - "Severe: a recent material breach or outage, or the business depends critically on one person with no succession plan"
+        - "High: a history of incidents or a heavy dependence on one leader"
+        - "Moderate: some exposure, partly mitigated by controls or bench strength"
+        - "Low: no notable incidents and a credible succession bench"
+        - "Very low: strong security record and no meaningful key-person dependence"
+    reputational_risk:
+      label: Reputational risk
+      section: [reputational, full]
+      evidence_terms: [reputation, brand, controvers, backlash, boycott, recall, negative press, sentiment]
+      instructions: >
+        Based only on what this research report states, how exposed is the
+        company's reputation and brand to damage from controversies, negative
+        press, product failures or customer backlash?
+      criteria:
+        - "Severe: an active controversy already damaging customers, revenue or the licence to operate"
+        - "High: significant recent controversies or sustained negative coverage"
+        - "Moderate: some controversies, contained or fading"
+        - "Low: minor issues only, with a resilient brand"
+        - "Very low: a strong, trusted brand with no material controversies"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [governance, regulatory, insider, operational, reputational, overall, escalation], weight: 2}
+    - {id: overall_risk_parseable, kind: extract_ok, extract: overall_risk, weight: 2, veto: true}
+    - {id: governance_parseable, kind: extract_ok, extract: governance_rating, weight: 1}
+    - {id: operational_risk_items, kind: min_list_items, section: operational, min: 3, dimension: compliance, weight: 1}
+    - id: insider_numbers
+      kind: min_matches
+      section: insider
+      # dollar values, share counts, percentages, or counts of filings / transactions
+      pattern: '\$\s?\d[\d,.]*|\d[\d,]*(?:\.\d+)?\+?\s*(?:insider\s+|form\s*4\s+|section\s*16\s+)?(?:shares|sh\b|%|filings|filers|forms?\b|transactions|trades|sales|purchases|million|[MK]\b)'
+      # one figure is enough here; how well it is quantified is a Jev judgment (insider_net_quantified)
+      min: 1
+      dimension: quantification
+      weight: 1
+
+  requests:
+    - id: governance_evidence
+      state: [governance]
+      gate: governance_evaluable
+      questions:
+        governance_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain a substantive assessment of the
+            company's governance, rather than a placeholder, a single rating
+            with no discussion, or an error message?
+        rating_evidenced:
+          type: score
+          dimension: evidence
+          weight: 3
+          min_level: 2
+          instructions: >
+            The governance rating must come with evidence. How well does the
+            report section support its governance rating with specific facts
+            about board composition and independence, the CEO and Chair roles,
+            executive compensation and related-party transactions?
+          criteria:
+            - "Asserted: the rating has no supporting facts"
+            - "Generic: only general statements that could describe any company"
+            - "Partly evidenced: specific facts on one or two of these areas"
+            - "Well evidenced: specific facts across several of these areas, including the points that cut against the rating"
+        compensation_alignment_addressed:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section assess whether executive compensation is
+            aligned with shareholders, for example by describing how pay is tied
+            to performance or equity ownership?
+        governance_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: governance_rating
+          order_check: true
+          instructions: >
+            What single governance quality rating does the report section assign
+            to the company?
+          criteria:
+            Strong: "The governance quality rating is Strong"
+            Adequate: "The governance quality rating is Adequate"
+            Weak: "The governance quality rating is Weak"
+            not_stated: "No governance rating from this list is given, or it is split between several of them"
+
+    - id: insider_and_regulatory
+      state: [insider, regulatory]
+      gate: insider_regulatory_evaluable
+      questions:
+        insider_regulatory_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the text contain a substantive analysis of both insider trading
+            activity and the company's regulatory or legal matters, rather than a
+            placeholder or an error message?
+        insider_net_quantified:
+          type: score
+          dimension: quantification
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst must state whether insiders were net buyers or net
+            sellers over the past 12 months. How well does the text establish
+            and quantify that net direction?
+          criteria:
+            - "Absent: no net direction of insider trading is stated"
+            - "Unquantified: a direction is stated, or said to be undeterminable, without supporting figures"
+            - "Partly quantified: a direction backed by some figures, such as share counts, dollar values or a number of transactions"
+            - "Fully quantified: the net direction over a stated 12-month window, measured in shares or dollars"
+        insider_signal_interpreted:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the text judge whether the insider activity is a meaningful
+            signal, for example by separating scheduled 10b5-1 plan sales, tax
+            withholding or option exercises from discretionary open-market
+            trades?
+        regulatory_matters_specific:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How specifically does the text identify the company's regulatory and
+            legal matters, such as investigations, enforcement actions, fines,
+            litigation and pending approvals?
+          criteria:
+            - "Generic: only broad statements about regulation in the industry"
+            - "Named: specific matters are named, but without the authority, status or stakes"
+            - "Specific: matters are named with the authority or court and their current status"
+            - "Fully specific: matters are named with authority, status and the potential cost or business consequence, or the text states explicitly which sources were checked and found clean"
+
+    - id: risk_synthesis
+      state: [operational, reputational, overall, escalation]
+      gate: overall_evaluable
+      questions:
+        overall_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the text contain a substantive overall non-financial risk
+            rating with supporting reasoning, rather than a placeholder or an
+            error message?
+        operational_risks_specific:
+          type: noul
+          dimension: evidence
+          weight: 2
+          instructions: >
+            Are the top operational risks in the text specific to this company,
+            each naming the concrete supplier, system, person or process at risk
+            and how its failure would hurt the business, rather than generic
+            risks that apply to any company?
+        overall_rating_reconciled:
+          type: score
+          dimension: consistency
+          weight: 2
+          min_level: 2
+          instructions: >
+            The overall non-financial risk rating should follow from the
+            governance, regulatory, operational and reputational findings. How
+            clearly does the text explain how those findings combine into the
+            overall rating?
+          criteria:
+            - "Contradicted: the overall rating conflicts with the component findings, with no explanation"
+            - "Asserted: the overall rating is given with little or no reasoning"
+            - "Partly reasoned: the rating cites some of the component risks"
+            - "Fully reasoned: the rating names the risks that drive it and explains why it is not one level higher or lower"
+        fraud_indicators_addressed:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the text state whether any fraud indicators were found, such as
+            accounting irregularities, auditor problems or whistleblower
+            complaints, including stating explicitly that none were found?
+        escalation_actionable:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the red-flag escalation part of the text say, for each item,
+            what should be verified, monitored or done about it, or state
+            explicitly that nothing requires escalation?
+        overall_risk_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: overall_risk
+          order_check: true
+          instructions: >
+            What single overall non-financial risk rating does the text assign
+            to the company?
+          criteria:
+            Low: "The overall non-financial risk rating is Low"
+            Moderate: "The overall non-financial risk rating is Moderate"
+            High: "The overall non-financial risk rating is High"
+            Critical: "The overall non-financial risk rating is Critical"
+            not_stated: "No overall rating from this list is given, or it is split between several of them"

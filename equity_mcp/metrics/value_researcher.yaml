@@ -1,0 +1,292 @@
+# Value researcher (Buffett-style fundamentals). Exemplar rubric: the other twelve follow this shape.
+#
+# conviction.domain_metrics: the report's own assessment of the company, as
+#   5-level Scores. Level 0 = very unfavourable to a long investor, level 4 =
+#   very favourable. A metric is sent to Jev only if code finds one of its
+#   evidence_terms in the selected section; otherwise it is "not_addressed".
+# alignment: did the output follow prompts/value_researcher.md.
+
+role: value_researcher
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/value_researcher.md
+source_prompt_sha256: "9dba5c9e54cc4fabe0ad8590a2e44da19d67068b598085843723e37d494628ca"
+calibrated: false
+
+background:
+  mandate: >
+    Buffett-style equity value researcher. Judges moat durability, financial
+    quality, free-cash-flow conversion, management's capital allocation and
+    intrinsic value. Requires a 20-30% discount to its own intrinsic value
+    estimate (margin of safety) before recommending a buy; "a business that
+    trades at a fair price is not a buy". Must be conservative and precise.
+  required_output: |
+    1. Business Quality Assessment (moat rating: Wide / Narrow / None, with evidence)
+    2. Financial Quality Score (1-10, with key metrics)
+    3. Valuation Analysis (intrinsic value estimate, current price vs intrinsic value)
+    4. Management Quality Assessment
+    5. Investment Verdict: Strong Buy / Buy / Hold / Sell / Strong Sell
+    6. Key Risks to the Value Thesis
+
+sections:
+  moat: {heading: 'business quality|moat'}
+  fin_quality: {heading: 'financial quality'}
+  valuation: {heading: 'valuation|intrinsic'}
+  management: {heading: 'management'}
+  verdict: {heading: 'verdict'}
+  risks: {heading: 'key risks|risks to'}
+
+extract:
+  moat_rating: {section: moat, values: [Wide, Narrow, None]}
+  fq_score: {section: fin_quality, pattern: '\b(10|[1-9])\s*/\s*10\b', type: int, range: [1, 10]}
+  verdict: {section: verdict, values: [Strong Buy, Buy, Hold, Sell, Strong Sell]}
+
+conviction:
+  native_rating: verdict
+  native_to_stance: {Strong Buy: STRONG BUY, Buy: BUY, Hold: HOLD, Sell: SELL, Strong Sell: STRONG SELL}
+  domain_metrics:
+    profitability:
+      label: Profitability
+      section: [fin_quality, full]
+      evidence_terms: [margin, ROE, return on equity, net income, operating income, EBITDA, profit]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        company's profitability?
+      criteria:
+        - "Very weak: loss-making, or margins far below peers and deteriorating"
+        - "Weak: thin or declining margins"
+        - "Average: margins roughly in line with peers and broadly stable"
+        - "Strong: margins above peers and stable or rising"
+        - "Very strong: sector-leading margins sustained over several years"
+    liquidity:
+      label: Liquidity
+      section: [fin_quality, full]
+      evidence_terms: [current ratio, quick ratio, cash and, cash of, cash balance, working capital, liquidity, net cash]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        company's short-term liquidity, meaning its ability to meet obligations
+        due within a year from cash and current assets?
+      criteria:
+        - "Very weak: obligations due soon exceed available cash and liquid assets; funding is at risk"
+        - "Weak: tight liquidity, with a current ratio near or below 1 or shrinking cash"
+        - "Adequate: obligations covered, with a modest cushion"
+        - "Strong: ample cash and current assets relative to near-term obligations"
+        - "Very strong: a large net cash position or liquidity far beyond any near-term need"
+    solvency:
+      label: Solvency / leverage
+      section: [fin_quality, full]
+      evidence_terms: [debt, leverage, net debt, interest coverage, Altman, debt/equity, debt-to-equity, credit rating]
+      instructions: >
+        Based only on what this research report states, how sound is the
+        company's long-term solvency, meaning its debt burden relative to
+        earnings, equity and cash flow?
+      criteria:
+        - "Very weak: heavy debt that earnings barely service; distress or refinancing risk"
+        - "Weak: elevated leverage that constrains the business"
+        - "Moderate: manageable debt with adequate interest coverage"
+        - "Strong: low leverage and comfortable interest coverage"
+        - "Very strong: little or no net debt, or a fortress balance sheet"
+    cash_flow_quality:
+      label: Cash-flow quality
+      section: [fin_quality, full]
+      evidence_terms: [free cash flow, FCF, cash conversion, operating cash flow, owner earnings]
+      instructions: >
+        Based only on what this research report states, how high is the
+        quality of the company's cash generation, meaning free cash flow
+        relative to reported net income and its consistency?
+      criteria:
+        - "Very poor: free cash flow negative or far below reported earnings"
+        - "Poor: free cash flow persistently below earnings or erratic"
+        - "Fair: free cash flow roughly tracks earnings"
+        - "Good: free cash flow consistently at or above about 80% of net income"
+        - "Excellent: free cash flow at or above net income, consistently over many years"
+    returns_on_capital:
+      label: Returns on capital
+      section: [moat, fin_quality, full]
+      evidence_terms: [ROIC, return on invested capital, return on capital, WACC, cost of capital, ROE]
+      instructions: >
+        Based only on what this research report states, how strong are the
+        company's returns on invested capital compared with its cost of capital?
+      criteria:
+        - "Very weak: returns well below the cost of capital; the business destroys value"
+        - "Weak: returns at or slightly below the cost of capital"
+        - "Moderate: returns modestly above the cost of capital"
+        - "Strong: returns clearly and consistently above the cost of capital"
+        - "Very strong: returns far above the cost of capital, sustained for years"
+    moat_durability:
+      label: Moat durability
+      section: [moat]
+      evidence_terms: [moat, switching cost, network effect, pricing power, competitive advantage, intangible, cost advantage, efficient scale]
+      instructions: >
+        Based only on what this research report states, how durable is the
+        company's competitive advantage?
+      criteria:
+        - "None: no meaningful competitive advantage"
+        - "Eroding: an advantage that is visibly narrowing"
+        - "Narrow: a real but limited or contestable advantage"
+        - "Wide: a strong advantage that has held or widened"
+        - "Very wide: a dominant, self-reinforcing advantage expected to last a decade or more"
+    valuation_margin_of_safety:
+      label: Valuation / margin of safety
+      section: [valuation]
+      evidence_terms: [intrinsic, DCF, discounted cash flow, fair value, margin of safety, undervalued, overvalued, P/E, EV/EBITDA]
+      instructions: >
+        Based only on what this research report states, how attractive is the
+        stock's current price compared with the report's own estimate of
+        intrinsic value?
+      criteria:
+        - "Very unattractive: price far above the report's intrinsic value"
+        - "Unattractive: price somewhat above intrinsic value"
+        - "Fair: price roughly equal to intrinsic value, with no margin of safety"
+        - "Attractive: price below intrinsic value with a modest margin of safety"
+        - "Very attractive: price at least 20-30% below intrinsic value"
+    capital_allocation:
+      label: Management & capital allocation
+      section: [management]
+      evidence_terms: [buyback, repurchase, dividend, acquisition, M&A, capital allocation, insider ownership, compensation]
+      instructions: >
+        Based only on what this research report states, how good is
+        management's quality and capital allocation record?
+      criteria:
+        - "Very poor: value-destroying deals, misaligned incentives or governance concerns"
+        - "Poor: questionable allocation or weak shareholder alignment"
+        - "Average: conventional allocation with no clear edge"
+        - "Good: disciplined, shareholder-aligned allocation"
+        - "Excellent: an outstanding long-term record of value-accretive allocation"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [moat, fin_quality, valuation, management, verdict, risks], weight: 2}
+    - {id: verdict_parseable, kind: extract_ok, extract: verdict, weight: 2, veto: true}
+    - {id: moat_parseable, kind: extract_ok, extract: moat_rating, weight: 1}
+    - {id: fq_score_in_range, kind: extract_ok, extract: fq_score, weight: 1}
+    - {id: valuation_numbers, kind: min_matches, section: valuation, pattern: '\$\s?\d[\d,.]*', min: 3, dimension: quantification, weight: 1}
+    - {id: risk_items, kind: min_list_items, section: risks, min: 3, dimension: balance, weight: 1}
+
+  requests:
+    - id: valuation_discipline
+      state: [valuation, verdict]
+      gate: valuation_evaluable
+      questions:
+        valuation_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain a substantive valuation of the
+            company, with at least an intrinsic value estimate or valuation
+            multiples and a final recommendation, rather than a placeholder or
+            an error message?
+        margin_of_safety_applied:
+          type: score
+          dimension: consistency
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst's rule is to recommend Buy or Strong Buy only when the
+            price is at least 20-30% below the analyst's own intrinsic value
+            estimate, and never to call a fairly priced business a buy. Using
+            only the intrinsic value and price stated in the report section, how
+            faithfully does the final recommendation follow that rule?
+          criteria:
+            - "Violates the rule: recommends Buy or Strong Buy although the stated price is near or above the stated intrinsic value"
+            - "Weakly applied: the recommendation and the stated discount or premium point in different directions with no explanation"
+            - "Mostly applied: the recommendation is consistent with the stated discount or premium, but the link is only implied"
+            - "Fully applied: the recommendation follows explicitly from the stated discount or premium to intrinsic value"
+        intrinsic_value_method_explicit:
+          type: noul
+          dimension: evidence
+          weight: 2
+          instructions: >
+            Does the report section explain how its intrinsic value estimate was
+            derived, naming a method such as a discounted cash flow, owner
+            earnings or peer multiples, and at least one key assumption such as
+            a growth rate, discount rate or target multiple?
+          criteria:
+            true: "A method and at least one assumption behind the intrinsic value are stated"
+            false: "An intrinsic value is asserted without a method, or no intrinsic value is given"
+        implied_growth_addressed:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section discuss what growth rate the current share
+            price implies, and whether that implied growth is reasonable?
+        verdict_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: verdict
+          order_check: true
+          instructions: >
+            What single final investment recommendation does the report section
+            give for this stock?
+          criteria:
+            Strong Buy: "The final recommendation is Strong Buy"
+            Buy: "The final recommendation is Buy"
+            Hold: "The final recommendation is Hold"
+            Sell: "The final recommendation is Sell"
+            Strong Sell: "The final recommendation is Strong Sell"
+            not_stated: "No final recommendation from this list is given, or it is split between several of them"
+
+    - id: business_and_management
+      state: [moat, management]
+      questions:
+        moat_evidence_strength:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well does the report section support its moat rating with
+            concrete evidence, such as returns on capital compared with the cost
+            of capital, margin stability, market share, switching costs or
+            pricing power, backed by figures?
+          criteria:
+            - "The rating is asserted with no supporting evidence"
+            - "Generic qualitative claims only, with no figures"
+            - "Some figures, but not clearly tied to the specific moat sources claimed"
+            - "Specific moat sources, each backed by figures such as returns on capital against cost of capital or margin history"
+        moat_trend_addressed:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section say whether the company's competitive
+            advantage has widened, narrowed or stayed the same over roughly the
+            past five years?
+        capital_allocation_evidenced:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section assess management using concrete evidence of
+            capital allocation, such as share buybacks, dividends, acquisitions
+            or insider ownership, rather than general praise or criticism?
+
+    - id: risk_discipline
+      state: [verdict, risks]
+      questions:
+        conservatism:
+          type: score
+          dimension: balance
+          weight: 2
+          min_level: 1
+          instructions: >
+            The analyst is required to be conservative: to discount promised
+            future growth, to distinguish proven results from projections, and to
+            state the specific ways the value thesis could be wrong. How
+            conservative are these report sections?
+          criteria:
+            - "Promotional: treats projections as facts and ignores the downside"
+            - "Somewhat balanced: mentions risks briefly but leans on optimistic projections"
+            - "Conservative: separates proven from projected results and gives specific thesis risks"
+        risks_specific:
+          type: noul
+          dimension: balance
+          weight: 1
+          instructions: >
+            Are the stated risks to the investment thesis specific to this
+            company, each with a mechanism by which it would hurt value, rather
+            than generic risks that would apply to any company?

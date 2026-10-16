@@ -1,0 +1,10 @@
+{
+  "_note": "Real jev-1.13.0 response captured 2026-10-10 (synthetic one-line state, no secrets). Score levels are 0-based; probability keys are strings.",
+  "model": "jev-1.13.0",
+  "usage": {"input_tokens": 413, "output_tokens": 71},
+  "answers": {
+    "is_report": {"type": "noul", "noul": 0.98},
+    "stance": {"type": "choice", "choice": "HOLD", "confidence": 1.0, "probabilities": {"SELL": 0.0, "HOLD": 1.0, "BUY": 0.0}},
+    "conv": {"type": "score", "score": 1.74, "confidence": 0.59, "legend": {"0": "weak", "1": "medium", "2": "strong"}, "probabilities": {"0": 0.01, "1": 0.25, "2": 0.74}}
+  }
+}

@@ -1,0 +1,123 @@
+-- =============================================================================
+-- eval_writer: least-privilege login role for the Python evaluation writer.
+--
+-- RUN ONCE BY HAND (NOT a migration), after 20261010000000_eval_schema.sql, as
+-- a privileged user (postgres). Never commit a real password:
+--
+--   psql "$ADMIN_DATABASE_URL" -v eval_writer_password='<choose-a-strong-password>' \
+--        -f supabase/sql/eval_writer_role.sql
+--
+-- Connecting through the Supabase pooler (Supavisor): the username is NOT plain
+-- `eval_writer`. Supavisor routes by tenant, so connect as
+--     eval_writer.<project_ref>
+-- (e.g. eval_writer.abcdefghijklmnopqrst), with the same password. Direct
+-- connections use plain `eval_writer`. With the session pooler use
+-- prepare_threshold=None in psycopg 3.
+--
+-- RLS is enabled on every eval table, so eval_writer needs explicit policies;
+-- the role is created NOBYPASSRLS on purpose.
+-- Re-running is safe: the role is created once (the password is applied only on
+-- creation; use ALTER ROLE to rotate it); grants and policies are re-applied.
+-- =============================================================================
+
+\set ON_ERROR_STOP on
+
+-- Create the role if missing. psql variables are not expanded inside DO $$ bodies,
+-- so build the statement with format() and run it with \gexec.
+SELECT format('CREATE ROLE eval_writer LOGIN NOBYPASSRLS NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD %L',
+              :'eval_writer_password')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'eval_writer')
+\gexec
+
+-- No ALTER ROLE ... NOSUPERUSER here: on Supabase the `postgres` role is not a
+-- superuser, and Postgres refuses to let a non-superuser touch the SUPERUSER
+-- attribute at all, even to clear it (42501). CREATE ROLE above already sets
+-- NOSUPERUSER NOBYPASSRLS; verify with
+--   SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = 'eval_writer';
+
+GRANT USAGE ON SCHEMA eval TO eval_writer;
+
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA eval TO eval_writer;
+-- Re-evaluation replaces metric rows; nothing else is deleted by the writer
+-- (FK cascades run with the table owner's rights, not eval_writer's).
+GRANT DELETE ON eval.metric_results TO eval_writer;
+
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA eval TO eval_writer;
+
+-- Views (already covered by the table grant above; stated explicitly for clarity).
+GRANT SELECT ON
+    eval.v_latest_evaluations,
+    eval.v_stance_matrix,
+    eval.v_stance_pivot,
+    eval.v_domain_scores,
+    eval.v_role_scorecard,
+    eval.v_metric_trend,
+    eval.v_jev_human_agreement,
+    eval.v_pipeline_reliability,
+    eval.v_rubric_current,
+    eval.v_rubric_roles,
+    eval.v_rubric_sections,
+    eval.v_rubric_extracts,
+    eval.v_rubric_stance_map,
+    eval.v_rubric_checks,
+    eval.v_rubric_questions,
+    eval.v_rubric_criteria,
+    eval.v_rubric_metrics
+TO eval_writer;
+
+-- RLS policies: full access for eval_writer on every table.
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOREACH t IN ARRAY ARRAY[
+        'runs', 'agent_outputs', 'rubrics', 'jev_calls',
+        'evaluations', 'metric_results', 'human_labels'
+    ] LOOP
+        EXECUTE format('DROP POLICY IF EXISTS eval_writer_all ON eval.%I', t);
+        EXECUTE format(
+            'CREATE POLICY eval_writer_all ON eval.%I FOR ALL TO eval_writer USING (true) WITH CHECK (true)',
+            t
+        );
+    END LOOP;
+END
+$$;
+
+-- =============================================================================
+-- hparams: run after 20261011000200_hparams_schema.sql and _views.sql.
+-- Append-only, except the observation metadata of a config (provenance may be
+-- upgraded, dates widened) and a run's link (replaced only by a better one;
+-- the rank guard is in equity_mcp/hparams/ingest.py). No DELETE anywhere.
+-- =============================================================================
+
+GRANT USAGE ON SCHEMA hparams TO eval_writer;
+
+GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA hparams TO eval_writer;
+GRANT UPDATE (provenance, effective_at, last_seen_at, source_git_sha, source_git_dirty, gaps, libs, label, notes)
+    ON hparams.configs TO eval_writer;
+GRANT UPDATE ON hparams.run_configs TO eval_writer;
+
+GRANT EXECUTE ON FUNCTION hparams.config_diff(text, text),
+                          hparams.provenance_rank(text),
+                          hparams.link_basis_rank(text)
+    TO eval_writer;
+
+DO $$
+DECLARE
+    t text;
+BEGIN
+    FOREACH t IN ARRAY ARRAY[
+        'configs', 'texts', 'config_runtime', 'config_agents',
+        'tool_defs', 'config_tools', 'config_role_tools', 'run_configs'
+    ] LOOP
+        EXECUTE format('DROP POLICY IF EXISTS eval_writer_read ON hparams.%I', t);
+        EXECUTE format('CREATE POLICY eval_writer_read ON hparams.%I FOR SELECT TO eval_writer USING (true)', t);
+        EXECUTE format('DROP POLICY IF EXISTS eval_writer_insert ON hparams.%I', t);
+        EXECUTE format('CREATE POLICY eval_writer_insert ON hparams.%I FOR INSERT TO eval_writer WITH CHECK (true)', t);
+    END LOOP;
+    FOREACH t IN ARRAY ARRAY['configs', 'run_configs'] LOOP
+        EXECUTE format('DROP POLICY IF EXISTS eval_writer_update ON hparams.%I', t);
+        EXECUTE format('CREATE POLICY eval_writer_update ON hparams.%I FOR UPDATE TO eval_writer USING (true) WITH CHECK (true)', t);
+    END LOOP;
+END
+$$;

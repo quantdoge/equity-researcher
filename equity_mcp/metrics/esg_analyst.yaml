@@ -1,0 +1,342 @@
+# ESG / sustainability analyst. Follows the shape of value_researcher.yaml.
+#
+# conviction.domain_metrics: the report's own assessment of the company, as
+#   5-level Scores. Level 0 = very unfavourable to a long investor, level 4 =
+#   very favourable. Risk dimensions run "very high risk" (0) to "very low
+#   risk" (4). A metric is sent to Jev only if code finds one of its
+#   evidence_terms in the selected section; otherwise it is "not_addressed".
+# alignment: did the output follow prompts/esg_analyst.md.
+#
+# Real reports write every enum into a numbered markdown heading
+# ("## 2. Environmental Risk Assessment: **Medium**"), so extracts read the
+# heading first. Hedged ratings ("Low–Medium", "Medium-High") parse to the
+# first value named and are flagged hedged.
+
+role: esg_analyst
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/esg_analyst.md
+source_prompt_sha256: "ff905a52803e1d5beb8f10bc124ffdddc80e7f6dca3080e253893bd871d42ce0"
+calibrated: false
+
+background:
+  mandate: >
+    ESG and sustainability analyst. Assesses the environmental, social and
+    governance factors that materially affect long-term valuation and risk.
+    "ESG is not about ideology": the analysis must be materiality-focused,
+    prioritising factors that directly affect cash flows, cost of capital or
+    licence to operate. Must gather evidence from SEC filings and news and
+    "not rely solely on self-reported ESG scores".
+  required_output: |
+    1. ESG Materiality Map (which E, S, G factors are most financially material for this sector)
+    2. Environmental Risk Assessment (Low / Medium / High / Critical)
+    3. Social Risk Assessment (Low / Medium / High / Critical)
+    4. Governance Quality Score (1–10 with rationale)
+    5. ESG Controversies (recent incidents with financial impact estimate)
+    6. Regulatory ESG Exposure (jurisdictions and rules that apply)
+    7. Overall ESG Rating: Leader / Average / Laggard / ESG Risk
+    8. ESG Investment Implication: Positive / Neutral / Negative for the thesis
+
+sections:
+  materiality: {heading: 'materiality'}
+  environmental: {heading: 'environmental'}
+  social: {heading: 'social'}
+  governance: {heading: 'governance'}
+  controversies: {heading: 'controvers'}
+  regulatory: {heading: 'regulatory'}
+  overall: {heading: 'overall esg rating|overall rating'}
+  implication: {heading: 'implication'}
+
+extract:
+  environmental_risk: {section: environmental, values: [Low, Medium, High, Critical], aliases: {Moderate: Medium, Elevated: High}}
+  social_risk: {section: social, values: [Low, Medium, High, Critical], aliases: {Moderate: Medium, Elevated: High}}
+  governance_score: {section: governance, pattern: '(?<![\d.])(10|[1-9](?:\.\d)?)\s*/\s*10\b', type: float, range: [1, 10]}
+  overall_esg_rating: {section: overall, values: [Leader, Average, Laggard, ESG Risk]}
+  esg_implication: {section: implication, values: [Positive, Neutral, Negative]}
+
+conviction:
+  native_rating: esg_implication
+  native_to_stance: {Positive: BUY, Neutral: HOLD, Negative: SELL}
+  domain_metrics:
+    environmental:
+      label: Environmental risk
+      section: [environmental, materiality, full]
+      evidence_terms: [emission, carbon, Scope 1, Scope 2, climate, energy, water, renewable, pollution, environmental]
+      instructions: >
+        Based only on what this research report states, how exposed is the
+        company to financially material environmental risk, such as carbon
+        costs, climate transition or physical climate risk, pollution or
+        remediation liabilities?
+      criteria:
+        - "Very high risk: critical environmental exposure that already threatens cash flows, assets or licence to operate"
+        - "High risk: significant environmental exposure with a likely financial cost"
+        - "Moderate risk: some material environmental exposure that is being managed"
+        - "Low risk: limited environmental exposure, or well-managed exposure with credible targets"
+        - "Very low risk: negligible environmental exposure, or sector-leading performance that is a competitive advantage"
+    social:
+      label: Social risk
+      section: [social, materiality, full]
+      evidence_terms: [labour, labor, workforce, employee, safety, union, privacy, consumer protection, supply chain, layoff, discrimination]
+      instructions: >
+        Based only on what this research report states, how exposed is the
+        company to financially material social risk, such as labour practices,
+        workforce safety, supply-chain standards, product safety, data privacy
+        or community relations?
+      criteria:
+        - "Very high risk: critical social exposure, such as systemic safety, privacy or labour failures threatening licence to operate"
+        - "High risk: significant social issues with a likely financial cost, such as litigation, fines or lost customers"
+        - "Moderate risk: some material social issues that are being managed"
+        - "Low risk: limited social exposure with sound practices"
+        - "Very low risk: negligible social exposure, or social practices that are a clear competitive advantage"
+    governance:
+      label: Governance quality
+      section: [governance, full]
+      evidence_terms: [board, independen, CEO, chair, compensation, dual-class, shareholder rights, insider, audit, succession]
+      instructions: >
+        Based only on what this research report states, how good is the
+        company's corporate governance, meaning board independence, the split
+        of CEO and chair roles, executive pay alignment, shareholder rights and
+        ethics controls?
+      criteria:
+        - "Very poor: entrenched control, misaligned pay or serious ethics or oversight failures"
+        - "Poor: material governance weaknesses, such as weak independence, dual-class control or pay poorly tied to performance"
+        - "Adequate: conventional governance with some identified weaknesses"
+        - "Good: independent board, aligned pay and sound shareholder rights, with minor issues"
+        - "Excellent: best-practice governance with strong independence, alignment and shareholder rights"
+    controversy_severity:
+      label: Controversy severity
+      section: [controversies, full]
+      evidence_terms: [controvers, lawsuit, litigation, fine, settlement, investigation, probe, recall, breach, penalty, class action]
+      instructions: >
+        Based only on what this research report states, how severe are the
+        company's recent ESG controversies, judged by their financial impact
+        and whether they are still unresolved?
+      criteria:
+        - "Severe: major active controversies with a large or open-ended financial impact"
+        - "Significant: one or more material controversies with a meaningful financial cost still unresolved"
+        - "Moderate: notable controversies with a contained or largely provisioned financial impact"
+        - "Minor: small or resolved controversies with immaterial financial impact"
+        - "None: no material ESG controversies identified"
+    regulatory_esg_exposure:
+      label: Regulatory ESG exposure
+      section: [regulatory, full]
+      evidence_terms: [CSRD, SEC, CBAM, regulation, disclosure, EU, directive, rule, jurisdiction, compliance, AI Act, GDPR]
+      instructions: >
+        Based only on what this research report states, how exposed is the
+        company to ESG-related regulation, such as climate disclosure rules,
+        carbon border adjustments, privacy or product rules, and ESG-linked
+        debt covenants?
+      criteria:
+        - "Very high exposure: pending or enacted rules are likely to impose large costs or restrict the business"
+        - "High exposure: several material rules apply with a meaningful expected cost"
+        - "Moderate exposure: rules apply, with a manageable compliance cost"
+        - "Low exposure: rules apply mainly as disclosure obligations with little financial cost"
+        - "Very low exposure: little relevant ESG regulation, or regulation that favours the company"
+    esg_financial_materiality:
+      label: ESG impact on the thesis
+      section: [implication, materiality, full]
+      evidence_terms: [thesis, cash flow, cost of capital, valuation, material, discount, premium, licence to operate, license to operate, multiple]
+      instructions: >
+        Based only on what this research report states, how do the company's
+        financially material ESG factors affect the investment thesis, through
+        cash flows, cost of capital or licence to operate?
+      criteria:
+        - "Strongly negative: ESG factors materially impair the thesis or threaten licence to operate"
+        - "Negative: ESG factors are a net drag, such as a valuation discount or rising costs"
+        - "Neutral: ESG factors roughly offset, or are not material to the thesis"
+        - "Positive: ESG factors are a net support, such as lower risk or cost of capital"
+        - "Strongly positive: ESG strengths are a clear source of value or competitive advantage"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [materiality, environmental, social, governance, controversies, regulatory, overall, implication], weight: 2}
+    - {id: implication_parseable, kind: extract_ok, extract: esg_implication, weight: 2, veto: true}
+    - {id: overall_rating_parseable, kind: extract_ok, extract: overall_esg_rating, weight: 1}
+    - {id: environmental_risk_parseable, kind: extract_ok, extract: environmental_risk, weight: 1}
+    - {id: social_risk_parseable, kind: extract_ok, extract: social_risk, weight: 1}
+    - {id: governance_score_in_range, kind: extract_ok, extract: governance_score, weight: 1}
+    - id: controversy_figures
+      kind: min_matches
+      section: controversies
+      # Real tables often size an impact as "low single-digit $M"; that is an estimate too.
+      pattern: '\$\s?\d|\$\s?[MB]\b|\d+(?:\.\d+)?\s*%|\d+(?:\.\d+)?\s*(?:bn|billion|million|mn|[MB])\b|(?:single|double)[- ]digit'
+      min: 2
+      dimension: quantification
+      weight: 1
+    - id: regulatory_rules_named
+      kind: min_matches
+      section: regulatory
+      pattern: '\b(?:CSRD|CSDDD|SFDR|CBAM|ESRS|ISSB|TCFD|SEC|EU|GDPR|AI Act|DMA|DSA|EPA|FTC|DOJ|CFPB|FCA|PRA|ECB|California|SB[\s-]?2[56]\d|UK|China)\b'
+      min: 3
+      dimension: compliance
+      weight: 1
+
+  requests:
+    - id: esg_materiality
+      state: [materiality, implication]
+      gate: materiality_evaluable
+      questions:
+        materiality_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section identify which environmental, social or
+            governance factors matter for this company and state an investment
+            implication, rather than being a placeholder or an error message?
+        materiality_focus:
+          type: score
+          dimension: compliance
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst's rule is that ESG analysis is about materiality, not
+            ideology: each factor should be prioritised by how directly it
+            affects cash flows, cost of capital or licence to operate. How
+            consistently does the report section tie the ESG factors it
+            prioritises to one of those financial channels?
+          criteria:
+            - "Not at all: factors are listed or rated with no link to any financial effect"
+            - "Occasionally: a few factors are linked to a financial effect, most are not"
+            - "Mostly: most prioritised factors are tied to a named financial channel"
+            - "Consistently: every prioritised factor is tied to a specific financial channel, ranked by its likely financial effect"
+        moral_judgement_without_financial_link:
+          type: noul
+          dimension: compliance
+          weight: 1
+          good_when: false
+          instructions: >
+            Does the report section praise or condemn the company's policies on
+            moral or political grounds without connecting the point to any
+            financial effect on the company?
+        implication_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: esg_implication
+          order_check: true
+          instructions: >
+            What single ESG investment implication for the investment thesis
+            does the report section give?
+          criteria:
+            Positive: "The ESG implication for the thesis is Positive"
+            Neutral: "The ESG implication for the thesis is Neutral"
+            Negative: "The ESG implication for the thesis is Negative"
+            not_stated: "No implication from this list is given, or it is split between several of them"
+
+    - id: esg_pillar_evidence
+      state: [environmental, social, governance]
+      gate: pillars_evaluable
+      questions:
+        pillars_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain a substantive assessment of the
+            company's environmental, social or governance profile, rather than a
+            placeholder or an error message?
+        beyond_self_reported:
+          type: noul
+          dimension: evidence
+          weight: 2
+          instructions: >
+            Does the report section support its assessments with evidence other
+            than the company's own sustainability reporting and third-party ESG
+            scores, such as SEC filings, proxy statements, regulatory actions,
+            court cases, fines or news reports?
+          criteria:
+            true: "At least some assessments rest on filings, regulatory actions, litigation or news, not only self-reported data or ESG scores"
+            false: "The assessments rest only on the company's own ESG reporting or on third-party ESG scores, or on no evidence"
+        risk_ratings_evidenced:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well does the report section support its environmental and
+            social risk ratings with company-specific evidence, such as emissions
+            figures, safety or labour incidents, privacy breaches or supply-chain
+            findings?
+          criteria:
+            - "The ratings are asserted with no supporting evidence"
+            - "Generic sector observations only, with nothing specific to this company"
+            - "Some company-specific evidence, but not clearly connected to the ratings given"
+            - "Specific, company-level evidence for each rating, with figures or named incidents"
+        governance_rationale:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well does the report section justify its governance score with
+            concrete features of this company's governance, such as board
+            independence, whether the CEO is also chair, how executive pay is
+            tied to long-term results, share classes and voting rights, or
+            ethics and audit failures?
+          criteria:
+            - "A score is given with no rationale"
+            - "A generic rationale that could describe any large company"
+            - "A rationale citing some specific governance features of this company"
+            - "A rationale citing several specific features, each linked to how it raises or lowers the score"
+        carbon_quantified:
+          type: noul
+          dimension: quantification
+          weight: 1
+          instructions: >
+            Does the report section give a figure for the company's emissions or
+            carbon intensity, such as Scope 1, 2 or 3 emissions, or explicitly
+            say that such figures were not available?
+
+    - id: esg_controversies_regulation
+      state: [controversies, regulatory]
+      gate: controversies_evaluable
+      questions:
+        controversies_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section discuss the company's ESG controversies or
+            the ESG regulation that applies to it, rather than being a
+            placeholder or an error message?
+        impact_estimates:
+          type: score
+          dimension: quantification
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst is required to give a financial impact estimate for each
+            recent controversy. How consistently does the report section give
+            one, as a dollar amount, a range, or a share of revenue or earnings?
+          criteria:
+            - "No controversy carries a financial impact estimate"
+            - "A few controversies carry an estimate; most do not"
+            - "Most controversies carry an estimate"
+            - "Every controversy carries a specific estimate, with its basis such as a fine, settlement or revenue at risk"
+        controversies_specific:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Are the controversies described as specific, identifiable incidents,
+            such as a named lawsuit, fine, recall, breach or regulatory action
+            with an approximate date, rather than general reputational concerns?
+        jurisdictions_named:
+          type: noul
+          dimension: compliance
+          weight: 2
+          instructions: >
+            Does the report section name the specific jurisdictions and rules
+            that apply to the company, such as the EU Corporate Sustainability
+            Reporting Directive, the SEC climate disclosure rule, the EU carbon
+            border adjustment mechanism or a named state or national law?
+        regulation_applied_to_company:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section explain how the rules it names apply to this
+            company's own operations, revenue or costs, rather than listing
+            regulations that could apply to any company?

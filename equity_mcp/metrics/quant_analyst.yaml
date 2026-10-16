@@ -1,0 +1,301 @@
+# Quantitative analyst (factor scores, price statistics, composite signal).
+#
+# conviction.domain_metrics: the report's own assessment of the stock, as
+#   5-level Scores. Level 0 = very unfavourable to a long investor, level 4 =
+#   very favourable. A metric is sent to Jev only if code finds one of its
+#   evidence_terms in the selected section; otherwise it is "not_addressed".
+# alignment: did the output follow prompts/quant_analyst.md.
+#
+# The composite signal is usually in a "## 3. Composite Quant Signal: **X**"
+# heading, but some reports drop that heading and give it under "## Bottom Line",
+# so the composite section matches either.
+
+role: quant_analyst
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/quant_analyst.md
+source_prompt_sha256: "91c856e019cdf1a03ff3a43b4a81e499273b23a0f2c626749d71be6a6f213bff"
+calibrated: false
+
+background:
+  mandate: >
+    Quantitative analyst who tests every qualitative view against the data:
+    value, momentum, quality and low-volatility factor scores, analyst
+    estimate-revision momentum, alpha, beta, Sharpe and Sortino, and
+    cross-sectional ranks within the sector. "If the story sounds compelling
+    but the numbers don't support it, the numbers win." Must be precise with
+    numbers and flag when sample sizes are too small for statistical
+    significance.
+  required_output: |
+    1. Factor Scores Table:
+       | Factor | Score | Sector Rank | Signal |
+       | Value | Momentum | Quality | Low Vol | Earnings Revision |
+    2. Price Statistics (alpha, beta, Sharpe, Sortino, max drawdown)
+    3. Composite Quant Signal: Strong Buy / Buy / Neutral / Sell / Strong Sell
+    4. Key Quant Risk Flags (momentum reversal risk, factor crowding, low liquidity)
+
+sections:
+  factors: {heading: 'factor score'}
+  price_stats: {heading: 'price statistic|price dynamic'}
+  composite: {heading: 'composite|bottom line'}
+  risk_flags: {heading: 'risk flag'}
+
+extract:
+  composite_signal:
+    section: composite
+    values: [Strong Buy, Buy, Neutral, Sell, Strong Sell]
+    aliases: {Hold: Neutral}
+
+conviction:
+  native_rating: composite_signal
+  native_to_stance: {Strong Buy: STRONG BUY, Buy: BUY, Neutral: HOLD, Sell: SELL, Strong Sell: STRONG SELL}
+  domain_metrics:
+    value_factor:
+      label: Value factor
+      section: [factors, full]
+      evidence_terms: [P/E, EV/EBITDA, P/B, P/FCF, FCF yield, earnings yield, valuation, multiple]
+      instructions: >
+        Based only on what this research report states, how attractive is the
+        stock on the value factor, meaning its valuation multiples such as P/E,
+        EV/EBITDA, P/B and FCF yield compared with its sector or universe?
+      criteria:
+        - "Very unattractive: among the most expensive in its sector or universe, bottom decile or quintile on value"
+        - "Unattractive: more expensive than most peers"
+        - "Neutral: valuation roughly in the middle of its peers"
+        - "Attractive: cheaper than most peers"
+        - "Very attractive: among the cheapest in its sector, top decile or quintile on value"
+    momentum_factor:
+      label: Momentum factor
+      section: [factors, full]
+      evidence_terms: [momentum, 12-1, 12–1, trailing return, relative strength, price trend]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        stock's price momentum, meaning its 12-1 month return compared with
+        its sector or universe?
+      criteria:
+        - "Very negative: deeply negative 12-1 month return, among the worst in its peer group"
+        - "Negative: negative or below-median momentum"
+        - "Neutral: momentum near zero or around the peer median"
+        - "Positive: positive momentum, above the peer median"
+        - "Very positive: strong momentum, among the best in its peer group"
+    quality_factor:
+      label: Quality factor
+      section: [factors, full]
+      evidence_terms: [ROIC, ROE, gross profit/assets, GP/assets, accruals, Piotroski, F-Score, return on]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        company on the quality factor, meaning returns on capital,
+        gross profit relative to assets and low accruals?
+      criteria:
+        - "Very low: weak or negative returns on capital and high accruals; bottom of its peer group"
+        - "Low: below-peer returns or deteriorating quality metrics"
+        - "Average: quality metrics around the peer median"
+        - "High: above-peer returns on capital with low accruals"
+        - "Very high: among the highest-quality names in its peer group"
+    low_volatility_factor:
+      label: Low-volatility factor
+      section: [factors, price_stats, full]
+      evidence_terms: [volatility, low vol, beta, drawdown, ann. vol, annualised vol, annualized vol]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        stock on the low-volatility factor, where lower volatility and lower
+        beta are better?
+      criteria:
+        - "Very unfavourable: among the most volatile, highest-beta names in its peer group"
+        - "Unfavourable: volatility or beta clearly above the market or peer median"
+        - "Neutral: volatility and beta roughly in line with the market or peers"
+        - "Favourable: volatility or beta below the market or peer median"
+        - "Very favourable: among the least volatile, lowest-beta names in its peer group"
+    earnings_revision_factor:
+      label: Earnings-revision factor
+      section: [factors, full]
+      evidence_terms: [revision, revised, upgrade, downgrade, estimate, consensus EPS, EPS est]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        direction of analyst earnings estimate revisions for the company?
+      criteria:
+        - "Strongly negative: consistent, large downward revisions to EPS estimates"
+        - "Negative: estimates being revised down"
+        - "Neutral: estimates broadly unchanged or mixed"
+        - "Positive: estimates being revised up"
+        - "Strongly positive: consistent, large upward revisions to EPS estimates"
+    risk_adjusted_return:
+      label: Risk-adjusted return
+      section: [price_stats, full]
+      evidence_terms: [Sharpe, Sortino, alpha, risk-adjusted, information ratio]
+      instructions: >
+        Based only on what this research report states, how good has the
+        stock's risk-adjusted performance been, as shown by its alpha, Sharpe
+        and Sortino ratios?
+      criteria:
+        - "Very poor: strongly negative alpha and negative Sharpe and Sortino ratios"
+        - "Poor: negative alpha or Sharpe below about 0.3"
+        - "Moderate: alpha near zero and Sharpe roughly 0.3 to 0.8"
+        - "Good: positive alpha and Sharpe roughly 0.8 to 1.5"
+        - "Excellent: strongly positive alpha with Sharpe above about 1.5, which the report treats as reliable"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [factors, price_stats, composite, risk_flags], weight: 2}
+    - {id: composite_parseable, kind: extract_ok, extract: composite_signal, weight: 2, veto: true}
+    - id: factor_table
+      kind: table_present
+      section: factors
+      min_rows: 5
+      # the prompt's header is "Sector Rank"; reports often write "Universe Rank" or
+      # "Rank (25-name universe)", which meets the requirement, so only "Rank" is required
+      columns: [Factor, Score, Rank, Signal]
+      row_labels: [Value, Momentum, Quality, Low Vol, Earnings Revision]
+      weight: 2
+    - id: price_stats_complete
+      kind: min_matches
+      section: price_stats
+      # all five mandated statistics appear somewhere in the section
+      pattern: '\A(?=[\s\S]*\balpha\b)(?=[\s\S]*\bbeta\b)(?=[\s\S]*sharpe)(?=[\s\S]*sortino)(?=[\s\S]*drawdown)'
+      min: 1
+      dimension: compliance
+      weight: 1
+    - {id: price_stats_numbers, kind: min_matches, section: price_stats, pattern: '[-−+]?\d+\.\d+|\d+\s*%', min: 5, dimension: quantification, weight: 1}
+    - {id: risk_flag_items, kind: min_list_items, section: risk_flags, min: 3, dimension: balance, weight: 1}
+
+  requests:
+    - id: numeric_rigour
+      state: [factors, price_stats]
+      gate: factors_evaluable
+      questions:
+        factors_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain substantive factor scores or price
+            statistics for the stock, rather than a placeholder or an error
+            message?
+        numbers_precise:
+          type: score
+          dimension: quantification
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst must be precise with numbers. How precisely does the
+            report section state the figures behind its factor scores and price
+            statistics?
+          criteria:
+            - "Imprecise: mostly labels such as cheap, strong or volatile, with few figures"
+            - "Partial: figures for some factors or statistics, labels only for others"
+            - "Precise: specific figures behind every factor and every price statistic"
+            - "Precise and qualified: specific figures throughout, each with its measurement window, benchmark or comparison group"
+        small_samples_flagged:
+          type: noul
+          dimension: honesty
+          weight: 2
+          instructions: >
+            The analyst must flag when sample sizes are too small for statistical
+            significance. Where a figure in the report section rests on a small
+            sample, such as an estimate from only a few analysts, a short price
+            window, a small peer set or a regression with a low R-squared, does
+            the section say so explicitly? Answer yes as well if no figure rests
+            on a small sample.
+        rank_basis_stated:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section state what its sector ranks are measured
+            against, such as a named peer set or universe and its size, rather
+            than giving ranks with no stated comparison group?
+        revision_direction_quantified:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section state whether analyst EPS estimates are being
+            revised up or down, giving the size of the revision and the period
+            or fiscal year it applies to?
+
+    - id: signal_discipline
+      state: [composite, factors]
+      gate: composite_evaluable
+      questions:
+        composite_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the text contain a composite quant signal for the stock together
+            with factor scores it could be based on, rather than a placeholder or
+            an error message?
+        numbers_win:
+          type: score
+          dimension: consistency
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst's rule is that if the story sounds compelling but the
+            numbers don't support it, the numbers win. How faithfully does the
+            composite signal follow from the factor scores and price statistics,
+            rather than from a narrative about the company's prospects?
+          criteria:
+            - "Narrative over numbers: the signal goes against the balance of the factor scores on the strength of a story"
+            - "Narrative-led: the signal is justified mainly by a story, with the factor scores secondary"
+            - "Numbers-led: the signal broadly follows the balance of the factor scores"
+            - "Strictly numbers-led: the signal is explicitly built from the factor scores, showing how each factor contributes"
+        factor_conflicts_resolved:
+          type: noul
+          dimension: consistency
+          weight: 1
+          instructions: >
+            Where the stock's factors point in different directions, for example
+            strong quality but poor value, does the text explain how those
+            conflicts are weighed to reach the composite signal? Answer yes as
+            well if the factors all point the same way.
+        composite_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: composite_signal
+          order_check: true
+          instructions: >
+            What single composite quant signal does the text give for this stock?
+          criteria:
+            Strong Buy: "The composite quant signal is Strong Buy"
+            Buy: "The composite quant signal is Buy"
+            Neutral: "The composite quant signal is Neutral or Hold"
+            Sell: "The composite quant signal is Sell"
+            Strong Sell: "The composite quant signal is Strong Sell"
+            not_stated: "No composite signal from this list is given, or it is split between several of them"
+
+    - id: quant_risk_flags
+      state: [risk_flags]
+      gate: flags_evaluable
+      questions:
+        flags_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain substantive quantitative risk flags
+            for the stock, rather than a placeholder or an error message?
+        flags_quantified:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well is each risk flag in the report section backed by a specific
+            statistic, such as volatility, beta, drawdown, correlation, trading
+            volume or estimate dispersion?
+          criteria:
+            - "Generic: flags are stated without any statistic"
+            - "Thin: some flags carry a statistic, others are generic"
+            - "Mostly quantified: most flags carry a specific statistic"
+            - "Fully quantified: every flag carries a specific statistic and says what would trigger the risk"
+        mandated_flags_covered:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Does the report section address momentum reversal risk, factor
+            crowding and trading liquidity, saying for each whether it is a
+            concern for this stock?

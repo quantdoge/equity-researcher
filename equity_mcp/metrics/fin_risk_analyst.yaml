@@ -1,0 +1,355 @@
+# Financial risk analyst (credit, liquidity and market risk stress test).
+#
+# conviction.domain_metrics: the report's own assessment of the company, as
+#   5-level Scores. Level 0 = very unfavourable to a long investor (very high
+#   risk), level 4 = very favourable (very low risk). A metric is sent to Jev
+#   only if code finds one of its evidence_terms in the selected section;
+#   otherwise it is "not_addressed".
+# The headline rating is a risk level, not a buy/sell call, so every value of
+#   overall_risk maps to null: the stance comes from the shared stance Choice.
+# alignment: did the output follow prompts/fin_risk_analyst.md.
+
+role: fin_risk_analyst
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/fin_risk_analyst.md
+source_prompt_sha256: "4741d3fbadf820c7794e4d40ecfcfd894776e741aee59a442984fe3fe9d54a59"
+calibrated: false
+
+background:
+  mandate: >
+    Financial risk analyst who stress-tests a company's financial health:
+    credit risk (leverage, interest coverage, Altman Z-Score, Piotroski
+    F-Score, agency ratings), liquidity risk (current and quick ratios, cash
+    runway, debt maturities, credit facilities), market risk (volatility, beta,
+    maximum drawdown, Sharpe and Sortino) and free-cash-flow sustainability.
+    Must judge whether the company survives a prolonged downturn, quantify a
+    20% revenue decline, and identify covenant breaches, refinancing cliffs or
+    credit deterioration. Every metric is to be supported with tool data and
+    every data gap flagged explicitly.
+  required_output: |
+    1. Credit Risk Assessment (rating: Investment Grade / Sub-Investment Grade / Distress)
+    2. Key Financial Risk Metrics Table (leverage, coverage, liquidity, Z-score, F-score)
+    3. Market Risk Profile (vol, beta, max drawdown, Sharpe)
+    4. Downside Scenario Analysis (what happens to the financials if revenue drops 20%?)
+    5. Overall Financial Risk Rating: Low / Moderate / High / Critical
+    6. Key Red Flags (if any)
+
+sections:
+  credit: {heading: 'credit risk'}
+  metrics: {heading: 'risk metrics|key financial'}
+  market: {heading: 'market risk'}
+  downside: {heading: 'downside|stress|scenario'}
+  overall: {heading: 'overall'}
+  red_flags: {heading: 'red flag'}
+
+extract:
+  credit_rating:
+    section: credit
+    values: [Investment Grade, Sub-Investment Grade, Distress]
+    aliases:
+      Non-Investment Grade: Sub-Investment Grade
+      Speculative Grade: Sub-Investment Grade
+      High Yield: Sub-Investment Grade
+  overall_risk:
+    section: overall
+    values: [Low, Moderate, High, Critical]
+    aliases: {Medium: Moderate}
+
+conviction:
+  native_rating: overall_risk
+  native_to_stance: {Low: null, Moderate: null, High: null, Critical: null}
+  domain_metrics:
+    leverage:
+      label: Leverage
+      section: [metrics, credit, full]
+      evidence_terms: [net debt, debt/equity, debt / equity, debt-to-equity, leverage, total debt, net cash, debt/EBITDA]
+      instructions: >
+        Based only on what this research report states, how manageable is the
+        company's debt burden relative to its earnings, cash and equity, for
+        example as measured by net debt to EBITDA or debt to equity?
+      criteria:
+        - "Very high: debt far exceeds what earnings can support, for example net debt above about 5x EBITDA, or leverage rising sharply toward distress"
+        - "High: elevated leverage, for example net debt around 3-5x EBITDA, that constrains the business"
+        - "Moderate: meaningful debt, but within normal ranges for its industry and stable"
+        - "Low: modest debt, for example net debt below about 1.5x EBITDA, comfortably supported by earnings"
+        - "Very low: net cash or negligible debt"
+    interest_coverage:
+      label: Interest coverage
+      section: [metrics, credit, full]
+      evidence_terms: [interest coverage, EBIT/interest, EBIT / interest, interest expense, debt service, times interest, coverage ratio]
+      instructions: >
+        Based only on what this research report states, how comfortably can the
+        company's operating earnings pay the interest on its debt?
+      criteria:
+        - "Very weak: earnings do not cover interest, or coverage near or below about 1.5x"
+        - "Weak: thin coverage, roughly 1.5-3x, or falling fast"
+        - "Adequate: coverage of roughly 3-8x, or a low headline figure the report explains as not meaningful for this business model"
+        - "Strong: coverage well above about 8x"
+        - "Very strong: interest expense negligible or zero, so coverage is effectively unconstrained"
+    liquidity:
+      label: Liquidity
+      section: [metrics, credit, full]
+      evidence_terms: [current ratio, quick ratio, cash ratio, working capital, liquidity, cash runway, revolving, credit facility]
+      instructions: >
+        Based only on what this research report states, how strong is the
+        company's short-term liquidity, meaning its ability to meet obligations
+        due within a year from cash, liquid assets and committed credit lines?
+      criteria:
+        - "Very weak: near-term obligations exceed available cash and liquid assets, or cash runway is short; funding is at risk"
+        - "Weak: tight liquidity, with current or quick ratios below 1 and a thin cash buffer the report treats as a concern"
+        - "Adequate: obligations covered with a modest cushion, or sub-1 ratios the report explains as structural and not a concern"
+        - "Strong: ample cash and current assets relative to near-term obligations"
+        - "Very strong: cash alone far exceeds near-term obligations and debt"
+    refinancing_maturity_risk:
+      label: Refinancing / maturity risk
+      section: [full]
+      evidence_terms: [maturity, maturities, refinanc, covenant, revolver, credit facility, short-term debt, debt due]
+      instructions: >
+        Based only on what this research report states, how exposed is the
+        company to refinancing risk, meaning large debt maturities, covenant
+        pressure or loss of access to credit in the near term?
+      criteria:
+        - "Severe: a near-term maturity wall or covenant breach that current cash and cash flow cannot meet"
+        - "Elevated: sizeable maturities in the next one to two years that depend on refinancing in possibly tight markets"
+        - "Moderate: some near-term maturities, covered by cash or reliable capital-market access"
+        - "Low: near-term maturities small relative to cash, with no covenant pressure"
+        - "Negligible: little or no debt maturing soon, or cash far exceeding all debt"
+    fcf_sustainability:
+      label: FCF sustainability
+      section: [metrics, full]
+      evidence_terms: [free cash flow, FCF, operating cash flow, cash burn, cash generation, FCF margin, FCF yield, OCF]
+      instructions: >
+        Based only on what this research report states, how sustainable is the
+        company's free cash flow as a source for servicing obligations and
+        funding investment?
+      criteria:
+        - "Very weak: negative free cash flow or persistent cash burn that must be externally funded"
+        - "Weak: thin or deteriorating free cash flow that barely covers obligations"
+        - "Adequate: positive free cash flow that covers obligations, with a flat or mixed trend"
+        - "Strong: solid, stable free cash flow comfortably covering debt service and investment"
+        - "Very strong: large and growing free cash flow, far exceeding obligations"
+    market_risk:
+      label: Market risk
+      section: [market, full]
+      evidence_terms: [volatility, beta, drawdown, Sharpe, Sortino, tail risk, value at risk, VaR]
+      instructions: >
+        Based only on what this research report states, how much market risk
+        does a holder of this stock carry, as shown by price volatility, beta
+        to the market and historical drawdowns?
+      criteria:
+        - "Very high: extreme volatility or beta, for example beta near 2 or above, and drawdowns of about 50% or more"
+        - "High: volatility and beta well above the market, with deep drawdowns"
+        - "Moderate: volatility and beta roughly in line with the market"
+        - "Low: below-market volatility and beta, with shallow drawdowns"
+        - "Very low: defensive, with low volatility, low beta and small drawdowns"
+    downside_resilience:
+      label: Downside resilience
+      section: [downside, full]
+      evidence_terms: [scenario, stress, downside, revenue −20%, revenue -20%, 20%, survive, survival]
+      instructions: >
+        Based only on what this research report states, how well would the
+        company's finances hold up if its revenue fell by about 20% or a
+        prolonged downturn occurred?
+      criteria:
+        - "Fails: losses, covenant breaches or a funding gap that would threaten solvency"
+        - "Strained: survives, but credit metrics deteriorate to stressed levels or capital would need to be raised"
+        - "Manageable: metrics weaken noticeably but obligations remain covered without outside funding"
+        - "Resilient: obligations stay comfortably covered, with only discretionary items such as buybacks cut"
+        - "Very resilient: the stress barely dents credit metrics or cash generation"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [credit, metrics, market, downside, overall, red_flags], weight: 2}
+    - {id: overall_risk_parseable, kind: extract_ok, extract: overall_risk, weight: 2, veto: true}
+    - {id: credit_rating_parseable, kind: extract_ok, extract: credit_rating, weight: 1}
+    - id: metrics_table
+      kind: table_present
+      section: metrics
+      min_rows: 5
+      row_labels: [Interest coverage, Altman, Piotroski]
+      weight: 1
+    - id: market_risk_measures
+      kind: min_matches
+      section: market
+      # all four mandated measures appear somewhere in the section
+      pattern: '\A(?=[\s\S]*\bvol)(?=[\s\S]*\bbeta\b)(?=[\s\S]*drawdown)(?=[\s\S]*sharpe)'
+      min: 1
+      dimension: compliance
+      weight: 1
+    - {id: downside_numbers, kind: min_matches, section: downside, pattern: '\d+(?:\.\d+)?\s*(?:%|x\b|×)|\$\s?\d[\d,.]*', min: 4, dimension: quantification, weight: 1}
+
+  requests:
+    - id: credit_and_liquidity
+      state: [credit, metrics, red_flags]
+      gate: credit_evaluable
+      questions:
+        credit_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain a substantive credit and liquidity
+            assessment of the company, with at least some leverage, coverage or
+            liquidity figures, rather than a placeholder or an error message?
+        metrics_data_backed:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            The analyst must support every metric with data from its tools. How
+            consistently are the leverage, interest coverage, liquidity, Altman
+            Z-Score and Piotroski F-Score findings in the report section given as
+            specific figures, rather than as adjectives such as strong or weak?
+          criteria:
+            - "Mostly adjectives: few or no figures behind the credit and liquidity findings"
+            - "Some figures, but several of the named metrics are characterised without a number"
+            - "Most of the named metrics carry a specific figure"
+            - "Every named metric carries a specific figure, with its period or basis stated"
+        score_limitations_explained:
+          type: noul
+          dimension: honesty
+          weight: 1
+          instructions: >
+            Where a standard credit score in the report section, such as the
+            Altman Z-Score or interest coverage, gives a reading the analyst
+            considers misleading for this company (for example because it uses
+            book equity or because the company is a bank), does the section
+            explain why instead of silently relying on or ignoring it? Answer yes
+            as well if no such conflict arises.
+        refinancing_covenants_addressed:
+          type: noul
+          dimension: compliance
+          weight: 2
+          instructions: >
+            Does the report section address refinancing and covenant risk, by
+            discussing near-term debt maturities or the maturity schedule, access
+            to credit facilities, or covenant headroom, including stating
+            explicitly when no such risk is found?
+        credit_rating_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: credit_rating
+          order_check: true
+          instructions: >
+            What single credit risk rating does the report section assign to the
+            company?
+          criteria:
+            Investment Grade: "The credit risk rating is Investment Grade"
+            Sub-Investment Grade: "The credit risk rating is Sub-Investment Grade, speculative grade or high yield"
+            Distress: "The credit risk rating is Distress"
+            not_stated: "No credit risk rating from this list is given, or it is split between several of them"
+
+    - id: downside_scenario
+      state: [downside]
+      gate: downside_evaluable
+      questions:
+        downside_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain a substantive downside or stress
+            scenario for the company's financials, rather than a placeholder, a
+            single sentence or an error message?
+        revenue_shock_quantified:
+          type: score
+          dimension: quantification
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst must show what happens to the company's financials if
+            revenue drops 20%. How fully does the report section quantify that
+            scenario?
+          criteria:
+            - "Not quantified: no 20% revenue decline is modelled, or it is described only in words"
+            - "Partly quantified: the lower revenue is stated, but its effect on earnings or cash flow is not"
+            - "Quantified: the effect on earnings or EBITDA and on at least one credit metric, such as interest coverage or leverage, is given in figures"
+            - "Fully quantified: earnings, cash flow and several credit metrics are given in figures for the stressed case, next to the base case"
+        assumptions_stated:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section state the assumptions that drive its stressed
+            figures, such as which costs stay fixed, how margins compress, or how
+            working capital and capital spending respond?
+        survival_conclusion:
+          type: noul
+          dimension: compliance
+          weight: 2
+          instructions: >
+            Does the report section reach an explicit conclusion on whether the
+            company could still meet its obligations in the stressed scenario,
+            for example whether coverage, covenants, ratings or cash on hand would
+            hold?
+
+    - id: risk_rating_discipline
+      state: [market, overall, red_flags]
+      gate: overall_evaluable
+      questions:
+        overall_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain a substantive overall financial risk
+            rating with supporting reasoning, rather than a placeholder or an
+            error message?
+        market_risk_interpreted:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section interpret what the stock's market risk figures
+            mean for a holder, for example the loss to expect in a market
+            sell-off given its beta, rather than only listing volatility, beta
+            and drawdown numbers?
+        overall_rating_reconciled:
+          type: score
+          dimension: consistency
+          weight: 2
+          min_level: 2
+          instructions: >
+            The overall financial risk rating should follow from the credit,
+            liquidity and market risk findings. How clearly does the report
+            section explain how those component risks combine into the overall
+            rating?
+          criteria:
+            - "Contradicted: the overall rating conflicts with the component findings, with no explanation"
+            - "Asserted: the overall rating is given with little or no reasoning"
+            - "Partly reasoned: the rating cites some of the component risks"
+            - "Fully reasoned: the rating explicitly weighs credit, liquidity and market risk, saying which dominates"
+        red_flags_evidenced:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well is each financial red flag in the report section backed by a
+            specific figure or documented event, together with why it matters for
+            the company's financial risk? If the section states that there are
+            no red flags, judge how well that statement is supported.
+          criteria:
+            - "Generic: flags or the no-flag statement are asserted with no data"
+            - "Thin: some flags carry data, others are generic"
+            - "Mostly evidenced: most flags carry a specific figure or event"
+            - "Fully evidenced: every flag carries a specific figure or event and its consequence for financial risk"
+        overall_risk_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: overall_risk
+          order_check: true
+          instructions: >
+            What single overall financial risk rating does the report section
+            assign to the company?
+          criteria:
+            Low: "The overall financial risk rating is Low"
+            Moderate: "The overall financial risk rating is Moderate"
+            High: "The overall financial risk rating is High"
+            Critical: "The overall financial risk rating is Critical"
+            not_stated: "No overall rating from this list is given, or it is split between several of them"

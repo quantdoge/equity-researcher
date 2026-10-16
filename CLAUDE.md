@@ -26,7 +26,10 @@ equity_mcp/
 │   ├── web.py             # web_search + fetch_page
 │   ├── calculations/      # valuation, risk, quant, forensics (these query the DB)
 │   └── external/          # fred, sec_edgar, news, alt_data (external APIs)
-└── prompts/               # System prompt .md file per agent role
+├── prompts/               # System prompt .md file per agent role
+├── metrics/               # Jev evaluation rubric .yaml per agent role + _shared.yaml
+├── evaluation/            # Scores outputs/*.json with TypeSafe Jev → Supabase `eval` schema
+└── hparams/               # Per-run config snapshots (limits, prompts, models, tool access) → `hparams` schema
 ```
 
 ## Orchestration: deepagents (default)
@@ -213,6 +216,207 @@ unaffected by any of this.
 3. Add the role to `ALL_ROLES` in `roles.py`
 4. Add it to the appropriate pipeline stage in `orchestrator.py`
 5. Tag any new tools with the new role set
+6. Add `metrics/<new_role>.yaml` (see Output Evaluation); `tests/test_eval_rubrics.py` fails until it exists
+
+## Output Evaluation (TypeSafe Jev)
+
+Every agent's report is scored by TypeSafe **Jev**. Jev is a typed "System One"
+classifier: it answers Noul (yes/no probability), Score (ordinal level) and
+Choice (one of N) questions about a supplied text. The rubric for each agent
+lives in `equity_mcp/metrics/<role>.yaml`, one file per role, plus
+`_shared.yaml`. The code lives in `equity_mcp/evaluation/`. Results go to a
+**separate** Supabase project, schema `eval`
+(`supabase/migrations/20261010000000_eval_schema.sql`).
+
+Each evaluation has two blocks that are stored apart and **never averaged together**:
+
+- **conviction**: what the agent concluded.
+  - Every agent is placed on the same shared Choice, STRONG SELL / SELL /
+    HOLD / BUY / STRONG BUY, with a Low/Medium/High conviction level.
+  - The agent's own headline enum is extracted in code and mapped to that
+    scale through the YAML's `native_to_stance`. Their agreement is stored.
+  - Each role also has 5-level **domain metrics**: profitability, liquidity
+    and solvency for value; E, S and G for ESG; and so on.
+- **alignment**: whether the output followed its prompt.
+  - Deterministic checks in code: sections, enums, tables, counts and
+    price-target arithmetic.
+  - Jev questions on evidence, balance and consistency.
+  - These combine into a weighted composite. Vetoes are listed separately.
+
+```bash
+uv run python -m equity_mcp.evaluation.evaluate --validate-rubrics          # offline, also in CI
+uv run python -m equity_mcp.evaluation.evaluate --sync-rubrics              # push YAML to eval.rubrics, no Jev calls
+uv run python -m equity_mcp.evaluation.inspect value_researcher -v          # offline rubric debugger
+uv run python -m equity_mcp.evaluation.evaluate --all --dry-run             # request counts, no network
+uv run python -m equity_mcp.evaluation.evaluate --file outputs/AVGO_20261003T135110.json
+uv run python -m equity_mcp.orchestrator --symbol AAPL --evaluate           # score at the end of a run
+uv run python tests/test_eval_rubrics.py && uv run python tests/test_eval_extract.py && uv run python tests/test_eval_jev.py
+uv run python tests/test_eval_rubric_views.py
+```
+
+Rules that came from Jev's documented behaviour, not taste:
+
+- **Code does what Jev can't.** Jev reads dates as text, counts badly and
+  degrades on long state, so code extracts enums, counts items and checks
+  arithmetic. Jev sees only the sections a question needs, capped at 12k chars.
+- **Score has no abstain option.** A request's `gate` Noul marks its siblings
+  `low_evidence` when it fails. A domain metric is sent only if code finds one
+  of its `evidence_terms`; otherwise it is `not_addressed`.
+- **Question ids are not sent to the model.** Every `instructions` must stand
+  on its own. Score levels are 0-based on the wire.
+- **Pin the model** (`JEV_MODEL=jev-1.13.0`). The CLI refuses `jev-latest`
+  unless `--allow-floating-model` is passed.
+- **The portfolio strategist and head of research are evaluated second.**
+  Their fidelity questions get a code-built `specialist_summary` of what the
+  specialists concluded and which ones failed.
+- **Editing a prompt requires a rubric review.** Each YAML pins
+  `source_prompt_sha256`, and `--validate-rubrics` fails on drift. After
+  review, update the hash (`--rehash-prompts` prints them). Editing a rubric
+  changes its `rubric_sha`, which makes past runs eligible for re-evaluation.
+- **Results are advisory until calibrated.** `calibrated: false` sets
+  `advisory=true` on every evaluation. Calibration means hand labels in
+  `eval.human_labels` and checking agreement in `eval.v_jev_human_agreement`.
+- **Evaluation never fails research.**
+  - `orchestrator --evaluate` and the CI step swallow every error into one
+    `EVAL` line in run.log.
+  - An unreachable database parks records in `evals/pending/` (gitignored).
+    Replay them with `--flush-pending`.
+  - A failed or degenerate agent gets a status and costs no calls, rather than
+    a score of zero.
+
+Idempotency: an evaluation is keyed on (run, role, rubric_sha, jev_model). A
+rerun skips work that is already stored unless `--force` is passed. Every
+successful call is cached in `eval.jev_calls` by state + questions + model, so
+`--force` after a one-question rubric edit only pays for the changed request.
+
+**Rubric views.** `eval.v_rubric_*` (`supabase/migrations/20261011000000_eval_rubric_views.sql`)
+unnest `eval.rubrics.content`, so the YAML is readable in SQL with no extra
+tables. Start with `v_rubric_roles`, which shows the mandate, the required
+output and the counts. The other views are:
+
+- `v_rubric_sections`: section name to heading regex.
+- `v_rubric_extracts`: the values code pulls out by regex.
+- `v_rubric_stance_map`: the agent's own rating to the shared stance.
+- `v_rubric_checks`: the deterministic checks.
+- `v_rubric_questions`: every Jev question in the conviction, domain and
+  alignment blocks, with its exact instructions.
+- `v_rubric_criteria`: one row per answer option.
+- `v_rubric_metrics`: questions and checks at the grain of `metric_results`.
+
+Points to keep in mind when querying:
+
+- Every view has `is_current` and keeps every past `rubric_sha`.
+- To see what a past evaluation was asked, join on the evaluation's own hash,
+  not `is_current`:
+  `metric_results m → evaluations e → v_rubric_metrics rm ON (rm.rubric_sha, rm.block, rm.metric_id) = (e.rubric_sha, m.block, m.question_id)`.
+- `metric_results.score` is an expected level, so match it to a criterion with
+  `v_rubric_criteria.level = round(m.score)`.
+- jsonb does not keep object-key order, so the YAML order of questions,
+  sections and options is lost.
+- A rubric appears only once it has been evaluated or synced. Run
+  `--sync-rubrics` after editing a YAML.
+- A YAML reverted to an older, already-stored version is reported as `stale`
+  (exit 2). This is because `v_rubric_current` ranks by `created_at`.
+
+**Data dictionary.** Every table, view and column in `eval` is documented in the
+`datadict` schema, which has two tables: `datadict.tables` and `datadict.columns`.
+For each column it records: type, owner, dates, definition, real example values,
+value range, and what each value means. Read it through `datadict.v_data_dictionary`.
+In that view, a pass-through view column inherits its source column's text through
+`derived_from`.
+
+It is built by `supabase/migrations/20261010020000_datadict_schema.sql` and
+`…020100_datadict_eval_seed.sql`. The seed is idempotent, and it copies types
+from `pg_catalog`, so types are never written by hand.
+
+**Any migration that changes `eval` must update the seed in the same change.** When
+it's done, `SELECT * FROM datadict.v_coverage_gaps` must return 0 rows. That view
+lists undocumented columns, dropped columns, type changes and broken `derived_from`
+links.
+
+### Rollout status (updated 2026-10-10)
+
+Delete this subsection once the paused items and open decisions below are settled.
+
+**Backfill: done 2026-10-10.** All 35 `outputs/*.json` runs are in Supabase project
+`equity-research-eval` (ref `zpnjlzrgzrtedkqumrph`): 357 evaluations, 13,469 metric
+results and 2,213 Jev calls with 0 errors, and `datadict.v_coverage_gaps` is empty.
+- 6 legacy-layout files are stored as `runs` rows with `skip_reason = 'legacy schema: no agent_results'`. They are `AMD_20260822`, `CMG_2026-07-31_gpt4omini`, `CMG_2026-08-01`, `CMG_20260823`, `LIME` and `LTH`.
+- The two `AAPL_20260926` runs were `--agents` subsets, so they hold 2 and 4 evaluations, not 13.
+- `evals/pending_superseded/AVGO_20261003T135110.jsonl` is a duplicate re-evaluation of a stored run. It is deliberately not flushed, so the originals stay. It can be deleted.
+- A new run is scored with `orchestrator --evaluate`, or with `evaluate --symbol X --latest`.
+
+The backfill found two bugs, both now fixed:
+- `evaluate_result`'s legacy-skip path entered and exited a store it did not own, which closed the CLI's shared connection.
+- `SupabaseStore` never reconnected. After that, every record went to `evals/pending/` and `already_evaluated` returned False, which re-spent Jev calls on stored runs.
+
+Now the skip path only enters a store it owns, and `SupabaseStore._call` reconnects and retries once.
+
+**Still paused.** Do not do any of these until the user says so:
+- Adding the GitHub DEV secrets (`TYPESAFE_API_KEY`, `SUPABASE_EVAL_DB_URL`) and the variable `JEV_MODEL`.
+- Committing. A merge to `main` must carry `[skip ci]`.
+
+**Open decisions.** These were offered but not yet approved:
+- **NOW's geo-legal veto fired, probably wrongly.** Its `injected_or_offtopic_text` veto fired at p=0.54. Raising that veto's threshold to about 0.8 would fix it. This changes `rubric_sha`, which makes the stored runs eligible for re-evaluation; the Jev call cache keeps that cheap.
+- **`v_stance_pivot.avg_stance_expected` counts low-evidence stances.** The fix is a one-line filter in the view, and the matching dictionary entry should be updated with it.
+- **The datadict migrations are missing from Supabase's migration history.** They were applied through the Management API, not `apply_migration`.
+- **`SUPABASE_ACCESS_TOKEN` in `.env` should be revoked** in the Supabase dashboard once no more admin SQL is needed.
+
+## Hyperparameters (`hparams`)
+
+Every run is tied to the exact configuration that produced it. This means
+- the tool timeout and thread pool,
+- each agent's model, token budget, recursion limit and task,
+- the prompt and budget block it was actually given,
+- and the tool access matrix.
+
+A score change can then be traced to the agent, a prompt edit, or a limit change.
+Code: `equity_mcp/hparams/`. Schema: `hparams` in the eval project
+(`supabase/migrations/20261011000200_hparams_schema.sql` and `…210_hparams_views.sql`).
+Queries: `supabase/docs/hparams_views.md`.
+
+- **Snapshots are content-addressed.**
+  - `config_sha` is the sha256 of a canonical JSON of runtime limits, agents, tools and tags, plus a hash of each watched source file.
+  - Identical code gives an identical config, however it was observed.
+  - Text bodies live once in `hparams.texts`. `system_prompt_sha` uses `loader.prompt_sha256`'s convention, so it joins to `eval.rubrics.source_prompt_sha256`.
+- **Read from live module state, never re-implemented.**
+  - The composed prompt, tools and model kwargs are what the real builders pass to `create_react_agent` / `create_deep_agent` / `init_chat_model`. Capturing stubs replace those calls for the duration.
+  - This is why capture runs *before* the fan-out.
+  - `tests/test_hparams_snapshot.py` checks a snapshot against `test_tool_access` counts, the rubric loader, and a fresh render. It also checks that no patch survives the build.
+- **Runtime capture.** The orchestrator writes `runs/<id>/config.json` at START and puts `config_sha` and `run_params` (concurrency, timeout, agents, focus, skip_synthesis) in the result. Like RunLog it never raises: a failure is one `CONFIG FAILED` line.
+- **Ingest.** `evaluate_result` links the run (`hparams.run_configs`, `link_basis='recorded_in_run'`) after storing its evaluations.
+  - It runs outside their transactions, so it can never cost an evaluation.
+  - It parks the payload in `evals/pending_hparams/` when the database is down.
+  - A config's provenance only ever upgrades (inferred < reconstructed_from_git < captured_at_runtime), and so does a run's link_basis.
+- **Backfill.** Runs from before capture are reconstructed from git: `git archive` writes the tree to a temp dir, and the current `snapshot.py` runs against it in a subprocess.
+  - CI runs ran their trigger commit, so they are `git_checkout`.
+  - Local runs used uncommitted trees, so they are `inferred`. Their notes say why.
+  - The JPM run's 600 s agent timeout was never committed. It is inferred from a `TimeoutError` at 600.5 s.
+  - Reconstructed configs have `libs = NULL`, because CI installs floating versions and `uv.lock` is not committed.
+
+```bash
+uv run python -m equity_mcp.hparams snapshot                    # today's config, no database
+uv run python -m equity_mcp.hparams verify [--db]               # consistency (and stored rows)
+uv run python -m equity_mcp.hparams sync --backfill --dry-run   # plan: 29 runs, 25 git_checkout, 4 inferred
+uv run python -m equity_mcp.hparams sync --backfill
+uv run python -m equity_mcp.hparams sync --from-run-dir runs/<id>   # a captured run not yet evaluated
+uv run python -m equity_mcp.hparams sync --flush-pending
+uv run python tests/test_hparams_snapshot.py && uv run python tests/test_hparams_backfill.py
+```
+
+**Backfill: done 2026-10-11.**
+- 29 runs are linked: 25 `git_checkout` and 4 `inferred`. The 6 legacy runs stay unlinked.
+- They resolve to 3 configs:
+  - cb0a21f, with a 900 s agent timeout: AAPL ×2.
+  - An inferred JPM config with a 600 s timeout.
+  - `22b40e62…`, with a 750 s timeout: XOM and every CI run. It is still the current code.
+- `verify --db` passes.
+
+Rules:
+
+- **Any migration that changes `hparams` must update `datadict`** (`…000300_datadict_hparams_seed.sql`), the same rule as `eval`. `datadict.v_coverage_gaps` covers both schemas and must return 0 rows. `hparams.v_config_integrity` must return 0 rows too.
+- **A new tunable constant belongs in the snapshot.** Add it to `runtime` in `snapshot.py`, plus a `config_runtime` column, its datadict entry and a test. Otherwise it changes runs silently, visible only as a `module_sha256` change.
+- **Bump `SNAPSHOT_VERSION` when what is hashed changes.**
 
 ## External APIs
 
@@ -226,6 +430,8 @@ unaffected by any of this.
 | FMP | `FMP_API_KEY` | Yes | **All 12 `db.py` tools**, plus every tool in `tools/external/news.py` |
 | Brave Search | `BRAVE_API_KEY` | One of these two | Preferred `web_search` provider |
 | SerpAPI | `SERP_API_KEY` | One of these two | Used when Brave is unset |
+| TypeSafe Jev | `TYPESAFE_API_KEY`, `JEV_MODEL` | Evaluation only | Scores agent outputs; `equity_mcp/evaluation/jev.py` |
+| Supabase (eval project) | `SUPABASE_EVAL_DB_URL` | Evaluation only | Separate project, session-pooler URL, `eval_writer` role; unset → `evals/results/` |
 
 ### FMP caching — use `fmp_cached`, not `fmp_get`
 

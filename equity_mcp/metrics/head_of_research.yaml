@@ -1,0 +1,427 @@
+# Head of research (final investment memo). Pass 2: evaluated after the
+# specialists and the portfolio strategist, because its fidelity to them is
+# part of what is judged.
+#
+# conviction.domain_metrics: the memo's own assessment of the company, as
+#   5-level Scores. Level 0 = very unfavourable to a long investor, level 4 =
+#   very favourable; overall_risk_level runs "very high risk" (0) to "very low
+#   risk" (4). A metric is sent to Jev only if code finds one of its
+#   evidence_terms in the selected section; otherwise it is "not_addressed".
+# alignment: did the output follow prompts/head_of_research.md. Requests with
+#   `context: [crossagent]` also receive the specialist summary.
+#
+# Memos come in two shapes, and the rubric has to read both:
+#
+# - Most write bold-line pseudo-headings ("**Verdict**: HOLD … | Conviction:
+#   Medium", "**Bull Case**"). With no real headings, the splitter treats each
+#   bold line as a heading, so the verdict line is a one-line section.
+# - About one in six (JPM, NBIS, OKTA, XOM) use real "## Investment Thesis"
+#   headings. There the Verdict / Price Target / Time Horizon lines sit inside
+#   the excluded title section, so no section regex can reach them.
+#
+# Hence the verdict and conviction extracts read `full` with an anchor, the
+# three header lines are checked by a line-anchored min_matches rather than by
+# sections_present, and the request that needs the verdict reads `full`. The
+# price_target section exists only for bold-line memos (about 85%); the one
+# domain metric that uses it falls back to `full`.
+#
+# Bold-line headings carry their whole line ("**Investment Thesis**: Accenture
+# — …"), so heading regexes are anchored with ^ to stop a long bold line that
+# merely mentions "bear case" from being taken for the section.
+
+role: head_of_research
+rubric_version: 1
+pass: 2
+includes: [_shared]
+source_prompt: equity_mcp/prompts/head_of_research.md
+source_prompt_sha256: "10e94bcb9a462dfeb4e54e0569a504e3d0bacd0a0fd2843ebbdcec1e9977ca5d"
+calibrated: false
+
+background:
+  mandate: >
+    Head of research. Synthesises the specialist team's outputs into a final
+    investment memo a portfolio manager can act on, challenging weak theses and
+    identifying gaps. Must be objective and present bull and bear cases fairly,
+    flag when data is insufficient or agents disagree significantly, never
+    produce a memo without reviewing at least the value, risk and macro inputs,
+    and prefer short and precise to long and verbose.
+  required_output: |
+    ### Investment Memo: [SYMBOL] — [Date]
+    **Verdict**: BUY / HOLD / SELL | Conviction: High / Medium / Low
+    **Price Target**: $X (X% upside/downside from current $Y)
+    **Time Horizon**: [12–24 months]
+    **Investment Thesis** (2–3 sentences on the core bull/bear case)
+    **Key Findings by Domain**
+    - Macro & Sector; Geopolitical & Legal; Equity Fundamentals — Value;
+      Equity Fundamentals — Growth; Quantitative Signals; Financial Risk;
+      Non-Financial Risk; ESG; Alternative Data; Short / Contrarian View
+    **Bull Case** (3 bullets)
+    **Bear Case** (3 bullets)
+    **Key Risks**
+    **Portfolio Construction Note** (from portfolio strategist)
+
+sections:
+  price_target: {heading: '^price target'}
+  thesis: {heading: '^investment thesis'}
+  key_findings: {heading: '^key findings'}
+  bull: {heading: '^bull case'}
+  bear: {heading: '^bear case'}
+  key_risks: {heading: '^key risks'}
+  # In bold-line memos the note's body is often its own bold line
+  # ("**PASS for new capital at $355; …**"), which splits off as a heading.
+  # all_matches stitches the two back together.
+  portfolio_note:
+    heading: '^portfolio construction|^(?:pass|initiate|hold|add|reduce|exit)\b'
+    all_matches: true
+    max_chars: 4000
+  gaps:
+    heading: 'data gap|disagree|data note|data caveat|integrity note|^flags'
+    all_matches: true
+    max_chars: 4000
+
+extract:
+  verdict:
+    section: full
+    anchor: 'verdict\W{0,4}:'
+    body_chars: 80
+    values: [BUY, HOLD, SELL]
+  conviction:
+    section: full
+    anchor: 'conviction\W{0,4}:'
+    body_chars: 80
+    values: [High, Medium, Low]
+
+conviction:
+  native_rating: verdict
+  native_to_stance: {BUY: BUY, HOLD: HOLD, SELL: SELL}
+  native_conviction: conviction
+  domain_metrics:
+    business_quality:
+      label: Business quality
+      section: [thesis, key_findings, full]
+      evidence_terms: [moat, franchise, margin, competitive, ROIC, market share, pricing power, quality, switching cost, leader]
+      instructions: >
+        Based only on what this investment memo states, how strong is the
+        company's underlying business, meaning its competitive position,
+        profitability and durability?
+      criteria:
+        - "Very weak: no competitive advantage, poor or declining economics"
+        - "Weak: a contestable position with thin or eroding margins"
+        - "Average: a solid but unremarkable business"
+        - "Strong: a clear competitive advantage with above-peer economics"
+        - "Exceptional: a dominant, durable franchise with sector-leading economics"
+    valuation_attractiveness:
+      label: Valuation attractiveness
+      section: [key_findings, thesis, full]
+      evidence_terms: [valuation, intrinsic, fair value, P/E, EV/EBITDA, multiple, margin of safety, FCF yield, premium, discount, overvalued, undervalued]
+      instructions: >
+        Based only on what this investment memo states, how attractive is the
+        stock's current price relative to the value of the business?
+      criteria:
+        - "Very unattractive: the price is far above any defensible estimate of value"
+        - "Unattractive: the price is somewhat above fair value, with no margin of safety"
+        - "Fair: the price is roughly in line with fair value"
+        - "Attractive: the price is below fair value, with a modest margin of safety"
+        - "Very attractive: the price is well below fair value, with a large margin of safety"
+    overall_risk_level:
+      label: Overall risk level
+      section: [key_risks, key_findings, full]
+      evidence_terms: [risk, volatility, drawdown, leverage, regulatory, litigation, concentration, beta, downside, exposure]
+      instructions: >
+        Based only on what this investment memo states, how risky is an
+        investment in the stock, taking financial, market, regulatory and
+        business risks together?
+      criteria:
+        - "Very high risk: several severe risks that could permanently impair the investment"
+        - "High risk: significant risks across more than one area"
+        - "Moderate risk: notable but manageable risks"
+        - "Low risk: limited, well-understood risks"
+        - "Very low risk: few material risks and strong protection against them"
+    catalyst_visibility:
+      label: Catalyst visibility
+      section: [full]
+      evidence_terms: [catalyst, print, earnings date, guidance, investor day, launch, ruling, approval, deadline, re-rating]
+      instructions: >
+        Based only on what this investment memo states, how clear and
+        favourable are the identifiable upcoming events that could move the
+        stock, such as earnings reports, guidance, product launches or
+        regulatory decisions?
+      criteria:
+        - "Clearly negative: identifiable upcoming events are likely to hurt the stock"
+        - "Leaning negative: upcoming events carry more downside than upside"
+        - "None or balanced: no clear upcoming events, or their likely effects offset"
+        - "Leaning positive: upcoming events carry more upside than downside"
+        - "Clearly positive: specific, dated events are likely to lift the stock"
+    thesis_balance:
+      label: Bull/bear balance
+      section: [thesis, full]
+      evidence_terms: [bull, bear, upside, downside, but, however, risk, thesis]
+      instructions: >
+        Based only on what this investment memo states, which way does the
+        weight of its evidence lean, between the bull case and the bear case
+        for owning the stock?
+      criteria:
+        - "Strongly bearish: the bear case clearly dominates"
+        - "Leaning bearish: the bear case outweighs the bull case"
+        - "Balanced: the bull and bear cases roughly offset"
+        - "Leaning bullish: the bull case outweighs the bear case"
+        - "Strongly bullish: the bull case clearly dominates"
+    price_target_upside:
+      label: Price target upside
+      section: [price_target, full]
+      evidence_terms: [price target, target, upside, downside, fair value, from current, from spot]
+      instructions: >
+        Based only on what this investment memo states, how much does its
+        central price target, or the midpoint of its target band, differ from
+        the current share price?
+      criteria:
+        - "Large downside: the target is more than about 15% below the current price"
+        - "Moderate downside: the target is about 5-15% below the current price"
+        - "Roughly flat: the target is within about 5% of the current price"
+        - "Moderate upside: the target is about 5-20% above the current price"
+        - "Large upside: the target is more than about 20% above the current price"
+
+alignment:
+  deterministic_checks:
+    - {id: memo_skeleton, kind: sections_present, sections: [thesis, key_findings, bull, bear, key_risks, portfolio_note], weight: 2}
+    - id: header_lines
+      kind: min_matches
+      section: full
+      # Verdict, Price Target and Time Horizon lines. Counted rather than
+      # sectioned, because in ##-heading memos they are not sections.
+      pattern: '(?m)^\W*(?:verdict|price target|time horizon)\b'
+      min: 3
+      weight: 2
+    - {id: verdict_parseable, kind: extract_ok, extract: verdict, weight: 2, veto: true}
+    - {id: conviction_parseable, kind: extract_ok, extract: conviction, weight: 1}
+    # `full`, not price_target: the check reads the first "(… % …)" in its text,
+    # which is the Price Target line in both memo shapes, and the section does
+    # not exist in ##-heading memos (a hard fail there). Known false fail: a
+    # percentage stated against a midpoint inside the parentheses ("$140–150
+    # (midpoint ~$145, +13% from $128.50)") is compared only with the band ends.
+    - {id: price_target_arithmetic, kind: price_target_consistent, section: full, dimension: quantification, weight: 1}
+    - {id: failed_specialists_flagged, kind: failures_acknowledged, section: full, dimension: honesty, weight: 2}
+    - {id: bull_case_items, kind: min_list_items, section: bull, min: 3, dimension: balance, weight: 1}
+    - {id: bear_case_items, kind: min_list_items, section: bear, min: 3, dimension: balance, weight: 1}
+    - id: domains_covered
+      kind: min_matches
+      section: key_findings
+      # One hit per domain line. Line-anchored so that "value" or "growth" in
+      # running text does not count.
+      pattern: '(?m)^\W*(?:macro|sector|geopolit|equity fundamentals|value|growth|quant|financial risk|fin(?:ancial)? risk|non-financial|nonfin|esg|alternative data|alt[- ]data|short)'
+      min: 8
+      dimension: compliance
+      weight: 1
+
+  requests:
+    - id: hor_verdict_fidelity
+      state: [full]
+      context: [crossagent]
+      gate: memo_evaluable
+      questions:
+        memo_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain an investment memo with a final
+            verdict on the stock and findings summarised by research domain,
+            rather than a placeholder or an error message?
+        verdict_reflects_team:
+          type: score
+          dimension: fidelity
+          weight: 3
+          min_level: 2
+          instructions: >
+            Compare the memo's final verdict with the specialists' stances in
+            the specialist summary. How well does the verdict agree with the
+            overall balance of those stances, or, where it departs from that
+            balance, explicitly justify the departure?
+          criteria:
+            - "Contradicts the balance of specialist stances with no justification"
+            - "Departs from the balance with only a generic or passing justification"
+            - "Agrees with the balance, or departs from it with a specific stated reason"
+            - "Agrees with the balance and explains how dissenting specialists were weighed, or departs from it with specific evidence naming the specialists it overrules"
+        core_inputs_used:
+          type: noul
+          dimension: compliance
+          weight: 2
+          instructions: >
+            The head of research must never produce a memo without reviewing
+            the value, risk and macro inputs. Does the memo's reasoning draw on
+            a specific finding from each of the value, risk (financial or
+            non-financial) and macro specialists? Where the specialist summary
+            lists one of them as failed or missing, answer yes if the memo
+            states that gap and what it relied on instead.
+          criteria:
+            true: "Specific value, risk and macro findings are used, or any missing input is stated as a gap"
+            false: "One of these inputs is absent or mentioned only in passing, and its absence is not stated"
+        contrarian_view_engaged:
+          type: noul
+          dimension: balance
+          weight: 1
+          instructions: >
+            Does the memo state the short-seller or contrarian case and say
+            whether, and why, it changes the verdict?
+        price_target_explicit:
+          type: noul
+          dimension: quantification
+          weight: 1
+          instructions: >
+            Does the memo give a price target as a specific price or a narrow
+            band, together with the current price or the implied percentage
+            move from it?
+        verdict_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: verdict
+          order_check: true
+          instructions: >
+            What single final verdict does the memo give on the stock? If it
+            gives different verdicts for different holders, such as one for
+            existing holders and another for new money, choose the verdict it
+            names first.
+          criteria:
+            BUY: "The final verdict is BUY"
+            HOLD: "The final verdict is HOLD"
+            SELL: "The final verdict is SELL"
+            not_stated: "No verdict from this list is given"
+
+    - id: hor_team_integrity
+      state: [preamble, key_findings, portfolio_note, gaps]
+      context: [crossagent]
+      gate: team_evaluable
+      questions:
+        team_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section summarise the research team's findings by
+            domain, and does the specialist summary list at least one
+            specialist view to compare them with?
+        team_claims_accurate:
+          type: noul
+          dimension: fidelity
+          weight: 2
+          instructions: >
+            Are all statements the report section makes about the research team
+            itself, such as how many specialist reports were received, that all
+            reports are in context, or that a named specialist was unavailable,
+            consistent with the completed and failed or missing specialists in
+            the specialist summary? Answer yes if the report section makes no
+            such statement.
+          criteria:
+            true: "Every statement about the team's reports matches the specialist summary, or there is none"
+            false: "A statement about the team's reports contradicts the specialist summary, such as claiming all reports were received when some failed"
+        failed_specialists_not_invented:
+          type: noul
+          dimension: honesty
+          weight: 2
+          instructions: >
+            For every specialist that the specialist summary lists as failed or
+            missing, does the report section avoid presenting findings
+            attributed to that specialist as if its report had been received?
+            Answer yes if the specialist summary lists no failed or missing
+            specialists.
+          criteria:
+            true: "No findings are attributed to a failed or missing specialist, or there are none"
+            false: "Findings are attributed to a failed or missing specialist as if its report existed"
+        disagreements_flagged:
+          type: noul
+          dimension: balance
+          weight: 2
+          instructions: >
+            Where the specialist summary shows specialists taking opposing
+            stances on the stock, does the report section name that
+            disagreement and say how it was weighed? Answer yes if the
+            specialists broadly agree and the report section does not claim
+            otherwise.
+        domain_summaries_faithful:
+          type: score
+          dimension: fidelity
+          weight: 2
+          min_level: 2
+          instructions: >
+            Compare the direction of each domain summary in the report section,
+            such as a favourable macro view or a high-risk legal view, with the
+            stance of the matching specialist in the specialist summary. How
+            faithfully do the domain summaries reflect the specialists?
+          criteria:
+            - "Misrepresented: one or more domain summaries reverse the matching specialist's stance"
+            - "Distorted: no reversals, but several summaries are noticeably stronger or weaker than the specialist's stance"
+            - "Mostly faithful: directions all match, with a few shaded somewhat stronger or weaker"
+            - "Faithful: every domain summary matches its specialist in direction and strength"
+        portfolio_note_matches_strategist:
+          type: noul
+          dimension: fidelity
+          weight: 1
+          instructions: >
+            Is the portfolio construction note in the report section consistent
+            with the portfolio strategist's action given in the specialist
+            summary, or does it explicitly explain why the memo differs? Answer
+            yes if the specialist summary gives no portfolio action.
+
+    - id: hor_cases_and_risks
+      state: [thesis, bull, bear, key_risks]
+      gate: cases_evaluable
+      questions:
+        cases_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain an investment thesis or bull and
+            bear cases for the stock, rather than a placeholder or an error
+            message?
+        cases_presented_fairly:
+          type: score
+          dimension: balance
+          weight: 3
+          min_level: 2
+          instructions: >
+            The head of research must be objective and present both the bull
+            and bear cases fairly. How fairly does the report section present
+            both cases?
+          criteria:
+            - "One-sided: one case is missing or reduced to a strawman"
+            - "Lopsided: one case is specific and evidenced while the other is generic"
+            - "Fair but uneven: both cases are specific, but one is noticeably thinner"
+            - "Fair: both cases are specific, evidenced and argued with comparable care"
+        thesis_concise:
+          type: noul
+          dimension: compliance
+          weight: 1
+          instructions: >
+            Is the investment thesis a short statement of the core argument, a
+            few sentences long, rather than a long multi-paragraph narrative or
+            a list of facts?
+        key_risks_specific:
+          type: noul
+          dimension: balance
+          weight: 1
+          instructions: >
+            Are the key risks specific to this company, each with a mechanism
+            by which it would hurt the investment, rather than generic risks
+            that would apply to any stock?
+        risks_monitorable:
+          type: noul
+          dimension: actionability
+          weight: 1
+          instructions: >
+            Do the key risks name observable signals, thresholds or dated
+            events that a portfolio manager could monitor to see whether each
+            risk is materialising?
+        concise_writing:
+          type: score
+          dimension: compliance
+          weight: 1
+          min_level: 1
+          instructions: >
+            The memo is meant to be short and precise rather than long and
+            verbose. How concise are these report sections?
+          criteria:
+            - "Verbose: points are repeated, padded or buried in long passages"
+            - "Somewhat concise: mostly focused, with some repetition or padding"
+            - "Concise: each point is made once, precisely, with little padding"

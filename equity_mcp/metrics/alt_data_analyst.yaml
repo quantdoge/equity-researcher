@@ -1,0 +1,364 @@
+# Alternative data analyst. Follows the shape of value_researcher.yaml.
+#
+# conviction.domain_metrics: the report's own reading of each signal family,
+#   as 5-level Scores. Level 0 = very unfavourable to a long investor, level 4
+#   = very favourable. data_quality_recency follows the same orientation:
+#   level 4 means fresh, direct, high-quality data. A metric is sent to Jev
+#   only if code finds one of its evidence_terms in the selected section;
+#   otherwise it is "not_addressed".
+# alignment: did the output follow prompts/alt_data_analyst.md.
+#
+# Real reports put each enum into a numbered heading
+# ("## 6. Overall Alt Data Signal: **BULLISH (leaning)**"). The earnings
+# preview is often a blend ("In-Line-to-Above", "AT-to-ABOVE"); it parses to
+# the first value named and is flagged hedged.
+
+role: alt_data_analyst
+rubric_version: 1
+pass: 1
+includes: [_shared]
+source_prompt: equity_mcp/prompts/alt_data_analyst.md
+source_prompt_sha256: "fa3fecfbddc041ea456aafa6287d04bfcc18ba9f7fdd2a6fcbae87a1ae14d395"
+calibrated: false
+
+background:
+  mandate: >
+    Alternative data analyst. Extracts investment signals from non-traditional
+    sources not yet reflected in consensus estimates or prices: search
+    interest, app and web traffic, social media, job postings, patents,
+    geospatial data and news sentiment. Each signal needs a trend direction.
+    "Always note data limitations and lag. Alt data is a leading indicator —
+    not a definitive one." Confidence is based on data quality and recency.
+  required_output: |
+    1. Consumer Demand Signals (Google Trends, app data, web traffic — with trend direction)
+    2. Business Activity Signals (hiring, patents — with trend direction)
+    3. Earnings Preview Signal: Tracking Above / In-Line / Below consensus estimates
+    4. News Sentiment Score and Summary
+    5. Social Sentiment (if data available)
+    6. Overall Alt Data Signal: Bullish / Neutral / Bearish
+    7. Confidence Level: High / Medium / Low (based on data quality and recency)
+
+sections:
+  consumer: {heading: 'consumer demand|consumer'}
+  business: {heading: 'business activity'}
+  earnings: {heading: 'earnings preview'}
+  news: {heading: 'news sentiment|news'}
+  social: {heading: 'social sentiment|social'}
+  overall: {heading: 'overall alt|overall signal|overall'}
+  confidence: {heading: 'confidence'}
+
+extract:
+  overall_signal: {section: overall, values: [Bullish, Neutral, Bearish]}
+  earnings_preview:
+    section: earnings
+    values: [Tracking Above, In-Line, Below]
+    aliases: {Above: Tracking Above, Tracking In-Line: In-Line, In Line: In-Line, Inline: In-Line, Tracking Below: Below}
+  confidence_level: {section: confidence, values: [High, Medium, Low]}
+
+conviction:
+  native_rating: overall_signal
+  native_to_stance: {Bullish: BUY, Neutral: HOLD, Bearish: SELL}
+  native_conviction: confidence_level
+  domain_metrics:
+    consumer_demand_trend:
+      label: Consumer demand trend
+      section: [consumer, full]
+      evidence_terms: [Google Trends, search interest, demand, app, web traffic, downloads, visits, consumer, brand]
+      instructions: >
+        Based only on what this research report states, which way are the
+        company's consumer demand signals moving, such as search interest,
+        app downloads or web traffic?
+      criteria:
+        - "Sharply deteriorating: demand signals falling steeply or across most sources"
+        - "Softening: demand signals declining or cooling"
+        - "Flat or mixed: no clear direction, or rises and falls offset"
+        - "Improving: demand signals rising"
+        - "Strongly accelerating: demand signals rising steeply and consistently across sources"
+    business_activity:
+      label: Business activity
+      section: [business, full]
+      evidence_terms: [job posting, hiring, headcount, patent, R&D, backlog, layoff, capacity, contract, expansion]
+      instructions: >
+        Based only on what this research report states, what do the
+        company's business activity signals, such as hiring, patent filings,
+        backlog or capacity, indicate about its investment and growth?
+      criteria:
+        - "Contracting sharply: layoffs, hiring freezes or falling activity signal retrenchment"
+        - "Contracting: activity signals point to slowing investment"
+        - "Stable or mixed: no clear expansion or contraction"
+        - "Expanding: hiring, patents or capacity point to growth investment"
+        - "Expanding strongly: broad, accelerating activity across several signals"
+    digital_traction:
+      label: Digital traction
+      section: [consumer, full]
+      evidence_terms: [web traffic, site visits, app store, app ranking, downloads, Google Trends, search interest, monthly active, page views, online]
+      instructions: >
+        Based only on what this research report states, how is the company's
+        digital traction trending, meaning its web traffic, app rankings and
+        downloads, or online search interest?
+      criteria:
+        - "Collapsing: digital engagement falling steeply"
+        - "Declining: digital engagement falling"
+        - "Flat or mixed: no clear direction, or the report says digital data matters little for this company"
+        - "Growing: digital engagement rising"
+        - "Surging: digital engagement rising steeply and consistently"
+    news_sentiment:
+      label: News sentiment
+      section: [news, full]
+      evidence_terms: [sentiment, news, articles, positive, negative, tone, coverage, headline]
+      instructions: >
+        Based only on what this research report states, how favourable is the
+        recent news sentiment about the company?
+      criteria:
+        - "Strongly negative: news coverage dominated by negative stories"
+        - "Negative: negative coverage outweighs positive"
+        - "Neutral or mixed: positive and negative coverage roughly offset"
+        - "Positive: positive coverage outweighs negative"
+        - "Strongly positive: coverage overwhelmingly positive"
+    social_sentiment:
+      label: Social sentiment
+      section: [social, full]
+      evidence_terms: [Reddit, StockTwits, Twitter, social, retail, mentions, discussion, posts]
+      instructions: >
+        Based only on what this research report states, how favourable is
+        social media sentiment about the company's stock, on forums such as
+        Reddit, StockTwits or X?
+      criteria:
+        - "Strongly negative: social discussion is heavily bearish"
+        - "Negative: bearish discussion outweighs bullish"
+        - "Neutral, mixed or unavailable: no clear direction, or the report says social data was unavailable"
+        - "Positive: bullish discussion outweighs bearish"
+        - "Strongly positive: social discussion is heavily bullish"
+    earnings_preview_vs_consensus:
+      label: Earnings preview vs consensus
+      section: [earnings, full]
+      evidence_terms: [consensus, estimate, beat, miss, surprise, tracking, revision, guidance, EPS]
+      instructions: >
+        Based only on what this research report states, how are the company's
+        upcoming results tracking against consensus estimates?
+      criteria:
+        - "Clearly below: signals point to a significant miss or downward revisions"
+        - "Slightly below: signals lean toward a miss"
+        - "In line: signals point to results near consensus"
+        - "Slightly above: signals lean toward a beat"
+        - "Clearly above: signals point to a significant beat or upward revisions"
+    data_quality_recency:
+      label: Data quality and recency
+      section: [confidence, full]
+      evidence_terms: [confidence, data quality, recency, gap, unavailable, proxy, lag, coverage, limitation, noisy, timed out]
+      instructions: >
+        Based only on what this research report states, how fresh, direct and
+        reliable is the alternative data behind its conclusions?
+      criteria:
+        - "Very poor: most sources unavailable, stale or indirect; conclusions rest on little real data"
+        - "Poor: several key sources missing or replaced by weak proxies"
+        - "Fair: a mix of usable recent data and notable gaps or proxies"
+        - "Good: most sources available, recent and directly relevant, with minor gaps"
+        - "Excellent: fresh, direct, high-quality data across all the signal families"
+
+alignment:
+  deterministic_checks:
+    - {id: required_sections, kind: sections_present, sections: [consumer, business, earnings, news, social, overall, confidence], weight: 2}
+    - {id: signal_parseable, kind: extract_ok, extract: overall_signal, weight: 2, veto: true}
+    - {id: earnings_preview_parseable, kind: extract_ok, extract: earnings_preview, weight: 1}
+    - {id: confidence_parseable, kind: extract_ok, extract: confidence_level, weight: 1}
+    - id: limitations_mentioned
+      kind: min_matches
+      section: full
+      pattern: 'limitation|\blag(?:s|ged|ging)?\b|data gap|\bgaps?\b|\bproxy|proxies|unavailable|not available|caveat|low[- ]quality|noisy|timed out'
+      min: 3
+      dimension: honesty
+      weight: 1
+    - id: consumer_trend_direction
+      kind: min_matches
+      section: consumer
+      pattern: 'ris(?:e|ing)|fall(?:s|ing)|declin|increas|decreas|accelerat|decelerat|\bflat\b|stable|cool|soften|improv|deteriorat|weaken|strength|trend|\bup\b|\bdown\b|[↑↓▲▼→]|MoM|YoY|QoQ'
+      min: 2
+      dimension: compliance
+      weight: 1
+    - id: business_trend_direction
+      kind: min_matches
+      section: business
+      # Activity signals are described as expansion or contraction more often than as rising or falling.
+      pattern: 'ris(?:e|ing)|fall(?:s|ing)|declin|increas|decreas|accelerat|decelerat|\bflat\b|stable|cool|soften|improv|deteriorat|weaken|strength|trend|\bup\b|\bdown\b|[↑↓▲▼→]|MoM|YoY|QoQ|surg|expan|contract|retrench|slow|grow'
+      min: 2
+      dimension: compliance
+      weight: 1
+
+  requests:
+    - id: alt_signal_discipline
+      state: [full]
+      gate: signal_evaluable
+      questions:
+        signal_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section give an overall alternative data signal for
+            the company and a confidence level, rather than being a placeholder
+            or an error message?
+        limitations_and_lag_noted:
+          type: score
+          dimension: honesty
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst is required always to note the limitations of
+            alternative data and the lag between the data and reported results.
+            How thoroughly does the report section state those limitations, such
+            as sources that were unavailable, proxies used in place of direct
+            data, thin samples, or how far the data leads or lags results?
+          criteria:
+            - "No limitations or lag are mentioned"
+            - "A generic caveat only, such as 'alt data has limitations'"
+            - "Specific limitations are named, such as unavailable sources or proxies, but lag is not addressed"
+            - "Specific limitations and the lag or lead time of the data are both stated, with their effect on the conclusion"
+        leading_not_definitive:
+          type: noul
+          dimension: balance
+          weight: 2
+          instructions: >
+            Does the report section treat its alternative data as a leading
+            indicator that still needs confirmation from reported results,
+            rather than as definitive proof of how the company will perform?
+          criteria:
+            true: "The signal is framed as an early indication that needs confirmation"
+            false: "The signal is presented as certain proof of future results"
+        confidence_matches_data:
+          type: score
+          dimension: consistency
+          weight: 2
+          min_level: 2
+          instructions: >
+            The confidence level is meant to reflect the quality and recency of
+            the data. How well does the stated confidence level match the data
+            quality and gaps that the report section itself describes?
+          criteria:
+            - "Mismatched: high confidence is claimed despite major gaps the report describes, or low confidence despite strong data"
+            - "Loosely matched: the confidence level is not explained by the data described"
+            - "Matched: the confidence level fits the data quality described"
+            - "Matched and explained: the confidence level is justified explicitly by the data's quality, coverage and recency"
+        signal_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: overall_signal
+          order_check: true
+          instructions: >
+            What single overall alternative data signal does the report section
+            give for the stock?
+          criteria:
+            Bullish: "The overall alternative data signal is Bullish"
+            Neutral: "The overall alternative data signal is Neutral"
+            Bearish: "The overall alternative data signal is Bearish"
+            not_stated: "No overall signal from this list is given, or it is split between several of them"
+
+    - id: alt_signal_evidence
+      state: [consumer, business]
+      gate: signals_evaluable
+      questions:
+        signals_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section discuss consumer demand or business activity
+            signals for the company, such as search interest, web traffic, job
+            postings or patents, rather than being a placeholder or an error
+            message?
+        trend_direction_given:
+          type: score
+          dimension: compliance
+          weight: 3
+          min_level: 2
+          instructions: >
+            The analyst is required to give a trend direction for each signal.
+            How consistently does the report section say whether each signal it
+            discusses is rising, falling or flat, and over what period?
+          criteria:
+            - "No trend directions are given; signals are listed as levels or descriptions only"
+            - "Directions are given for a few signals; most have none"
+            - "Most signals carry a direction, but periods are rarely stated"
+            - "Every signal carries a direction and the period it covers"
+        signals_quantified:
+          type: score
+          dimension: quantification
+          weight: 2
+          min_level: 1
+          instructions: >
+            How well does the report section back its signals with figures,
+            such as a percentage change in search interest, traffic or job
+            postings, an index level, or a count of filings?
+          criteria:
+            - "No figures; signals are described in words only"
+            - "Figures for a few signals"
+            - "Figures for most signals, with a comparison period"
+        relevance_assessed:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the report section say how relevant each data source is to this
+            particular company's revenue, for example noting that consumer
+            search data says little about a company that sells to other
+            businesses?
+
+    - id: alt_earnings_and_sentiment
+      state: [earnings, news, social]
+      gate: earnings_sentiment_evaluable
+      questions:
+        earnings_sentiment_evaluable:
+          type: noul
+          dimension: evidence_gate
+          weight: 0
+          instructions: >
+            Does the report section contain an earnings preview or a news or
+            social sentiment reading for the company, rather than being a
+            placeholder or an error message?
+        preview_basis:
+          type: score
+          dimension: evidence
+          weight: 2
+          min_level: 2
+          instructions: >
+            How well does the report section ground its earnings preview in
+            evidence, such as the company's history of beating or missing
+            estimates, the direction of analyst estimate revisions, and whether
+            current alternative data is tracking above or below prior quarters?
+          criteria:
+            - "The preview is asserted with no supporting evidence"
+            - "Supported by a single generic point, such as a past beat record alone"
+            - "Supported by two or more specific points, such as surprise history and revisions"
+            - "Supported by surprise history, revisions and current alternative data, with their direction stated"
+        sentiment_window_stated:
+          type: noul
+          dimension: evidence
+          weight: 1
+          instructions: >
+            Does the news sentiment discussion state the period it covers and
+            the basis of the score, such as the number or mix of positive and
+            negative articles?
+        social_gap_honest:
+          type: noul
+          dimension: honesty
+          weight: 2
+          instructions: >
+            If social media data was unavailable or thin, does the report section
+            say so plainly rather than presenting a social sentiment reading as
+            if it were well supported? Answer yes as well if social data was
+            available and is reported with its source.
+        preview_choice:
+          type: choice
+          dimension: extraction
+          weight: 0
+          cross_check: earnings_preview
+          order_check: true
+          instructions: >
+            How does the report section say the company's upcoming results are
+            tracking against consensus estimates?
+          criteria:
+            Tracking Above: "Tracking above consensus estimates"
+            In-Line: "Tracking in line with consensus estimates"
+            Below: "Tracking below consensus estimates"
+            not_stated: "No earnings preview from this list is given, or it is split between several of them"

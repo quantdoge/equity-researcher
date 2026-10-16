@@ -19,8 +19,15 @@ dependencies = [
     "langchain>=1.0",
     "langchain-openrouter>=0.2.0",
     "langgraph>=0.2",
+    # Evaluation of agent outputs (equity_mcp/evaluation): TypeSafe Jev client + rubric schema
+    "typesafe-sdk>=0.7.4,<0.8",
+    "pydantic>=2.12",
 ]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["equity_mcp*"]
+
+# Rubrics and prompts are read at runtime; ship them with a non-editable install too.
+[tool.setuptools.package-data]
+equity_mcp = ["metrics/*.yaml", "prompts/*.md"]
