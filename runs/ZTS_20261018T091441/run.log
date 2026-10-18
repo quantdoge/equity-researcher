@@ -1,0 +1,16 @@
+2026-10-18T09:14:41  START  symbol=ZTS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T09:14:41  CONFIG sha=0f8c6c8cfb7e git=762894b gaps=0
+2026-10-18T09:16:26  DONE   geo_legal_researcher  104.5s
+2026-10-18T09:16:41  DONE   sector_researcher  120.4s
+2026-10-18T09:16:58  DONE   value_researcher  136.7s
+2026-10-18T09:17:00  DONE   macro_researcher  138.5s
+2026-10-18T09:17:29  DONE   quant_analyst  48.0s
+2026-10-18T09:17:33  DONE   fin_risk_analyst  171.3s
+2026-10-18T09:17:51  DONE   growth_researcher  189.9s
+2026-10-18T09:19:06  DONE   short_analyst  127.9s
+2026-10-18T09:19:22  DONE   alt_data_analyst  112.6s
+2026-10-18T09:19:26  DONE   esg_analyst  146.4s
+2026-10-18T09:20:12  DONE   nonfin_risk_analyst  226.0s
+2026-10-18T09:21:40  DONE   portfolio_strategist  88.0s
+2026-10-18T09:22:11  DONE   head_of_research  31.4s
+2026-10-18T09:22:11  END    elapsed=450.2s failures=none
