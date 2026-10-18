@@ -1,0 +1,17 @@
+2026-10-18T16:08:39  START  symbol=NFLX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T16:08:39  CONFIG sha=0f8c6c8cfb7e git=e5e7bc7+dirty gaps=0
+2026-10-18T16:09:49  DONE   fin_risk_analyst  68.7s
+2026-10-18T16:09:59  DONE   value_researcher  79.4s
+2026-10-18T16:10:20  DONE   growth_researcher  100.2s
+2026-10-18T16:10:22  DONE   sector_researcher  102.5s
+2026-10-18T16:10:52  DONE   quant_analyst  52.7s
+2026-10-18T16:11:08  DONE   nonfin_risk_analyst  79.2s
+2026-10-18T16:11:30  DONE   macro_researcher  170.6s
+2026-10-18T16:12:16  DONE   alt_data_analyst  83.9s
+2026-10-18T16:12:30  DONE   geo_legal_researcher  230.6s
+2026-10-18T16:12:34  DONE   esg_analyst  132.2s
+2026-10-18T16:12:51  DONE   short_analyst  151.2s
+2026-10-18T16:14:50  DONE   portfolio_strategist  119.0s
+2026-10-18T16:15:28  DONE   head_of_research  37.7s
+2026-10-18T16:15:28  END    elapsed=408.7s failures=none
+2026-10-18T16:15:38  EVAL   roles=13 calls=84 errors=0 stances=sector=HOLD,geo=HOLD,macro=SELL,value=HOLD,growth=BUY,fin=HOLD,nonfin=SELL,quant=HOLD,short=HOLD,esg=HOLD,alt=SELL,portfolio=HOLD,head=HOLD
