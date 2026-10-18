@@ -1,0 +1,16 @@
+2026-10-18T12:58:49  START  symbol=FROG agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T12:58:50  CONFIG sha=0f8c6c8cfb7e git=a1dba23 gaps=0
+2026-10-18T13:00:36  DONE   macro_researcher  106.1s
+2026-10-18T13:00:53  DONE   fin_risk_analyst  123.1s
+2026-10-18T13:01:12  DONE   sector_researcher  142.5s
+2026-10-18T13:01:28  DONE   value_researcher  158.3s
+2026-10-18T13:01:32  DONE   quant_analyst  39.0s
+2026-10-18T13:01:51  DONE   growth_researcher  181.4s
+2026-10-18T13:03:03  DONE   alt_data_analyst  90.8s
+2026-10-18T13:03:32  DONE   short_analyst  139.7s
+2026-10-18T13:03:37  DONE   geo_legal_researcher  287.0s
+2026-10-18T13:04:08  DONE   nonfin_risk_analyst  211.9s
+2026-10-18T13:04:52  DONE   esg_analyst  204.0s
+2026-10-18T13:07:33  DONE   portfolio_strategist  160.9s
+2026-10-18T13:08:13  DONE   head_of_research  40.3s
+2026-10-18T13:08:14  END    elapsed=563.8s failures=none
