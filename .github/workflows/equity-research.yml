@@ -37,14 +37,11 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - APP
-          - ZTS
-          - FICO
-          - TSCO
-          - UBER
-          - AXON
-          - ADSK
-          - ADBE
+          - BSP
+          - FROG
+          - IREN
+          - CRWV
+
 
     steps:
       - uses: actions/checkout@v4
