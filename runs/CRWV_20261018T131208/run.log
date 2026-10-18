@@ -1,0 +1,16 @@
+2026-10-18T13:12:08  START  symbol=CRWV agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T13:12:08  CONFIG sha=0f8c6c8cfb7e git=a1dba23 gaps=0
+2026-10-18T13:12:59  DONE   fin_risk_analyst  50.5s
+2026-10-18T13:13:01  DONE   sector_researcher  52.9s
+2026-10-18T13:13:59  DONE   quant_analyst  58.8s
+2026-10-18T13:14:03  DONE   value_researcher  114.9s
+2026-10-18T13:15:16  DONE   growth_researcher  188.2s
+2026-10-18T13:15:21  DONE   macro_researcher  193.0s
+2026-10-18T13:15:53  DONE   alt_data_analyst  36.2s
+2026-10-18T13:16:10  DONE   geo_legal_researcher  241.6s
+2026-10-18T13:16:34  DONE   esg_analyst  151.6s
+2026-10-18T13:16:38  DONE   nonfin_risk_analyst  219.7s
+2026-10-18T13:16:42  DONE   short_analyst  162.4s
+2026-10-18T13:17:56  DONE   portfolio_strategist  74.3s
+2026-10-18T13:19:41  DONE   head_of_research  105.0s
+2026-10-18T13:19:41  END    elapsed=453.3s failures=none
