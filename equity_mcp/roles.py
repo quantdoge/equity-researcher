@@ -70,13 +70,13 @@ ALL_ROLES: list[str] = [
 # Values are bare OpenRouter slugs; model_for_role() adds the "openrouter:"
 # provider prefix that LangChain's init_chat_model wants.
 
-DEFAULT_MODEL: str = "deepseek/deepseek-v4-flash-0731"
+DEFAULT_MODEL: str = "deepseek/deepseek-v4.1-flash-1017"
 
 # Per-agent overrides.  role string -> OpenRouter slug.  Empty by default, so
 # all 13 agents run DEFAULT_MODEL — add an entry to point one specialist at a
 # cheaper or stronger model without touching any other file.
 AGENT_MODELS: dict[str, str] = {
-    # ROLE_HEAD_OF_RESEARCH: "deepseek/deepseek-v4-pro-0813",
+    ROLE_HEAD_OF_RESEARCH: "moonshotai/kimi-k3",
 }
 
 
