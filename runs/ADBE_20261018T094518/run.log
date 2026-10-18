@@ -1,0 +1,16 @@
+2026-10-18T09:45:18  START  symbol=ADBE agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T09:45:18  CONFIG sha=0f8c6c8cfb7e git=762894b gaps=0
+2026-10-18T09:45:55  DONE   sector_researcher  36.5s
+2026-10-18T09:46:32  DONE   fin_risk_analyst  73.8s
+2026-10-18T09:46:45  DONE   geo_legal_researcher  86.3s
+2026-10-18T09:46:52  DONE   quant_analyst  19.8s
+2026-10-18T09:46:56  DONE   growth_researcher  97.8s
+2026-10-18T09:47:19  DONE   macro_researcher  121.0s
+2026-10-18T09:47:27  DONE   value_researcher  128.5s
+2026-10-18T09:48:28  DONE   esg_analyst  96.3s
+2026-10-18T09:48:54  DONE   alt_data_analyst  118.1s
+2026-10-18T09:49:23  DONE   nonfin_risk_analyst  208.7s
+2026-10-18T09:49:24  DONE   short_analyst  159.0s
+2026-10-18T09:50:50  DONE   portfolio_strategist  86.2s
+2026-10-18T09:51:37  DONE   head_of_research  47.5s
+2026-10-18T09:51:37  END    elapsed=379.2s failures=none
