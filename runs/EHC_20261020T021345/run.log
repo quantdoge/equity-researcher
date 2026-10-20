@@ -1,0 +1,16 @@
+2026-10-20T02:13:45  START  symbol=EHC agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T02:13:45  CONFIG sha=0f8c6c8cfb7e git=6684bb8 gaps=0
+2026-10-20T02:14:55  DONE   sector_researcher  69.8s
+2026-10-20T02:15:04  DONE   value_researcher  78.0s
+2026-10-20T02:15:36  DONE   growth_researcher  110.6s
+2026-10-20T02:15:53  DONE   fin_risk_analyst  126.7s
+2026-10-20T02:16:16  DONE   quant_analyst  72.0s
+2026-10-20T02:16:45  DONE   macro_researcher  179.0s
+2026-10-20T02:16:46  DONE   geo_legal_researcher  180.3s
+2026-10-20T02:16:57  DONE   nonfin_risk_analyst  121.4s
+2026-10-20T02:17:36  DONE   alt_data_analyst  80.3s
+2026-10-20T02:17:54  DONE   short_analyst  137.9s
+2026-10-20T02:18:29  DONE   esg_analyst  156.3s
+2026-10-20T02:20:34  DONE   portfolio_strategist  125.6s
+2026-10-20T02:21:06  DONE   head_of_research  32.0s
+2026-10-20T02:21:07  END    elapsed=441.1s failures=none
