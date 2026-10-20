@@ -37,17 +37,18 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - WDC
-          - SNDK
-          - TTMI
-          - DDOG
-          - SITM
-          - SE
-          - RBA
-          - CBRS
-          - EHC
-          - NRG
-          - AMZN
+          - HAS
+          - EFX
+          - RVMD
+          - TRU
+          - HUBS
+          - MRNA
+          - MMM
+          - IT
+          - TSEM
+          - GM
+          - DVA
+          - GPC
 
 
     steps:
