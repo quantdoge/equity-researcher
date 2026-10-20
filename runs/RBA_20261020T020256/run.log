@@ -1,0 +1,16 @@
+2026-10-20T02:02:56  START  symbol=RBA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T02:02:56  CONFIG sha=0f8c6c8cfb7e git=6684bb8 gaps=0
+2026-10-20T02:04:44  DONE   fin_risk_analyst  107.9s
+2026-10-20T02:05:01  DONE   sector_researcher  125.0s
+2026-10-20T02:05:11  DONE   growth_researcher  135.4s
+2026-10-20T02:05:30  DONE   value_researcher  153.7s
+2026-10-20T02:06:12  DONE   geo_legal_researcher  196.4s
+2026-10-20T02:06:43  DONE   quant_analyst  102.1s
+2026-10-20T02:06:51  DONE   macro_researcher  234.9s
+2026-10-20T02:07:19  DONE   alt_data_analyst  66.3s
+2026-10-20T02:07:43  DONE   nonfin_risk_analyst  179.4s
+2026-10-20T02:08:22  DONE   esg_analyst  172.5s
+2026-10-20T02:08:28  DONE   short_analyst  196.9s
+2026-10-20T02:10:18  DONE   portfolio_strategist  109.7s
+2026-10-20T02:11:18  DONE   head_of_research  60.3s
+2026-10-20T02:11:18  END    elapsed=502.6s failures=none
