@@ -1,0 +1,16 @@
+2026-10-20T02:04:13  START  symbol=CBRS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T02:04:13  CONFIG sha=0f8c6c8cfb7e git=6684bb8 gaps=0
+2026-10-20T02:05:34  DONE   sector_researcher  80.9s
+2026-10-20T02:06:17  DONE   fin_risk_analyst  122.7s
+2026-10-20T02:06:29  DONE   value_researcher  135.5s
+2026-10-20T02:06:48  DONE   macro_researcher  154.4s
+2026-10-20T02:06:55  DONE   geo_legal_researcher  160.8s
+2026-10-20T02:07:36  DONE   nonfin_risk_analyst  121.7s
+2026-10-20T02:07:43  DONE   growth_researcher  209.1s
+2026-10-20T02:07:53  DONE   quant_analyst  95.9s
+2026-10-20T02:08:46  DONE   esg_analyst  117.9s
+2026-10-20T02:09:01  DONE   alt_data_analyst  126.0s
+2026-10-20T02:09:13  DONE   short_analyst  163.2s
+2026-10-20T02:10:35  DONE   portfolio_strategist  82.3s
+2026-10-20T02:11:27  DONE   head_of_research  52.5s
+2026-10-20T02:11:27  END    elapsed=433.9s failures=none
