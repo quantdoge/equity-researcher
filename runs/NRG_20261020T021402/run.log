@@ -1,0 +1,16 @@
+2026-10-20T02:14:02  START  symbol=NRG agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T02:14:02  CONFIG sha=0f8c6c8cfb7e git=6684bb8 gaps=0
+2026-10-20T02:15:59  DONE   growth_researcher  116.5s
+2026-10-20T02:16:10  DONE   fin_risk_analyst  127.7s
+2026-10-20T02:16:21  DONE   sector_researcher  138.8s
+2026-10-20T02:16:36  DONE   geo_legal_researcher  153.3s
+2026-10-20T02:16:42  DONE   value_researcher  160.1s
+2026-10-20T02:16:56  DONE   macro_researcher  173.2s
+2026-10-20T02:17:47  DONE   quant_analyst  96.8s
+2026-10-20T02:17:59  DONE   alt_data_analyst  76.2s
+2026-10-20T02:18:35  DONE   nonfin_risk_analyst  155.8s
+2026-10-20T02:19:15  DONE   esg_analyst  159.1s
+2026-10-20T02:20:02  DONE   short_analyst  221.1s
+2026-10-20T02:21:39  DONE   portfolio_strategist  96.9s
+2026-10-20T02:22:30  DONE   head_of_research  51.4s
+2026-10-20T02:22:30  END    elapsed=508.2s failures=none
