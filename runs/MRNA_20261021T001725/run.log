@@ -1,0 +1,16 @@
+2026-10-21T00:17:25  START  symbol=MRNA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-21T00:17:26  CONFIG sha=0f8c6c8cfb7e git=af41ca6 gaps=0
+2026-10-21T00:18:47  DONE   fin_risk_analyst  81.3s
+2026-10-21T00:18:56  DONE   geo_legal_researcher  90.3s
+2026-10-21T00:18:58  DONE   sector_researcher  92.8s
+2026-10-21T00:19:13  DONE   growth_researcher  107.1s
+2026-10-21T00:19:26  DONE   value_researcher  120.2s
+2026-10-21T00:19:58  DONE   macro_researcher  151.9s
+2026-10-21T00:20:46  DONE   quant_analyst  109.8s
+2026-10-21T00:21:04  DONE   esg_analyst  110.7s
+2026-10-21T00:21:24  DONE   short_analyst  145.6s
+2026-10-21T00:22:19  DONE   nonfin_risk_analyst  211.8s
+2026-10-21T00:23:03  DONE   alt_data_analyst  217.4s
+2026-10-21T00:24:54  DONE   portfolio_strategist  110.8s
+2026-10-21T00:26:02  DONE   head_of_research  67.2s
+2026-10-21T00:26:02  END    elapsed=515.8s failures=none
