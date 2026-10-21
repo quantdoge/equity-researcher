@@ -1,0 +1,16 @@
+2026-10-21T00:28:17  START  symbol=IT agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-21T00:28:17  CONFIG sha=0f8c6c8cfb7e git=af41ca6 gaps=0
+2026-10-21T00:30:11  DONE   value_researcher  113.8s
+2026-10-21T00:30:41  DONE   fin_risk_analyst  143.5s
+2026-10-21T00:30:53  DONE   growth_researcher  154.9s
+2026-10-21T00:31:02  DONE   macro_researcher  164.3s
+2026-10-21T00:31:30  DONE   geo_legal_researcher  193.0s
+2026-10-21T00:31:34  DONE   sector_researcher  196.8s
+2026-10-21T00:31:36  DONE   nonfin_risk_analyst  85.0s
+2026-10-21T00:32:35  DONE   esg_analyst  92.7s
+2026-10-21T00:32:39  DONE   alt_data_analyst  68.4s
+2026-10-21T00:33:15  DONE   quant_analyst  153.3s
+2026-10-21T00:33:43  DONE   short_analyst  170.3s
+2026-10-21T00:35:33  DONE   portfolio_strategist  110.6s
+2026-10-21T00:35:56  DONE   head_of_research  22.3s
+2026-10-21T00:35:56  END    elapsed=458.3s failures=none
