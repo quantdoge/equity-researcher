@@ -1,0 +1,16 @@
+2026-10-21T00:17:10  START  symbol=HUBS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-21T00:17:10  CONFIG sha=0f8c6c8cfb7e git=af41ca6 gaps=0
+2026-10-21T00:18:25  DONE   sector_researcher  75.2s
+2026-10-21T00:18:39  DONE   geo_legal_researcher  88.6s
+2026-10-21T00:18:40  DONE   growth_researcher  90.4s
+2026-10-21T00:19:07  DONE   macro_researcher  117.4s
+2026-10-21T00:19:25  DONE   fin_risk_analyst  135.4s
+2026-10-21T00:19:34  DONE   value_researcher  143.7s
+2026-10-21T00:19:50  DONE   quant_analyst  71.8s
+2026-10-21T00:20:21  DONE   esg_analyst  73.2s
+2026-10-21T00:20:26  DONE   short_analyst  105.9s
+2026-10-21T00:20:41  DONE   alt_data_analyst  75.2s
+2026-10-21T00:20:57  DONE   nonfin_risk_analyst  152.0s
+2026-10-21T00:22:34  DONE   portfolio_strategist  96.8s
+2026-10-21T00:23:33  DONE   head_of_research  59.2s
+2026-10-21T00:23:33  END    elapsed=383.2s failures=none
