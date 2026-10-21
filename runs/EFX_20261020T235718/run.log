@@ -1,0 +1,16 @@
+2026-10-20T23:57:18  START  symbol=EFX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T23:57:19  CONFIG sha=0f8c6c8cfb7e git=af41ca6 gaps=0
+2026-10-20T23:58:37  DONE   fin_risk_analyst  77.8s
+2026-10-20T23:58:50  DONE   sector_researcher  91.4s
+2026-10-20T23:59:00  DONE   macro_researcher  101.3s
+2026-10-21T00:00:06  DONE   growth_researcher  167.2s
+2026-10-21T00:00:12  DONE   value_researcher  172.5s
+2026-10-21T00:00:54  DONE   quant_analyst  123.9s
+2026-10-21T00:01:05  DONE   geo_legal_researcher  226.5s
+2026-10-21T00:01:10  DONE   nonfin_risk_analyst  153.3s
+2026-10-21T00:01:41  DONE   short_analyst  160.5s
+2026-10-21T00:01:49  DONE   alt_data_analyst  97.7s
+2026-10-21T00:02:55  DONE   esg_analyst  168.7s
+2026-10-21T00:04:37  DONE   portfolio_strategist  102.5s
+2026-10-21T00:05:05  DONE   head_of_research  27.8s
+2026-10-21T00:05:05  END    elapsed=466.4s failures=none
