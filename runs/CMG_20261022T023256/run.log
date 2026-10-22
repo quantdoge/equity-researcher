@@ -1,0 +1,16 @@
+2026-10-22T02:32:56  START  symbol=CMG agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-22T02:32:57  CONFIG sha=0f8c6c8cfb7e git=5d20205 gaps=0
+2026-10-22T02:38:41  DONE   geo_legal_researcher  343.7s
+2026-10-22T02:38:44  DONE   macro_researcher  347.4s
+2026-10-22T02:41:00  DONE   growth_researcher  482.8s
+2026-10-22T02:42:51  DONE   fin_risk_analyst  593.5s
+2026-10-22T02:43:21  DONE   quant_analyst  276.5s
+2026-10-22T02:43:41  DONE   alt_data_analyst  20.1s
+2026-10-22T02:45:14  DONE   sector_researcher  737.6s
+2026-10-22T02:45:27  FAIL   value_researcher  750.1s  TimeoutError: 
+2026-10-22T02:51:11  FAIL   nonfin_risk_analyst  750.1s  TimeoutError: 
+2026-10-22T02:53:02  DONE   short_analyst  722.2s
+2026-10-22T02:55:21  FAIL   esg_analyst  750.1s  TimeoutError: 
+2026-10-22T03:02:01  DONE   portfolio_strategist  400.6s
+2026-10-22T03:02:40  DONE   head_of_research  38.8s
+2026-10-22T03:02:40  END    elapsed=1783.3s failures=value_researcher,nonfin_risk_analyst,esg_analyst
