@@ -1,0 +1,16 @@
+2026-10-22T02:43:10  START  symbol=EXPE agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-22T02:43:11  CONFIG sha=0f8c6c8cfb7e git=5d20205 gaps=0
+2026-10-22T02:43:46  DONE   geo_legal_researcher  35.2s
+2026-10-22T02:49:51  DONE   macro_researcher  400.0s
+2026-10-22T02:50:12  DONE   fin_risk_analyst  420.9s
+2026-10-22T02:50:39  DONE   sector_researcher  448.6s
+2026-10-22T02:51:36  DONE   nonfin_risk_analyst  470.6s
+2026-10-22T02:51:53  DONE   alt_data_analyst  16.2s
+2026-10-22T02:52:53  DONE   quant_analyst  182.3s
+2026-10-22T02:54:14  DONE   growth_researcher  663.3s
+2026-10-22T02:55:41  FAIL   value_researcher  750.0s  TimeoutError: 
+2026-10-22T02:58:49  DONE   esg_analyst  490.3s
+2026-10-22T03:01:30  DONE   short_analyst  678.5s
+2026-10-22T03:07:12  DONE   portfolio_strategist  341.3s
+2026-10-22T03:07:47  DONE   head_of_research  35.0s
+2026-10-22T03:07:47  END    elapsed=1476.0s failures=value_researcher
