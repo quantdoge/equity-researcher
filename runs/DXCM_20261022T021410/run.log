@@ -1,0 +1,16 @@
+2026-10-22T02:14:10  START  symbol=DXCM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-22T02:14:11  CONFIG sha=0f8c6c8cfb7e git=5d20205 gaps=0
+2026-10-22T02:19:43  DONE   sector_researcher  332.4s
+2026-10-22T02:21:37  DONE   value_researcher  445.9s
+2026-10-22T02:22:26  DONE   macro_researcher  495.0s
+2026-10-22T02:23:16  DONE   quant_analyst  98.8s
+2026-10-22T02:24:10  DONE   geo_legal_researcher  599.4s
+2026-10-22T02:24:14  DONE   growth_researcher  603.4s
+2026-10-22T02:24:28  DONE   alt_data_analyst  17.6s
+2026-10-22T02:25:22  DONE   fin_risk_analyst  671.1s
+2026-10-22T02:26:10  DONE   nonfin_risk_analyst  386.8s
+2026-10-22T02:29:19  DONE   esg_analyst  363.4s
+2026-10-22T02:34:56  FAIL   short_analyst  750.1s  TimeoutError: 
+2026-10-22T02:40:39  DONE   portfolio_strategist  343.0s
+2026-10-22T02:40:56  DONE   head_of_research  17.5s
+2026-10-22T02:40:56  END    elapsed=1605.7s failures=short_analyst
