@@ -1,0 +1,16 @@
+2026-10-18T09:24:23  START  symbol=FICO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T09:24:24  CONFIG sha=0f8c6c8cfb7e git=762894b gaps=0
+2026-10-18T09:25:19  DONE   macro_researcher  54.7s
+2026-10-18T09:25:22  DONE   geo_legal_researcher  58.0s
+2026-10-18T09:26:14  DONE   sector_researcher  110.3s
+2026-10-18T09:26:15  DONE   quant_analyst  53.7s
+2026-10-18T09:27:18  DONE   value_researcher  174.4s
+2026-10-18T09:27:25  DONE   fin_risk_analyst  180.5s
+2026-10-18T09:28:18  DONE   growth_researcher  233.6s
+2026-10-18T09:28:27  DONE   alt_data_analyst  68.6s
+2026-10-18T09:29:25  DONE   nonfin_risk_analyst  246.5s
+2026-10-18T09:29:27  DONE   short_analyst  192.8s
+2026-10-18T09:30:01  DONE   esg_analyst  225.2s
+2026-10-18T09:31:38  DONE   portfolio_strategist  97.6s
+2026-10-18T09:32:10  DONE   head_of_research  31.5s
+2026-10-18T09:32:10  END    elapsed=466.1s failures=none

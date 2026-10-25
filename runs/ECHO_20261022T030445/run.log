@@ -1,0 +1,16 @@
+2026-10-22T03:04:45  START  symbol=ECHO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-22T03:04:46  CONFIG sha=0f8c6c8cfb7e git=5d20205 gaps=0
+2026-10-22T03:09:18  DONE   geo_legal_researcher  271.8s
+2026-10-22T03:11:28  DONE   macro_researcher  401.9s
+2026-10-22T03:12:55  DONE   fin_risk_analyst  489.4s
+2026-10-22T03:13:17  DONE   growth_researcher  511.0s
+2026-10-22T03:15:09  DONE   value_researcher  622.6s
+2026-10-22T03:15:19  DONE   sector_researcher  633.7s
+2026-10-22T03:15:30  DONE   alt_data_analyst  21.0s
+2026-10-22T03:19:07  DONE   quant_analyst  458.7s
+2026-10-22T03:21:48  FAIL   nonfin_risk_analyst  750.0s  TimeoutError: 
+2026-10-22T03:23:32  DONE   esg_analyst  615.1s
+2026-10-22T03:25:26  FAIL   short_analyst  750.0s  TimeoutError: 
+2026-10-22T03:28:24  DONE   portfolio_strategist  178.4s
+2026-10-22T03:29:47  DONE   head_of_research  83.0s
+2026-10-22T03:29:47  END    elapsed=1501.2s failures=nonfin_risk_analyst,short_analyst

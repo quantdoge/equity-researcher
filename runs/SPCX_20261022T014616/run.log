@@ -1,0 +1,16 @@
+2026-10-22T01:46:16  START  symbol=SPCX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-22T01:46:16  CONFIG sha=0f8c6c8cfb7e git=5d20205 gaps=0
+2026-10-22T01:52:25  DONE   geo_legal_researcher  368.9s
+2026-10-22T01:52:47  DONE   macro_researcher  390.9s
+2026-10-22T01:53:45  DONE   value_researcher  448.7s
+2026-10-22T01:53:54  DONE   sector_researcher  457.3s
+2026-10-22T01:54:15  DONE   fin_risk_analyst  478.6s
+2026-10-22T01:54:41  DONE   alt_data_analyst  25.7s
+2026-10-22T01:57:19  DONE   growth_researcher  662.3s
+2026-10-22T01:57:45  DONE   quant_analyst  297.5s
+2026-10-22T01:58:37  DONE   esg_analyst  283.4s
+2026-10-22T02:00:12  DONE   nonfin_risk_analyst  466.4s
+2026-10-22T02:06:15  FAIL   short_analyst  750.1s  TimeoutError: 
+2026-10-22T02:11:10  DONE   portfolio_strategist  294.6s
+2026-10-22T02:11:49  DONE   head_of_research  38.6s
+2026-10-22T02:11:49  END    elapsed=1532.2s failures=short_analyst

@@ -1,0 +1,16 @@
+2026-10-21T00:26:01  START  symbol=MMM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-21T00:26:01  CONFIG sha=0f8c6c8cfb7e git=af41ca6 gaps=0
+2026-10-21T00:26:58  DONE   sector_researcher  56.5s
+2026-10-21T00:27:26  DONE   fin_risk_analyst  84.7s
+2026-10-21T00:27:54  DONE   value_researcher  112.3s
+2026-10-21T00:28:08  DONE   growth_researcher  126.7s
+2026-10-21T00:28:16  DONE   macro_researcher  134.7s
+2026-10-21T00:28:33  DONE   nonfin_risk_analyst  95.0s
+2026-10-21T00:28:44  DONE   quant_analyst  77.8s
+2026-10-21T00:29:55  DONE   geo_legal_researcher  234.4s
+2026-10-21T00:30:36  DONE   short_analyst  162.4s
+2026-10-21T00:31:17  DONE   alt_data_analyst  181.0s
+2026-10-21T00:32:09  DONE   esg_analyst  241.4s
+2026-10-21T00:34:36  DONE   portfolio_strategist  146.8s
+2026-10-21T00:35:03  DONE   head_of_research  27.2s
+2026-10-21T00:35:04  END    elapsed=542.5s failures=none

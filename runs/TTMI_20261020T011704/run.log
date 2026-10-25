@@ -1,0 +1,16 @@
+2026-10-20T01:17:04  START  symbol=TTMI agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T01:17:04  CONFIG sha=0f8c6c8cfb7e git=6684bb8 gaps=0
+2026-10-20T01:19:17  DONE   sector_researcher  133.2s
+2026-10-20T01:20:17  DONE   macro_researcher  192.9s
+2026-10-20T01:22:07  DONE   quant_analyst  110.3s
+2026-10-20T01:22:15  DONE   fin_risk_analyst  311.1s
+2026-10-20T01:22:33  DONE   geo_legal_researcher  329.1s
+2026-10-20T01:22:47  DONE   nonfin_risk_analyst  210.2s
+2026-10-20T01:24:11  DONE   value_researcher  427.0s
+2026-10-20T01:25:11  DONE   alt_data_analyst  157.6s
+2026-10-20T01:25:44  DONE   growth_researcher  519.7s
+2026-10-20T01:29:00  DONE   esg_analyst  404.7s
+2026-10-20T01:31:57  DONE   short_analyst  589.6s
+2026-10-20T01:37:40  DONE   portfolio_strategist  342.9s
+2026-10-20T01:38:35  DONE   head_of_research  55.0s
+2026-10-20T01:38:35  END    elapsed=1291.0s failures=none

@@ -1,0 +1,16 @@
+2026-10-20T00:55:44  START  symbol=WDC agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T00:55:44  CONFIG sha=0f8c6c8cfb7e git=6684bb8 gaps=0
+2026-10-20T00:59:08  DONE   fin_risk_analyst  203.2s
+2026-10-20T01:01:48  DONE   sector_researcher  364.3s
+2026-10-20T01:02:04  DONE   macro_researcher  379.5s
+2026-10-20T01:02:34  DONE   growth_researcher  409.2s
+2026-10-20T01:04:30  DONE   quant_analyst  161.3s
+2026-10-20T01:05:17  DONE   geo_legal_researcher  572.9s
+2026-10-20T01:05:26  DONE   nonfin_risk_analyst  378.3s
+2026-10-20T01:06:01  DONE   value_researcher  616.5s
+2026-10-20T01:08:02  DONE   short_analyst  358.0s
+2026-10-20T01:09:24  DONE   alt_data_analyst  294.7s
+2026-10-20T01:10:15  DONE   esg_analyst  461.7s
+2026-10-20T01:14:12  DONE   portfolio_strategist  236.7s
+2026-10-20T01:14:53  DONE   head_of_research  41.4s
+2026-10-20T01:14:53  END    elapsed=1149.2s failures=none

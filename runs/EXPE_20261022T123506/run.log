@@ -1,0 +1,16 @@
+2026-10-22T12:35:06  START  symbol=EXPE agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-22T12:35:07  CONFIG sha=0f8c6c8cfb7e git=bb54ad2 gaps=0
+2026-10-22T12:37:15  DONE   fin_risk_analyst  127.5s
+2026-10-22T12:38:50  DONE   geo_legal_researcher  223.6s
+2026-10-22T12:38:57  DONE   macro_researcher  230.1s
+2026-10-22T12:39:40  DONE   sector_researcher  273.6s
+2026-10-22T12:40:21  DONE   growth_researcher  313.9s
+2026-10-22T12:40:42  DONE   alt_data_analyst  20.9s
+2026-10-22T12:40:59  DONE   value_researcher  352.0s
+2026-10-22T12:41:20  DONE   nonfin_risk_analyst  245.7s
+2026-10-22T12:41:51  DONE   quant_analyst  180.2s
+2026-10-22T12:45:10  DONE   esg_analyst  329.4s
+2026-10-22T12:48:01  DONE   short_analyst  543.8s
+2026-10-22T12:51:58  DONE   portfolio_strategist  237.4s
+2026-10-22T12:52:00  FAIL   head_of_research  1.9s  TooManyRequestsResponseError: OpenRouter could not verify available credits for this request in time. Retry shortly.
+2026-10-22T12:52:00  END    elapsed=1013.3s failures=head_of_research

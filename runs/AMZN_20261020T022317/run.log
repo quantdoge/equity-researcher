@@ -1,0 +1,16 @@
+2026-10-20T02:23:17  START  symbol=AMZN agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-20T02:23:17  CONFIG sha=0f8c6c8cfb7e git=6684bb8 gaps=0
+2026-10-20T02:25:09  DONE   macro_researcher  111.2s
+2026-10-20T02:25:25  DONE   growth_researcher  126.7s
+2026-10-20T02:25:47  DONE   geo_legal_researcher  149.3s
+2026-10-20T02:25:49  DONE   sector_researcher  151.2s
+2026-10-20T02:25:50  DONE   value_researcher  152.6s
+2026-10-20T02:26:10  DONE   fin_risk_analyst  171.9s
+2026-10-20T02:26:21  DONE   quant_analyst  56.8s
+2026-10-20T02:28:39  DONE   short_analyst  172.0s
+2026-10-20T02:28:41  DONE   esg_analyst  172.4s
+2026-10-20T02:29:16  DONE   nonfin_risk_analyst  247.6s
+2026-10-20T02:29:32  DONE   alt_data_analyst  222.1s
+2026-10-20T02:31:39  DONE   portfolio_strategist  126.3s
+2026-10-20T02:32:12  DONE   head_of_research  33.4s
+2026-10-20T02:32:12  END    elapsed=534.7s failures=none

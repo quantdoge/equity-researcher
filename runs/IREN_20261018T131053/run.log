@@ -1,0 +1,16 @@
+2026-10-18T13:10:53  START  symbol=IREN agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T13:10:53  CONFIG sha=0f8c6c8cfb7e git=a1dba23 gaps=0
+2026-10-18T13:11:29  DONE   sector_researcher  35.9s
+2026-10-18T13:13:05  DONE   fin_risk_analyst  131.6s
+2026-10-18T13:13:31  DONE   macro_researcher  157.7s
+2026-10-18T13:13:44  DONE   quant_analyst  38.3s
+2026-10-18T13:14:10  DONE   geo_legal_researcher  196.1s
+2026-10-18T13:14:26  DONE   growth_researcher  212.0s
+2026-10-18T13:14:41  DONE   value_researcher  227.3s
+2026-10-18T13:15:30  DONE   short_analyst  118.2s
+2026-10-18T13:15:32  DONE   alt_data_analyst  82.4s
+2026-10-18T13:15:50  DONE   nonfin_risk_analyst  261.1s
+2026-10-18T13:16:17  DONE   esg_analyst  153.3s
+2026-10-18T13:18:01  DONE   portfolio_strategist  103.9s
+2026-10-18T13:22:08  DONE   head_of_research  247.5s
+2026-10-18T13:22:08  END    elapsed=675.1s failures=none

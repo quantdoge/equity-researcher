@@ -1,0 +1,16 @@
+2026-10-18T09:14:29  START  symbol=APP agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-18T09:14:29  CONFIG sha=0f8c6c8cfb7e git=762894b gaps=0
+2026-10-18T09:15:07  DONE   sector_researcher  37.8s
+2026-10-18T09:15:37  DONE   macro_researcher  68.0s
+2026-10-18T09:15:39  DONE   geo_legal_researcher  69.8s
+2026-10-18T09:16:31  DONE   nonfin_risk_analyst  84.6s
+2026-10-18T09:16:35  DONE   value_researcher  126.1s
+2026-10-18T09:16:47  DONE   growth_researcher  137.8s
+2026-10-18T09:17:14  DONE   alt_data_analyst  39.0s
+2026-10-18T09:17:25  DONE   quant_analyst  107.5s
+2026-10-18T09:18:01  DONE   fin_risk_analyst  211.3s
+2026-10-18T09:19:23  DONE   esg_analyst  171.3s
+2026-10-18T09:19:35  DONE   short_analyst  236.4s
+2026-10-18T09:21:05  DONE   portfolio_strategist  89.2s
+2026-10-18T09:21:56  DONE   head_of_research  51.7s
+2026-10-18T09:21:56  END    elapsed=447.3s failures=none
