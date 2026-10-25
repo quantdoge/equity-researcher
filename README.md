@@ -99,7 +99,7 @@ pip install -e .
 # 2. Configure environment
 cp .env.example .env
 # Required:    OPENROUTER_API_KEY, FMP_API_KEY
-# Recommended: FRED_API_KEY, SEC_USER_AGENT, BRAVE_API_KEY (or SERP_API_KEY)
+# Recommended: FRED_API_KEY, SEC_USER_AGENT, SERPER_DEV_API_KEY (falls back to SERP_API_KEY, then BRAVE_API_KEY)
 # Legacy only: ANTHROPIC_API_KEY   (--legacy pipeline)
 # Evaluation:  TYPESAFE_API_KEY, JEV_MODEL, SUPABASE_EVAL_DB_URL   (see "Evaluating research output")
 ```

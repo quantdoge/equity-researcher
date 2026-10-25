@@ -1,26 +1,32 @@
 """
 Web search and page fetch tools.
 
-Providers are tried in order of how much we trust them: Brave when
-BRAVE_API_KEY is set, then SerpAPI when SERP_API_KEY is set, then a basic
-DuckDuckGo HTML scrape so the tool remains nominally usable without any key.
+Providers are tried cheapest first, and each keyed provider falls through to
+the next when it fails: Serper.dev (SERPER_DEV_API_KEY), then SerpAPI
+(SERP_API_KEY), then Brave (BRAVE_API_KEY). "Fails" means it raised or
+returned no results. Providers without a key are skipped.
 
-The DuckDuckGo leg is a genuine last resort, not a supported path — DDG blocks
-and rate-limits the scrape, so it returns nothing or times out as often as not.
-Treat a run with neither key set as having no web search at all.
+With no key set at all, a basic DuckDuckGo HTML scrape keeps the tool
+nominally usable. That leg is a genuine last resort, not a supported path —
+DDG blocks and rate-limits the scrape, so it returns nothing or times out as
+often as not. Treat a run with no key set as having no web search at all.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import textwrap
 
 import requests
 
+log = logging.getLogger(__name__)
+
 _TIMEOUT = 60
-_BRAVE_SEARCH_URL = "https://api.search.brave.com/res/v1/web/search"
+_SERPER_SEARCH_URL = "https://google.serper.dev/search"
 _SERP_SEARCH_URL = "https://serpapi.com/search"
+_BRAVE_SEARCH_URL = "https://api.search.brave.com/res/v1/web/search"
 
 
 def web_search(query: str, n_results: int = 8) -> list[dict]:
@@ -28,15 +34,32 @@ def web_search(query: str, n_results: int = 8) -> list[dict]:
     Search the web for query and return up to n_results results.
     Each result contains: title, url, description.
     """
-    brave_key = os.getenv("BRAVE_API_KEY")
-    if brave_key:
-        return _brave_search(query, n_results, brave_key)
+    providers = [
+        ("serper", "SERPER_DEV_API_KEY", _serper_search),
+        ("serpapi", "SERP_API_KEY", _serp_search),
+        ("brave", "BRAVE_API_KEY", _brave_search),
+    ]
+    keyed = [(name, fn, key) for name, var, fn in providers if (key := os.getenv(var))]
+    if not keyed:
+        return _ddg_search(query, n_results)
 
-    serp_key = os.getenv("SERP_API_KEY")
-    if serp_key:
-        return _serp_search(query, n_results, serp_key)
+    # An empty result falls through too: one extra query on the rare search
+    # the cheap provider can't answer beats handing an agent "no results".
+    errors = []
+    for name, fn, key in keyed:
+        try:
+            results = fn(query, n_results, key)
+        except Exception as exc:
+            errors.append(f"{name}: {exc}")
+            log.warning("web_search: %s failed (%s), trying next provider", name, exc)
+            continue
+        if results:
+            return results
+        log.warning("web_search: %s returned no results, trying next provider", name)
 
-    return _ddg_search(query, n_results)
+    if errors:
+        raise RuntimeError("all web search providers failed: " + "; ".join(errors))
+    return []
 
 
 def fetch_page(url: str, max_chars: int = 8000) -> dict:
@@ -62,6 +85,26 @@ def fetch_page(url: str, max_chars: int = 8000) -> dict:
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
+
+
+def _serper_search(query: str, n: int, api_key: str) -> list[dict]:
+    headers = {"X-API-KEY": api_key, "Content-Type": "application/json"}
+    payload = {"q": query, "num": min(n, 20), "gl": "us", "hl": "en"}
+    # An exhausted credit balance or a bad key comes back as a 4xx, so
+    # raise_for_status is enough to hand off to the next provider.
+    resp = requests.post(_SERPER_SEARCH_URL, headers=headers, json=payload, timeout=_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+    results = []
+    for item in data.get("organic", [])[:n]:
+        results.append(
+            {
+                "title": item.get("title", ""),
+                "url": item.get("link", ""),
+                "description": item.get("snippet", ""),
+            }
+        )
+    return results
 
 
 def _brave_search(query: str, n: int, api_key: str) -> list[dict]:
@@ -99,6 +142,9 @@ def _serp_search(query: str, n: int, api_key: str) -> list[dict]:
 
     # SerpAPI reports an exhausted quota or a malformed query as HTTP 200 with
     # an "error" key and no organic_results, so raise_for_status never sees it.
+    # Raise it here so the caller records why, rather than seeing "no results".
+    if data.get("error"):
+        raise RuntimeError(f"SerpAPI error: {data['error']}")
     results = []
     for item in data.get("organic_results", [])[:n]:
         results.append(
