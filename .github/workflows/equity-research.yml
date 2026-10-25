@@ -71,6 +71,7 @@ jobs:
           OPENROUTER_API_KEY:   ${{ secrets.OPENROUTER_API_KEY }}
           FMP_API_KEY:          ${{ secrets.FMP_API_KEY }}
           ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          SERPER_DEV_API_KEY:   ${{ secrets.SERPER_DEV_API_KEY }}
           BRAVE_API_KEY:        ${{ secrets.BRAVE_API_KEY }}
           SERP_API_KEY:         ${{ secrets.SERP_API_KEY }}
           FRED_API_KEY:         ${{ secrets.FRED_API_KEY }}
@@ -82,7 +83,7 @@ jobs:
         run: |
           # A secret that isn't set arrives as "". Unset it so code that falls
           # back to a default (e.g. SEC_USER_AGENT) gets the default, not "".
-          for v in ANTHROPIC_API_KEY BRAVE_API_KEY SERP_API_KEY FRED_API_KEY \
+          for v in ANTHROPIC_API_KEY SERPER_DEV_API_KEY BRAVE_API_KEY SERP_API_KEY FRED_API_KEY \
                    SEC_USER_AGENT OPENROUTER_APP_URL OPENROUTER_APP_TITLE DATABASE_URL; do
             [ -z "${!v}" ] && unset "$v"
           done

@@ -428,8 +428,9 @@ Rules:
 | FRED | `FRED_API_KEY` | Recommended | Free at fred.stlouisfed.org |
 | SEC EDGAR | `SEC_USER_AGENT` | Recommended | No key; just set a user-agent |
 | FMP | `FMP_API_KEY` | Yes | **All 12 `db.py` tools**, plus every tool in `tools/external/news.py` |
-| Brave Search | `BRAVE_API_KEY` | One of these two | Preferred `web_search` provider |
-| SerpAPI | `SERP_API_KEY` | One of these two | Used when Brave is unset |
+| Serper.dev | `SERPER_DEV_API_KEY` | At least one of these three | Preferred `web_search` provider (cheapest) |
+| SerpAPI | `SERP_API_KEY` | At least one of these three | Fallback when Serper fails or returns nothing |
+| Brave Search | `BRAVE_API_KEY` | At least one of these three | Third fallback |
 | TypeSafe Jev | `TYPESAFE_API_KEY`, `JEV_MODEL` | Evaluation only | Scores agent outputs; `equity_mcp/evaluation/jev.py` |
 | Supabase (eval project) | `SUPABASE_EVAL_DB_URL` | Evaluation only | Separate project, session-pooler URL, `eval_writer` role; unset → `evals/results/` |
 
