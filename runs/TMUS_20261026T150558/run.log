@@ -1,0 +1,16 @@
+2026-10-26T15:05:58  START  symbol=TMUS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-26T15:05:58  CONFIG sha=dc1a65624670 git=c6a441c gaps=0
+2026-10-26T15:06:17  DONE   fin_risk_analyst  19.1s
+2026-10-26T15:08:13  DONE   growth_researcher  134.5s
+2026-10-26T15:09:08  DONE   macro_researcher  189.4s
+2026-10-26T15:09:12  DONE   geo_legal_researcher  193.6s
+2026-10-26T15:09:49  DONE   value_researcher  230.9s
+2026-10-26T15:10:04  DONE   nonfin_risk_analyst  226.3s
+2026-10-26T15:10:06  DONE   sector_researcher  248.0s
+2026-10-26T15:10:07  DONE   alt_data_analyst  17.9s
+2026-10-26T15:10:23  DONE   quant_analyst  130.7s
+2026-10-26T15:12:29  DONE   esg_analyst  197.1s
+2026-10-26T15:13:18  DONE   short_analyst  250.7s
+2026-10-26T15:15:39  DONE   portfolio_strategist  140.7s
+2026-10-26T15:16:20  DONE   head_of_research  41.1s
+2026-10-26T15:16:20  END    elapsed=622.1s failures=none
