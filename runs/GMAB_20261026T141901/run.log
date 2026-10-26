@@ -1,0 +1,16 @@
+2026-10-26T14:19:01  START  symbol=GMAB agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-26T14:19:02  CONFIG sha=dc1a65624670 git=c6a441c gaps=0
+2026-10-26T14:20:05  DONE   sector_researcher  63.7s
+2026-10-26T14:20:16  DONE   fin_risk_analyst  73.9s
+2026-10-26T14:20:31  DONE   geo_legal_researcher  89.8s
+2026-10-26T14:20:38  DONE   growth_researcher  96.1s
+2026-10-26T14:20:42  DONE   macro_researcher  99.8s
+2026-10-26T14:20:48  DONE   nonfin_risk_analyst  42.4s
+2026-10-26T14:20:48  DONE   quant_analyst  32.4s
+2026-10-26T14:21:04  DONE   value_researcher  121.8s
+2026-10-26T14:21:56  DONE   alt_data_analyst  74.7s
+2026-10-26T14:22:12  DONE   short_analyst  100.5s
+2026-10-26T14:22:40  DONE   esg_analyst  121.5s
+2026-10-26T14:23:31  DONE   portfolio_strategist  51.1s
+2026-10-26T14:23:49  DONE   head_of_research  18.8s
+2026-10-26T14:23:49  END    elapsed=287.9s failures=none
