@@ -1,0 +1,16 @@
+2026-10-26T14:52:03  START  symbol=NBIS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-26T14:52:03  CONFIG sha=dc1a65624670 git=c6a441c gaps=0
+2026-10-26T14:52:22  DONE   fin_risk_analyst  18.5s
+2026-10-26T14:54:35  DONE   sector_researcher  151.8s
+2026-10-26T14:54:41  DONE   growth_researcher  157.4s
+2026-10-26T14:54:55  DONE   geo_legal_researcher  171.2s
+2026-10-26T14:55:25  DONE   nonfin_risk_analyst  182.5s
+2026-10-26T14:55:47  DONE   alt_data_analyst  22.1s
+2026-10-26T14:56:01  DONE   macro_researcher  237.2s
+2026-10-26T14:56:01  DONE   quant_analyst  85.7s
+2026-10-26T14:56:42  DONE   value_researcher  278.2s
+2026-10-26T14:58:27  DONE   esg_analyst  212.3s
+2026-10-26T14:59:53  DONE   short_analyst  312.4s
+2026-10-26T15:02:58  DONE   portfolio_strategist  184.8s
+2026-10-26T15:05:00  DONE   head_of_research  121.8s
+2026-10-26T15:05:00  END    elapsed=776.9s failures=none
