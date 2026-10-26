@@ -1,0 +1,16 @@
+2026-10-26T14:32:53  START  symbol=SSNC agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-26T14:32:53  CONFIG sha=dc1a65624670 git=c6a441c gaps=0
+2026-10-26T14:34:22  DONE   growth_researcher  88.9s
+2026-10-26T14:34:22  DONE   geo_legal_researcher  89.3s
+2026-10-26T14:34:44  DONE   value_researcher  110.8s
+2026-10-26T14:34:44  DONE   sector_researcher  111.1s
+2026-10-26T14:34:45  DONE   quant_analyst  22.4s
+2026-10-26T14:34:48  DONE   fin_risk_analyst  114.6s
+2026-10-26T14:35:24  DONE   macro_researcher  151.4s
+2026-10-26T14:35:48  DONE   nonfin_risk_analyst  86.1s
+2026-10-26T14:36:13  DONE   short_analyst  89.2s
+2026-10-26T14:36:16  DONE   alt_data_analyst  91.1s
+2026-10-26T14:36:29  DONE   esg_analyst  105.5s
+2026-10-26T14:37:37  DONE   portfolio_strategist  67.9s
+2026-10-26T14:38:03  DONE   head_of_research  25.3s
+2026-10-26T14:38:03  END    elapsed=309.8s failures=none
