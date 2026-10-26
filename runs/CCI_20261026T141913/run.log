@@ -1,0 +1,16 @@
+2026-10-26T14:19:13  START  symbol=CCI agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-26T14:19:13  CONFIG sha=dc1a65624670 git=c6a441c gaps=0
+2026-10-26T14:20:06  DONE   sector_researcher  52.7s
+2026-10-26T14:20:18  DONE   fin_risk_analyst  64.2s
+2026-10-26T14:20:26  DONE   macro_researcher  72.3s
+2026-10-26T14:20:27  DONE   geo_legal_researcher  74.0s
+2026-10-26T14:20:47  DONE   value_researcher  93.9s
+2026-10-26T14:20:53  DONE   growth_researcher  98.9s
+2026-10-26T14:21:23  DONE   nonfin_risk_analyst  77.1s
+2026-10-26T14:21:24  DONE   quant_analyst  65.9s
+2026-10-26T14:21:39  DONE   esg_analyst  71.3s
+2026-10-26T14:21:50  DONE   alt_data_analyst  62.7s
+2026-10-26T14:22:15  DONE   short_analyst  109.4s
+2026-10-26T14:23:08  DONE   portfolio_strategist  53.1s
+2026-10-26T14:23:36  DONE   head_of_research  28.1s
+2026-10-26T14:23:36  END    elapsed=263.1s failures=none
