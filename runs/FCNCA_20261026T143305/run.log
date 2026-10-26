@@ -1,0 +1,16 @@
+2026-10-26T14:33:05  START  symbol=FCNCA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-26T14:33:06  CONFIG sha=dc1a65624670 git=c6a441c gaps=0
+2026-10-26T14:33:44  DONE   sector_researcher  38.7s
+2026-10-26T14:34:12  DONE   growth_researcher  65.6s
+2026-10-26T14:34:24  DONE   geo_legal_researcher  77.9s
+2026-10-26T14:34:24  DONE   macro_researcher  78.4s
+2026-10-26T14:34:25  DONE   fin_risk_analyst  79.0s
+2026-10-26T14:34:32  DONE   nonfin_risk_analyst  47.4s
+2026-10-26T14:35:15  DONE   quant_analyst  63.8s
+2026-10-26T14:35:29  DONE   alt_data_analyst  64.3s
+2026-10-26T14:35:33  DONE   value_researcher  147.2s
+2026-10-26T14:36:08  DONE   short_analyst  104.2s
+2026-10-26T14:36:25  DONE   esg_analyst  121.2s
+2026-10-26T14:37:23  DONE   portfolio_strategist  57.8s
+2026-10-26T14:37:57  DONE   head_of_research  33.9s
+2026-10-26T14:37:57  END    elapsed=291.3s failures=none
