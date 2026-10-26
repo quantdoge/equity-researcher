@@ -1,0 +1,16 @@
+2026-10-26T14:40:31  START  symbol=CBRE agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-26T14:40:31  CONFIG sha=dc1a65624670 git=c6a441c gaps=0
+2026-10-26T14:41:00  DONE   fin_risk_analyst  28.6s
+2026-10-26T14:42:59  DONE   growth_researcher  147.8s
+2026-10-26T14:43:11  DONE   geo_legal_researcher  160.1s
+2026-10-26T14:43:29  DONE   nonfin_risk_analyst  148.9s
+2026-10-26T14:43:33  DONE   sector_researcher  181.7s
+2026-10-26T14:43:51  DONE   alt_data_analyst  17.7s
+2026-10-26T14:43:53  DONE   macro_researcher  201.2s
+2026-10-26T14:44:13  DONE   value_researcher  220.9s
+2026-10-26T14:44:30  DONE   quant_analyst  90.1s
+2026-10-26T14:46:22  DONE   esg_analyst  172.9s
+2026-10-26T14:46:28  DONE   short_analyst  196.4s
+2026-10-26T14:48:41  DONE   portfolio_strategist  132.7s
+2026-10-26T14:49:58  DONE   head_of_research  77.2s
+2026-10-26T14:49:58  END    elapsed=566.5s failures=none
