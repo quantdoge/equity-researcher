@@ -1,0 +1,16 @@
+2026-10-28T00:52:23  START  symbol=SOFI agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-28T00:52:23  CONFIG sha=dc1a65624670 git=918c642 gaps=0
+2026-10-28T00:52:43  DONE   growth_researcher  18.8s
+2026-10-28T00:52:53  DONE   geo_legal_researcher  29.8s
+2026-10-28T00:53:07  DONE   sector_researcher  43.7s
+2026-10-28T00:53:13  DONE   macro_researcher  49.7s
+2026-10-28T00:53:26  DONE   value_researcher  61.9s
+2026-10-28T00:53:30  DONE   quant_analyst  37.1s
+2026-10-28T00:53:36  DONE   nonfin_risk_analyst  53.9s
+2026-10-28T00:53:42  DONE   fin_risk_analyst  78.4s
+2026-10-28T00:54:02  DONE   alt_data_analyst  36.8s
+2026-10-28T00:54:15  DONE   short_analyst  67.5s
+2026-10-28T00:54:26  DONE   esg_analyst  72.4s
+2026-10-28T00:55:01  DONE   portfolio_strategist  35.9s
+2026-10-28T00:55:35  DONE   head_of_research  33.5s
+2026-10-28T00:55:35  END    elapsed=191.5s failures=none
