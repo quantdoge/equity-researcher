@@ -1,0 +1,16 @@
+2026-10-28T00:57:44  START  symbol=XYL agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-28T00:57:45  CONFIG sha=dc1a65624670 git=918c642 gaps=0
+2026-10-28T00:58:21  DONE   value_researcher  35.8s
+2026-10-28T00:58:21  DONE   sector_researcher  36.6s
+2026-10-28T00:58:32  DONE   geo_legal_researcher  47.6s
+2026-10-28T00:58:34  DONE   quant_analyst  13.2s
+2026-10-28T00:58:37  DONE   macro_researcher  52.7s
+2026-10-28T00:58:46  DONE   fin_risk_analyst  61.5s
+2026-10-28T00:59:06  DONE   short_analyst  33.6s
+2026-10-28T00:59:19  DONE   alt_data_analyst  41.6s
+2026-10-28T00:59:19  DONE   growth_researcher  94.6s
+2026-10-28T00:59:27  DONE   nonfin_risk_analyst  66.3s
+2026-10-28T01:00:35  DONE   esg_analyst  120.8s
+2026-10-28T01:01:07  DONE   portfolio_strategist  32.1s
+2026-10-28T01:01:44  DONE   head_of_research  36.9s
+2026-10-28T01:01:44  END    elapsed=239.7s failures=none
