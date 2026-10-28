@@ -1,0 +1,16 @@
+2026-10-28T01:04:17  START  symbol=GWRE agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-28T01:04:18  CONFIG sha=dc1a65624670 git=918c642 gaps=0
+2026-10-28T01:04:44  DONE   sector_researcher  26.5s
+2026-10-28T01:04:50  DONE   growth_researcher  32.4s
+2026-10-28T01:05:04  DONE   quant_analyst  13.8s
+2026-10-28T01:05:08  DONE   macro_researcher  50.5s
+2026-10-28T01:05:15  DONE   value_researcher  57.1s
+2026-10-28T01:05:16  DONE   fin_risk_analyst  57.8s
+2026-10-28T01:05:21  DONE   geo_legal_researcher  63.4s
+2026-10-28T01:05:23  DONE   nonfin_risk_analyst  39.2s
+2026-10-28T01:05:36  DONE   esg_analyst  27.9s
+2026-10-28T01:05:47  DONE   alt_data_analyst  31.9s
+2026-10-28T01:06:51  DONE   short_analyst  106.6s
+2026-10-28T01:07:26  DONE   portfolio_strategist  35.3s
+2026-10-28T01:08:20  DONE   head_of_research  54.2s
+2026-10-28T01:08:20  END    elapsed=242.8s failures=none
