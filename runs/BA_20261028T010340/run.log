@@ -1,0 +1,16 @@
+2026-10-28T01:03:40  START  symbol=BA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-28T01:03:40  CONFIG sha=dc1a65624670 git=918c642 gaps=0
+2026-10-28T01:04:15  DONE   fin_risk_analyst  34.3s
+2026-10-28T01:04:22  DONE   sector_researcher  41.5s
+2026-10-28T01:04:24  DONE   value_researcher  43.1s
+2026-10-28T01:04:38  DONE   geo_legal_researcher  57.3s
+2026-10-28T01:04:39  DONE   macro_researcher  58.2s
+2026-10-28T01:04:41  DONE   growth_researcher  60.4s
+2026-10-28T01:04:42  DONE   quant_analyst  20.1s
+2026-10-28T01:04:57  DONE   nonfin_risk_analyst  41.9s
+2026-10-28T01:05:03  DONE   alt_data_analyst  24.7s
+2026-10-28T01:05:27  DONE   short_analyst  63.1s
+2026-10-28T01:05:37  DONE   esg_analyst  59.5s
+2026-10-28T01:06:41  DONE   portfolio_strategist  63.7s
+2026-10-28T01:07:03  DONE   head_of_research  21.6s
+2026-10-28T01:07:03  END    elapsed=202.3s failures=none
