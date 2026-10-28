@@ -37,17 +37,12 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - GMAB
-          - CCI
-          - BE
-          - CRDO
-          - SSNC
-          - FCNCA
-          - NET
-          - CBRE
-          - NBIS
-          - CRWV
-          - TMUS
+          - SOFI
+          - CLS
+          - ALAB
+          - XYL
+          - BA
+          - GWRE
 
     steps:
       - uses: actions/checkout@v4
