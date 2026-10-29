@@ -1,0 +1,16 @@
+2026-10-29T08:31:23  START  symbol=ICON agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-29T08:31:23  CONFIG sha=dc1a65624670 git=ff1de86 gaps=0
+2026-10-29T08:31:48  DONE   value_researcher  24.9s
+2026-10-29T08:31:56  DONE   fin_risk_analyst  32.2s
+2026-10-29T08:32:07  DONE   quant_analyst  11.3s
+2026-10-29T08:32:09  FAIL   short_analyst  2.2s  ValueError: OpenRouter API returned an error during streaming: Upstream error from OpenInference: Upstream returned HTTP 429 (code: 502)
+2026-10-29T08:32:29  DONE   sector_researcher  65.4s
+2026-10-29T08:32:33  DONE   growth_researcher  69.8s
+2026-10-29T08:32:41  DONE   geo_legal_researcher  77.5s
+2026-10-29T08:33:15  DONE   esg_analyst  65.8s
+2026-10-29T08:33:30  DONE   macro_researcher  126.2s
+2026-10-29T08:33:32  DONE   alt_data_analyst  63.7s
+2026-10-29T08:33:36  DONE   nonfin_risk_analyst  107.2s
+2026-10-29T08:33:56  DONE   portfolio_strategist  20.9s
+2026-10-29T08:34:18  DONE   head_of_research  21.4s
+2026-10-29T08:34:18  END    elapsed=174.6s failures=short_analyst
