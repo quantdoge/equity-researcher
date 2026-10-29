@@ -1,0 +1,16 @@
+2026-10-29T08:43:51  START  symbol=LPLA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-29T08:43:52  CONFIG sha=dc1a65624670 git=ff1de86 gaps=0
+2026-10-29T08:44:31  DONE   growth_researcher  39.1s
+2026-10-29T08:44:33  DONE   sector_researcher  41.2s
+2026-10-29T08:44:43  DONE   geo_legal_researcher  51.6s
+2026-10-29T08:44:49  DONE   macro_researcher  57.1s
+2026-10-29T08:44:49  DONE   quant_analyst  16.1s
+2026-10-29T08:44:53  DONE   fin_risk_analyst  61.2s
+2026-10-29T08:45:33  DONE   nonfin_risk_analyst  62.3s
+2026-10-29T08:45:40  DONE   value_researcher  108.0s
+2026-10-29T08:45:46  DONE   short_analyst  62.2s
+2026-10-29T08:46:56  DONE   esg_analyst  126.8s
+2026-10-29T08:47:29  DONE   alt_data_analyst  160.3s
+2026-10-29T08:48:06  DONE   portfolio_strategist  37.1s
+2026-10-29T08:48:37  DONE   head_of_research  30.4s
+2026-10-29T08:48:37  END    elapsed=285.1s failures=none
