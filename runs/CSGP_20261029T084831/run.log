@@ -1,0 +1,16 @@
+2026-10-29T08:48:31  START  symbol=CSGP agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-29T08:48:31  CONFIG sha=dc1a65624670 git=ff1de86 gaps=0
+2026-10-29T08:49:24  DONE   growth_researcher  52.0s
+2026-10-29T08:49:38  DONE   fin_risk_analyst  66.6s
+2026-10-29T08:49:55  DONE   geo_legal_researcher  83.5s
+2026-10-29T08:50:17  DONE   quant_analyst  38.6s
+2026-10-29T08:50:31  DONE   macro_researcher  119.8s
+2026-10-29T08:50:41  DONE   sector_researcher  129.4s
+2026-10-29T08:50:53  DONE   value_researcher  141.1s
+2026-10-29T08:50:55  DONE   nonfin_risk_analyst  90.9s
+2026-10-29T08:50:58  DONE   esg_analyst  40.6s
+2026-10-29T08:51:00  DONE   short_analyst  65.3s
+2026-10-29T08:51:30  DONE   alt_data_analyst  58.7s
+2026-10-29T08:52:13  DONE   portfolio_strategist  43.0s
+2026-10-29T08:53:17  DONE   head_of_research  64.5s
+2026-10-29T08:53:17  END    elapsed=286.2s failures=none
