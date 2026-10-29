@@ -1,0 +1,16 @@
+2026-10-29T08:24:31  START  symbol=GOOG agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-29T08:24:31  CONFIG sha=dc1a65624670 git=ff1de86 gaps=0
+2026-10-29T08:25:02  DONE   fin_risk_analyst  29.8s
+2026-10-29T08:25:18  DONE   geo_legal_researcher  46.2s
+2026-10-29T08:25:30  DONE   sector_researcher  58.5s
+2026-10-29T08:25:32  DONE   value_researcher  60.6s
+2026-10-29T08:25:33  DONE   macro_researcher  61.7s
+2026-10-29T08:25:42  DONE   nonfin_risk_analyst  40.2s
+2026-10-29T08:25:57  DONE   growth_researcher  84.8s
+2026-10-29T08:26:08  DONE   esg_analyst  36.2s
+2026-10-29T08:26:45  DONE   alt_data_analyst  72.2s
+2026-10-29T08:27:15  DONE   short_analyst  105.7s
+2026-10-29T08:27:26  DONE   quant_analyst  128.0s
+2026-10-29T08:27:58  DONE   portfolio_strategist  32.8s
+2026-10-29T08:28:42  DONE   head_of_research  43.3s
+2026-10-29T08:28:42  END    elapsed=250.4s failures=none
