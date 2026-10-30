@@ -1,0 +1,16 @@
+2026-10-30T01:19:09  START  symbol=CVNA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-30T01:19:09  CONFIG sha=dc1a65624670 git=0b4c169 gaps=0
+2026-10-30T01:20:06  DONE   macro_researcher  56.9s
+2026-10-30T01:20:12  DONE   geo_legal_researcher  63.0s
+2026-10-30T01:20:14  DONE   growth_researcher  63.9s
+2026-10-30T01:20:46  DONE   value_researcher  96.3s
+2026-10-30T01:20:47  DONE   fin_risk_analyst  97.2s
+2026-10-30T01:20:56  DONE   sector_researcher  106.2s
+2026-10-30T01:21:18  DONE   alt_data_analyst  30.9s
+2026-10-30T01:21:23  DONE   nonfin_risk_analyst  77.2s
+2026-10-30T01:21:33  DONE   quant_analyst  80.7s
+2026-10-30T01:21:47  DONE   short_analyst  93.2s
+2026-10-30T01:21:50  DONE   esg_analyst  64.2s
+2026-10-30T01:22:59  DONE   portfolio_strategist  68.6s
+2026-10-30T01:24:14  DONE   head_of_research  75.7s
+2026-10-30T01:24:14  END    elapsed=305.0s failures=none
