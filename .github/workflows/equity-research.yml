@@ -38,16 +38,16 @@ jobs:
       matrix:
         ticker:
           - GOOG
-          - GMAB
-          - ICON
-          - VRT
-          - SKHY
-          - STLA
-          - FFIV
-          - LPLA
-          - CSGP
-          - LOGI
-          - CHRW
+          - GKOS
+          - FTAI
+          - GEN
+          - CVNA
+          - INSM
+          - NOW
+          - ALNY
+          - FTNT
+          - HLN
+          - MRVL
 
     steps:
       - uses: actions/checkout@v4
