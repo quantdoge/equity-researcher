@@ -1,0 +1,16 @@
+2026-10-30T01:13:17  START  symbol=FTAI agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-10-30T01:13:17  CONFIG sha=dc1a65624670 git=0b4c169 gaps=0
+2026-10-30T01:13:48  DONE   fin_risk_analyst  30.6s
+2026-10-30T01:13:49  DONE   sector_researcher  32.3s
+2026-10-30T01:13:58  DONE   growth_researcher  40.7s
+2026-10-30T01:14:17  DONE   geo_legal_researcher  59.7s
+2026-10-30T01:14:30  DONE   nonfin_risk_analyst  42.1s
+2026-10-30T01:14:41  DONE   macro_researcher  83.8s
+2026-10-30T01:14:44  DONE   quant_analyst  55.0s
+2026-10-30T01:15:01  DONE   short_analyst  63.0s
+2026-10-30T01:15:09  DONE   alt_data_analyst  39.2s
+2026-10-30T01:15:14  DONE   esg_analyst  57.4s
+2026-10-30T01:15:48  DONE   value_researcher  150.9s
+2026-10-30T01:16:16  DONE   portfolio_strategist  28.0s
+2026-10-30T01:16:47  DONE   head_of_research  30.5s
+2026-10-30T01:16:47  END    elapsed=209.6s failures=none
