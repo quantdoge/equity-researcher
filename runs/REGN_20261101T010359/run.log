@@ -1,0 +1,16 @@
+2026-11-01T01:03:59  START  symbol=REGN agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-01T01:03:59  CONFIG sha=dc1a65624670 git=3c55b6c gaps=0
+2026-11-01T01:04:35  DONE   fin_risk_analyst  35.4s
+2026-11-01T01:04:41  DONE   sector_researcher  41.6s
+2026-11-01T01:04:56  DONE   geo_legal_researcher  56.9s
+2026-11-01T01:05:20  DONE   macro_researcher  80.3s
+2026-11-01T01:05:25  DONE   quant_analyst  44.2s
+2026-11-01T01:05:26  DONE   growth_researcher  86.6s
+2026-11-01T01:05:28  DONE   nonfin_risk_analyst  53.2s
+2026-11-01T01:06:01  DONE   alt_data_analyst  35.3s
+2026-11-01T01:06:20  DONE   esg_analyst  60.6s
+2026-11-01T01:06:57  DONE   short_analyst  120.2s
+2026-11-01T01:08:09  DONE   value_researcher  249.3s
+2026-11-01T01:08:50  DONE   portfolio_strategist  40.5s
+2026-11-01T01:09:23  DONE   head_of_research  33.3s
+2026-11-01T01:09:23  END    elapsed=323.4s failures=none
