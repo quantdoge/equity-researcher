@@ -1,0 +1,16 @@
+2026-11-01T01:11:24  START  symbol=BTSG agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-01T01:11:25  CONFIG sha=dc1a65624670 git=3c55b6c gaps=0
+2026-11-01T01:12:04  DONE   sector_researcher  38.9s
+2026-11-01T01:12:10  DONE   growth_researcher  45.1s
+2026-11-01T01:12:29  DONE   macro_researcher  64.1s
+2026-11-01T01:12:33  DONE   quant_analyst  23.4s
+2026-11-01T01:12:38  DONE   fin_risk_analyst  73.0s
+2026-11-01T01:12:54  DONE   geo_legal_researcher  89.8s
+2026-11-01T01:13:09  DONE   nonfin_risk_analyst  65.7s
+2026-11-01T01:13:20  DONE   value_researcher  115.5s
+2026-11-01T01:13:28  DONE   alt_data_analyst  49.9s
+2026-11-01T01:13:39  DONE   esg_analyst  65.9s
+2026-11-01T01:13:50  DONE   short_analyst  81.3s
+2026-11-01T01:14:35  DONE   portfolio_strategist  44.9s
+2026-11-01T01:15:33  DONE   head_of_research  57.9s
+2026-11-01T01:15:33  END    elapsed=248.3s failures=none
