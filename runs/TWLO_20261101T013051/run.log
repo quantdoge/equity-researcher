@@ -1,0 +1,16 @@
+2026-11-01T01:30:51  START  symbol=TWLO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-01T01:30:52  CONFIG sha=dc1a65624670 git=3c55b6c gaps=0
+2026-11-01T01:31:23  DONE   growth_researcher  30.9s
+2026-11-01T01:31:36  DONE   geo_legal_researcher  44.2s
+2026-11-01T01:31:47  DONE   quant_analyst  11.3s
+2026-11-01T01:31:53  DONE   macro_researcher  61.3s
+2026-11-01T01:31:55  DONE   sector_researcher  62.9s
+2026-11-01T01:32:04  DONE   value_researcher  72.1s
+2026-11-01T01:32:14  DONE   fin_risk_analyst  82.0s
+2026-11-01T01:32:24  DONE   alt_data_analyst  29.6s
+2026-11-01T01:32:34  DONE   nonfin_risk_analyst  70.9s
+2026-11-01T01:32:49  DONE   esg_analyst  56.0s
+2026-11-01T01:32:59  DONE   short_analyst  71.8s
+2026-11-01T01:33:35  DONE   portfolio_strategist  35.6s
+2026-11-01T01:34:10  DONE   head_of_research  35.1s
+2026-11-01T01:34:10  END    elapsed=198.2s failures=none
