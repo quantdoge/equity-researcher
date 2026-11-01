@@ -37,17 +37,18 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - GOOG
-          - GKOS
-          - FTAI
-          - GEN
-          - CVNA
-          - INSM
-          - NOW
-          - ALNY
-          - FTNT
-          - HLN
-          - MRVL
+          - FDXF
+          - REGN
+          - GPN
+          - BTSG
+          - GDDY
+          - RDDT
+          - INTC
+          - ILMN
+          - RBLX
+          - TWLO
+          - CBOE
+          - DDOG
 
     steps:
       - uses: actions/checkout@v4
