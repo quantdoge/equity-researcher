@@ -1,0 +1,16 @@
+2026-11-01T01:24:09  START  symbol=INTC agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-01T01:24:09  CONFIG sha=dc1a65624670 git=3c55b6c gaps=0
+2026-11-01T01:24:53  DONE   sector_researcher  43.6s
+2026-11-01T01:24:57  DONE   fin_risk_analyst  47.2s
+2026-11-01T01:25:08  DONE   geo_legal_researcher  59.1s
+2026-11-01T01:25:21  DONE   macro_researcher  72.2s
+2026-11-01T01:25:22  DONE   growth_researcher  72.4s
+2026-11-01T01:25:28  DONE   value_researcher  79.1s
+2026-11-01T01:25:34  DONE   nonfin_risk_analyst  41.2s
+2026-11-01T01:25:50  DONE   quant_analyst  53.0s
+2026-11-01T01:26:00  DONE   alt_data_analyst  37.9s
+2026-11-01T01:26:12  DONE   short_analyst  63.8s
+2026-11-01T01:26:55  DONE   esg_analyst  94.0s
+2026-11-01T01:27:13  DONE   portfolio_strategist  17.3s
+2026-11-01T01:27:46  DONE   head_of_research  32.9s
+2026-11-01T01:27:46  END    elapsed=216.6s failures=none
