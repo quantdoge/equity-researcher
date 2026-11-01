@@ -1,0 +1,16 @@
+2026-11-01T01:36:59  START  symbol=DDOG agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-01T01:36:59  CONFIG sha=dc1a65624670 git=3c55b6c gaps=0
+2026-11-01T01:37:33  DONE   sector_researcher  33.6s
+2026-11-01T01:37:36  DONE   macro_researcher  36.9s
+2026-11-01T01:37:44  DONE   fin_risk_analyst  44.7s
+2026-11-01T01:37:51  DONE   value_researcher  51.2s
+2026-11-01T01:37:55  DONE   geo_legal_researcher  55.7s
+2026-11-01T01:38:11  DONE   growth_researcher  71.0s
+2026-11-01T01:38:15  DONE   quant_analyst  38.3s
+2026-11-01T01:38:21  DONE   nonfin_risk_analyst  48.3s
+2026-11-01T01:38:35  DONE   alt_data_analyst  39.9s
+2026-11-01T01:38:36  DONE   short_analyst  52.1s
+2026-11-01T01:38:52  DONE   esg_analyst  61.7s
+2026-11-01T01:39:35  DONE   portfolio_strategist  42.5s
+2026-11-01T01:40:10  DONE   head_of_research  35.4s
+2026-11-01T01:40:10  END    elapsed=191.1s failures=none
