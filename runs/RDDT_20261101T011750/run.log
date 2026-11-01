@@ -1,0 +1,16 @@
+2026-11-01T01:17:50  START  symbol=RDDT agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-01T01:17:50  CONFIG sha=dc1a65624670 git=3c55b6c gaps=0
+2026-11-01T01:18:23  DONE   growth_researcher  33.3s
+2026-11-01T01:18:34  DONE   geo_legal_researcher  44.2s
+2026-11-01T01:18:45  DONE   sector_researcher  54.8s
+2026-11-01T01:18:47  DONE   macro_researcher  56.8s
+2026-11-01T01:18:58  DONE   fin_risk_analyst  67.5s
+2026-11-01T01:19:31  DONE   nonfin_risk_analyst  67.3s
+2026-11-01T01:19:32  DONE   alt_data_analyst  34.1s
+2026-11-01T01:19:34  DONE   quant_analyst  60.1s
+2026-11-01T01:19:35  DONE   short_analyst  50.7s
+2026-11-01T01:19:36  DONE   value_researcher  106.1s
+2026-11-01T01:20:08  DONE   esg_analyst  81.1s
+2026-11-01T01:20:57  DONE   portfolio_strategist  49.4s
+2026-11-01T01:21:58  DONE   head_of_research  60.4s
+2026-11-01T01:21:58  END    elapsed=247.7s failures=none
