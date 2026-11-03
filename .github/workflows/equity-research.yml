@@ -37,18 +37,19 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - FDXF
-          - REGN
-          - GPN
-          - BTSG
-          - GDDY
-          - RDDT
-          - INTC
-          - ILMN
-          - RBLX
-          - TWLO
-          - CBOE
-          - DDOG
+          - BE
+          - STLA
+          - CRWV
+          - IDXX
+          - NXT
+          - TEM
+          - RIVN
+          - HWM
+          - LITE
+          - VG
+          - MRVL
+          - CBRS
+          - CIEN
 
     steps:
       - uses: actions/checkout@v4
