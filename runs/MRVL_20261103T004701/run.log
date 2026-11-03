@@ -1,0 +1,16 @@
+2026-11-03T00:47:01  START  symbol=MRVL agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-03T00:47:02  CONFIG sha=dc1a65624670 git=878753d gaps=0
+2026-11-03T00:47:46  DONE   sector_researcher  43.9s
+2026-11-03T00:48:03  DONE   macro_researcher  61.3s
+2026-11-03T00:48:07  DONE   fin_risk_analyst  64.4s
+2026-11-03T00:48:13  DONE   geo_legal_researcher  71.2s
+2026-11-03T00:48:29  DONE   nonfin_risk_analyst  42.9s
+2026-11-03T00:48:34  DONE   growth_researcher  91.8s
+2026-11-03T00:48:54  DONE   short_analyst  47.3s
+2026-11-03T00:49:00  DONE   value_researcher  118.1s
+2026-11-03T00:49:23  DONE   esg_analyst  69.8s
+2026-11-03T00:49:26  DONE   quant_analyst  82.6s
+2026-11-03T00:49:43  DONE   alt_data_analyst  74.2s
+2026-11-03T00:50:59  DONE   portfolio_strategist  76.4s
+2026-11-03T00:51:29  DONE   head_of_research  29.5s
+2026-11-03T00:51:29  END    elapsed=266.9s failures=none
