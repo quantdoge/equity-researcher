@@ -1,0 +1,16 @@
+2026-11-04T01:29:46  START  symbol=DT agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-04T01:29:46  CONFIG sha=dc1a65624670 git=3e6b343 gaps=0
+2026-11-04T01:29:47  FAIL   fin_risk_analyst  0.9s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   value_researcher  1.1s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   macro_researcher  1.3s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   geo_legal_researcher  1.4s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   short_analyst  0.5s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   esg_analyst  0.5s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   nonfin_risk_analyst  0.7s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   quant_analyst  0.7s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:48  FAIL   alt_data_analyst  0.4s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:29:53  FAIL   sector_researcher  7.3s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:31:43  DONE   growth_researcher  116.0s
+2026-11-04T01:31:43  FAIL   portfolio_strategist  0.4s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:31:43  FAIL   head_of_research  0.3s  PaymentRequiredResponseError: This request requires more credits, or fewer max_tokens. You requested up to 16000 tokens, but can only afford 274. To increase, visit https://openrouter.ai/settings/credits and add more credits
+2026-11-04T01:31:43  END    elapsed=117.1s failures=sector_researcher,geo_legal_researcher,macro_researcher,value_researcher,fin_risk_analyst,nonfin_risk_analyst,quant_analyst,short_analyst,esg_analyst,alt_data_analyst,portfolio_strategist,head_of_research
