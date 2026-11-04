@@ -1,0 +1,16 @@
+2026-11-04T01:20:47  START  symbol=FN agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-04T01:20:47  CONFIG sha=dc1a65624670 git=3e6b343 gaps=0
+2026-11-04T01:21:22  FAIL   growth_researcher  34.1s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:21:22  FAIL   macro_researcher  34.6s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:21:22  FAIL   nonfin_risk_analyst  0.5s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:21:23  FAIL   quant_analyst  1.0s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:21:25  FAIL   geo_legal_researcher  37.7s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:21:25  FAIL   alt_data_analyst  0.4s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:21:52  FAIL   short_analyst  30.2s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:22:01  FAIL   esg_analyst  37.8s  PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits.
+2026-11-04T01:22:07  DONE   sector_researcher  79.6s
+2026-11-04T01:22:22  DONE   fin_risk_analyst  94.4s
+2026-11-04T01:23:32  DONE   value_researcher  164.2s
+2026-11-04T01:23:57  DONE   portfolio_strategist  25.5s
+2026-11-04T01:23:57  FAIL   head_of_research  0.3s  PaymentRequiredResponseError: This request requires more credits, or fewer max_tokens. You requested up to 16000 tokens, but can only afford 3233. To increase, visit https://openrouter.ai/settings/credits and add more credits
+2026-11-04T01:23:57  END    elapsed=190.2s failures=geo_legal_researcher,macro_researcher,growth_researcher,nonfin_risk_analyst,quant_analyst,short_analyst,esg_analyst,alt_data_analyst,head_of_research
