@@ -38,18 +38,17 @@ jobs:
       matrix:
         ticker:
           - BE
-          - STLA
-          - CRWV
-          - IDXX
-          - NXT
-          - TEM
-          - RIVN
-          - HWM
-          - LITE
-          - VG
-          - MRVL
-          - CBRS
-          - CIEN
+          - FN
+          - NBIX
+          - FISV
+          - RRX
+          - LSCC
+          - GRAB
+          - DT
+          - IT
+          - TRI
+          - SYY
+          - ZBRA
 
     steps:
       - uses: actions/checkout@v4
