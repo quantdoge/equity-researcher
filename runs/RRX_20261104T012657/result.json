@@ -1,0 +1,154 @@
+{
+  "symbol": "RRX",
+  "investment_memo": "",
+  "portfolio_brief": "",
+  "agent_results": [
+    {
+      "agent_role": "sector_researcher",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 29.9,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "geo_legal_researcher",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 39.8,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "macro_researcher",
+      "symbol": "RRX",
+      "output": "## RRX \u2014 Macroeconomic Environment Assessment\n**As of 4 November 2026 | Data: FRED, FOMC, company filings**\n\n---\n\n### 1. Macro Environment Summary\n\n**Stance: Transitional \u2014 a re-tightening regime masquerading as a pause. Risk-off for rate-sensitive, levered cyclicals.**\n\nThe dominant macro fact is that the 2025 easing cycle has gone into reverse in the bond market even though the Fed has not moved. The FOMC **held at 3.75\u20134.00% on 28 October 2026** in an explicit \"wait and see\" posture, but the data forced that hold: CPI has re-accelerated from **2.7% YoY (Nov 2025) to 3.72% YoY (Sep 2026)**, with the last three months running at a **~4.5% annualised** pace. Meanwhile real GDP accelerated to **~3.4% SAAR in Q3 2026** and unemployment fell to **4.2%**. This is an economy that is too hot for the easing the market priced in a year ago.\n\nThe consequence is a classic **bear steepener**. The 10Y has backed up from **4.44% (30 June) to 5.13%**, having touched **5.31% intraday on 5 October**, and the 30Y sits at **5.47%**. Critically, the **2Y at 4.74% now trades ~86bp *above* the effective fed funds rate of 3.88%** \u2014 the front end is pricing roughly three hikes, not cuts. There is no inversion (2s10s **+39bp**), so no recession signal, but the term premium is expanding sharply. That is the worst possible rate configuration for a long-duration, debt-financed industrial equity.\n\nAgainst this, the real economy is a genuine tailwind: industrial production is up **2.25% YoY** and rising every month since January, and RRX's own orders are accelerating. **The macro tension for RRX is entirely between a strong operating backdrop and a hostile discount rate.**\n\n---\n\n### 2. Key Macro Variables\n\n| Variable | Latest | Date | 12M / Prior Trend | Direction |\n|---|---|---|---|---|\n| Real GDP growth (YoY) | **+2.07%** | Q3 2026 | Q3 SAAR **+3.4%**; Q2 +2.2%; Q1 +2.5% | Accelerating |\n| CPI (YoY) | **+3.72%** | Sep 2026 | 2.70% (Nov 2025); 3M annualised **+4.5%** | **Re-accelerating** |\n| Core inflation proxy (nominal PCE) | +6.28% YoY nominal spend \u2192 ~**+2.5% real** | Sep 2026 | Consumer resilient | Stable |\n| Fed Funds (effective) | **3.88%** | Oct 2026 | FOMC 3.75\u20134.00%, held 28 Oct | **On hold, hawkish** |\n| 2Y UST | **4.74%** | 4 Nov 2026 | ~86bp *above* fed funds | Pricing hikes |\n| 10Y UST | **5.13%** (peak 5.31%) | 4 Nov 2026 | 4.44% on 30 Jun; **+70bp in 4 months** | Bear steepener |\n| 30Y UST | 5.47% | 4 Nov 2026 | Term premium expanding | Steep |\n| 2s10s spread | **+39bp** | 4 Nov 2026 | Not inverted; no recession signal | Positive |\n| Unemployment | **4.2%** | Sep 2026 | 4.5% (Nov 2025) | Tightening |\n| Industrial Production | 103.95 | Sep 2026 | **+2.25% YoY**, +2.4% YTD | **Firmly rising** |\n| Broad USD Index | **121.7** | 30 Oct 2026 | 118.1 on 4 Sep (+3.1% in 8 wks) | **Firming** |\n\n*Data note: the FRED PCE series returned is a nominal spending level, not a price index; I have used CPI as the inflation read and inferred real consumption growth. No TIPS/breakeven series was retrieved.*\n\n---\n\n### 3. Company-Specific Macro Impact\n\nRRX is a **~$4.45bn-gross-debt, 2.9x-levered, beta-1.09 short-cycle industrial** with a fast-growing data-centre power franchise. Its macro sensitivities are unusually legible.\n\n| Macro Variable | Transmission Channel | Impact |\n|---|---|---|\n| **10Y at 5.13% / term premium widening** | Discount rate on a 11.8x EV/EBITDA (\u2248$16.0bn EV) levered equity. At an ~8% WACC, a 100bp move compresses the warranted multiple by **~12\u201315%** with EBITDA unchanged. This, not earnings, explains RRX falling **22% from its $230 May peak** while orders rose 6%. | **Strongly Negative** |\n| **Refinancing cost** | $3.72bn fixed / $1.02bn floating (31 Mar 2026). TTM net interest expense **~$295m**, coverage 4.64x. The **6.05% notes matured Feb 2026** and must be replaced into a 5%+ curve. Each $1bn re-priced at +150bp \u2248 **$16m/yr** (~$0.19/sh) of extra interest. Floating sleeve: +100bp \u2248 only ~$10m pre-tax \u2014 the exposure is *maturity risk*, not duration risk. | **Negative** |\n| **Fed on hold / no cuts** | Kills the 2026 \"easing + re-leveraging cyclical\" trade that drove RRX from $94 (Apr 2025) to $230 (May 2026). Removes a valuation catalyst. | **Negative** |\n| **Industrial production +2.25% YoY** | Direct volume driver for Motion Control (bearings, gearing, conveyors) and Industrial Systems. Orders **+6% YoY**, organic sales **+6.1%**, backlog building. | **Positive** |\n| **AI / data-centre capex supercycle** | Data centre sales **+307% YoY** in Q3 2026 \u2014 alternators and switchgear for backup power. Hyperscaler capex is cash-flow and contract-funded, hence **far less rate-sensitive than traditional capex**. This is the single largest idiosyncratic macro tailwind and is currently overwhelming the rate headwind. | **Strongly Positive** |\n| **Housing / long rates** | Climate Solutions (fractional HP motors, blowers for residential & light-commercial air handling) is levered to US housing turnover, which stays frozen with 10Y at 5.1% (mortgages ~6.9%+). Structural drag on that segment. | **Negative** |\n| **USD +3.1% in 8 weeks** | Translation drag on international sales (a material minority of revenue; exact split not retrieved). A firm dollar trims reported growth by low-single-digit % on the non-US book and pressures export price competitiveness. | **Mildly Negative** |\n| **Tariff / trade policy** | Material *improvement*. RRX submitted **$38.1m of IEEPA tariff-refund claims** and had received **$21.0m cash by 30 June**; FY guidance embeds **$0.57/sh** of refund benefit. Effective tariff burden is falling \u2014 but this is one-off, and FY EBITDA margin guidance of **21.3% *ex*-refunds** signals underlying margin pressure that the refunds flatter. | **Positive, low quality** |\n| **Input costs** | CPI re-acceleration (copper, steel, freight) into a price/volume recovery. RRX has pricing power in scarcity segments (data centre power) but not in bearings/Climate. Net: modest margin squeeze risk in H2 2026\u20132027. | **Neutral / cautious** |\n\n**Valuation cross-check:** TTM adjusted EBITDA \u2248 **$1.35bn** (net debt $4.00bn \u00f7 2.96x), EV/EBITDA \u2248 **11.8x**. Deleveraging from **3.3x \u2192 2.9x** is real progress and reduces the equity's rate fragility \u2014 the balance sheet is de-risking even as the discount rate rises.\n\n---\n\n### 4. Macro Risk Rating: **NEUTRAL \u2014 with a distinct negative skew**\n\nJustification: the *operating* macro (GDP +2\u20133%, INDPRO +2.25%, unemployment 4.2%, orders +6%, AI capex) is genuinely favourable and is what produced the **+11.8% single-day move on 3 November** on Q3 results. But the *financial* macro (10Y 5.13%, 2Y pricing hikes, 3.7% and rising CPI, firm USD, 6% coupons to roll) is unfavourable, and it hits RRX through the two channels that matter most for a levered industrial: the discount rate and the cost of refinancing. Net: **earnings momentum is winning for now, but the macro is a headwind that caps the re-rating.**\n\n---\n\n### 5. The Surprise Scenario (Bear, primary)\n\n**\"The 10Y breaks 5.75% and the Fed hikes twice.\"** If the 3-month CPI run-rate of ~4.5% persists into Q1 2027, the FOMC's own September SEP (median 4.00\u20134.25% for end-2026/2027) becomes a hiking path rather than a hold. A move to 5.75\u20136.0% on the 10Y would do three things simultaneously to RRX:\n\n1. Compress the multiple from 11.8x to ~9.5x EV/EBITDA on unchanged EBITDA \u2192 equity value of roughly **$9.7bn, or ~$145/share**.\n2. Force the **Feb 2026-maturity refinancing and 2027/2028 maturities at 6.5%+**, adding ~$25\u201340m of annual interest and stalling the deleveraging story at ~2.7x.\n3. Crack the one thing holding the stock up: **AI/data-centre capex is not infinitely rate-insensitive.** If hyperscaler debt funding costs and project IRRs deteriorate, the +307% data centre growth decelerates precisely when the multiple is already under pressure \u2014 a double hit.\n\n**Upside surprise worth flagging (bull):** inflation rolls over quickly as the 2025 tariff-refund pass-through normalises, the 10Y retraces to ~4.4%, and RRX re-rates toward **$230+** on 2.9x leverage and 6% organic growth. The asymmetry favours the bear case because the starting point is a 5.13% 10Y *and* a stock that just gapped 12% in a day \u2014 that gap is macro-beta that can be given back fast if the bond market pushes further.\n\n**Positioning implication:** own RRX for the data-centre power franchise, but size it as a rate-sensitive name, not a defensive industrial. The macro hedge is duration \u2014 watch the 10Y, not the ISM.",
+      "elapsed_seconds": 87.8,
+      "error": null
+    },
+    {
+      "agent_role": "value_researcher",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 86.1,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "growth_researcher",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 36.2,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "fin_risk_analyst",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 44.6,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "nonfin_risk_analyst",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 13.4,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "quant_analyst",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 0.4,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "short_analyst",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 0.4,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "esg_analyst",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 0.5,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "alt_data_analyst",
+      "symbol": "RRX",
+      "output": "",
+      "elapsed_seconds": 0.4,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    }
+  ],
+  "per_agent_timings": {
+    "sector_researcher": 29.9,
+    "geo_legal_researcher": 39.8,
+    "macro_researcher": 87.8,
+    "value_researcher": 86.1,
+    "growth_researcher": 36.2,
+    "fin_risk_analyst": 44.6,
+    "nonfin_risk_analyst": 13.4,
+    "quant_analyst": 0.4,
+    "short_analyst": 0.4,
+    "esg_analyst": 0.5,
+    "alt_data_analyst": 0.4,
+    "portfolio_strategist": 0.4,
+    "head_of_research": 0.3
+  },
+  "failures": [
+    "sector_researcher",
+    "geo_legal_researcher",
+    "value_researcher",
+    "growth_researcher",
+    "fin_risk_analyst",
+    "nonfin_risk_analyst",
+    "quant_analyst",
+    "short_analyst",
+    "esg_analyst",
+    "alt_data_analyst",
+    "portfolio_strategist",
+    "head_of_research"
+  ],
+  "date": "2026-11-04",
+  "elapsed_seconds": 88.6,
+  "run_id": "RRX_20261104T012657",
+  "models": {
+    "sector_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "geo_legal_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "macro_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "value_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "growth_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "fin_risk_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "nonfin_risk_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "quant_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "short_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "esg_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "alt_data_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "portfolio_strategist": "deepseek/deepseek-v4.1-flash-1017",
+    "head_of_research": "moonshotai/kimi-k3"
+  },
+  "prompt_sha256": {
+    "sector_researcher": "71c92f6cf7cb5d6450b22298ad653cb57342cb13dd14c7657201ac16348aadb7",
+    "geo_legal_researcher": "5c0eac8260763dc293e7e7a2467ce4581052da04f74a5f40f132cc8b26045221",
+    "macro_researcher": "0d4a19edf8a5202b1be5ef37269c1522d7910ff29658635fa2d0b749bbefc6bd",
+    "value_researcher": "9dba5c9e54cc4fabe0ad8590a2e44da19d67068b598085843723e37d494628ca",
+    "growth_researcher": "6f11fa7a76b3d09d0b306d268628844779090308dd53141639f1152533384147",
+    "fin_risk_analyst": "4741d3fbadf820c7794e4d40ecfcfd894776e741aee59a442984fe3fe9d54a59",
+    "nonfin_risk_analyst": "8c2635a24cc9d82134409364893fcc979a8928de91f111f8f7acdc83a112e936",
+    "quant_analyst": "91c856e019cdf1a03ff3a43b4a81e499273b23a0f2c626749d71be6a6f213bff",
+    "short_analyst": "e32b4ab2481dbf8d203b25e23452624606e7a91fe02042cb6e6fb8ee004fbefb",
+    "esg_analyst": "ff905a52803e1d5beb8f10bc124ffdddc80e7f6dca3080e253893bd871d42ce0",
+    "alt_data_analyst": "fa3fecfbddc041ea456aafa6287d04bfcc18ba9f7fdd2a6fcbae87a1ae14d395",
+    "portfolio_strategist": "db231453b5f213567ae63fe6833a80cb1d1326a5b8bfdb758792a4acc669f2af",
+    "head_of_research": "10e94bcb9a462dfeb4e54e0569a504e3d0bacd0a0fd2843ebbdcec1e9977ca5d"
+  },
+  "run_params": {
+    "max_concurrency": 6,
+    "timeout_s": null,
+    "agents_requested": null,
+    "focus": "",
+    "skip_synthesis": false
+  },
+  "config_sha": "dc1a65624670fc7b64da66be68c058a555ed44c5207b8ddf3db9c5da2d46c6b5"
+}
