@@ -1,0 +1,155 @@
+{
+  "symbol": "SYY",
+  "investment_memo": "",
+  "portfolio_brief": "",
+  "agent_results": [
+    {
+      "agent_role": "sector_researcher",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 1.4,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "geo_legal_researcher",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 1.3,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "macro_researcher",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 1.2,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "value_researcher",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 0.9,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "growth_researcher",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 1.0,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "fin_risk_analyst",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 1.0,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "nonfin_risk_analyst",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 5.4,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "quant_analyst",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 56.1,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "short_analyst",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 5.0,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "esg_analyst",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 0.6,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    },
+    {
+      "agent_role": "alt_data_analyst",
+      "symbol": "SYY",
+      "output": "",
+      "elapsed_seconds": 0.6,
+      "error": "PaymentRequiredResponseError: This request would exceed your available credits given your current in-flight requests. Retry after in-flight requests settle, or add credits."
+    }
+  ],
+  "per_agent_timings": {
+    "sector_researcher": 1.4,
+    "geo_legal_researcher": 1.3,
+    "macro_researcher": 1.2,
+    "value_researcher": 0.9,
+    "growth_researcher": 1.0,
+    "fin_risk_analyst": 1.0,
+    "nonfin_risk_analyst": 5.4,
+    "quant_analyst": 56.1,
+    "short_analyst": 5.0,
+    "esg_analyst": 0.6,
+    "alt_data_analyst": 0.6,
+    "portfolio_strategist": 9.1,
+    "head_of_research": 0.3
+  },
+  "failures": [
+    "sector_researcher",
+    "geo_legal_researcher",
+    "macro_researcher",
+    "value_researcher",
+    "growth_researcher",
+    "fin_risk_analyst",
+    "nonfin_risk_analyst",
+    "quant_analyst",
+    "short_analyst",
+    "esg_analyst",
+    "alt_data_analyst",
+    "portfolio_strategist",
+    "head_of_research"
+  ],
+  "date": "2026-11-04",
+  "elapsed_seconds": 66.8,
+  "run_id": "SYY_20261104T013257",
+  "models": {
+    "sector_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "geo_legal_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "macro_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "value_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "growth_researcher": "deepseek/deepseek-v4.1-flash-1017",
+    "fin_risk_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "nonfin_risk_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "quant_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "short_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "esg_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "alt_data_analyst": "deepseek/deepseek-v4.1-flash-1017",
+    "portfolio_strategist": "deepseek/deepseek-v4.1-flash-1017",
+    "head_of_research": "moonshotai/kimi-k3"
+  },
+  "prompt_sha256": {
+    "sector_researcher": "71c92f6cf7cb5d6450b22298ad653cb57342cb13dd14c7657201ac16348aadb7",
+    "geo_legal_researcher": "5c0eac8260763dc293e7e7a2467ce4581052da04f74a5f40f132cc8b26045221",
+    "macro_researcher": "0d4a19edf8a5202b1be5ef37269c1522d7910ff29658635fa2d0b749bbefc6bd",
+    "value_researcher": "9dba5c9e54cc4fabe0ad8590a2e44da19d67068b598085843723e37d494628ca",
+    "growth_researcher": "6f11fa7a76b3d09d0b306d268628844779090308dd53141639f1152533384147",
+    "fin_risk_analyst": "4741d3fbadf820c7794e4d40ecfcfd894776e741aee59a442984fe3fe9d54a59",
+    "nonfin_risk_analyst": "8c2635a24cc9d82134409364893fcc979a8928de91f111f8f7acdc83a112e936",
+    "quant_analyst": "91c856e019cdf1a03ff3a43b4a81e499273b23a0f2c626749d71be6a6f213bff",
+    "short_analyst": "e32b4ab2481dbf8d203b25e23452624606e7a91fe02042cb6e6fb8ee004fbefb",
+    "esg_analyst": "ff905a52803e1d5beb8f10bc124ffdddc80e7f6dca3080e253893bd871d42ce0",
+    "alt_data_analyst": "fa3fecfbddc041ea456aafa6287d04bfcc18ba9f7fdd2a6fcbae87a1ae14d395",
+    "portfolio_strategist": "db231453b5f213567ae63fe6833a80cb1d1326a5b8bfdb758792a4acc669f2af",
+    "head_of_research": "10e94bcb9a462dfeb4e54e0569a504e3d0bacd0a0fd2843ebbdcec1e9977ca5d"
+  },
+  "run_params": {
+    "max_concurrency": 6,
+    "timeout_s": null,
+    "agents_requested": null,
+    "focus": "",
+    "skip_synthesis": false
+  },
+  "config_sha": "dc1a65624670fc7b64da66be68c058a555ed44c5207b8ddf3db9c5da2d46c6b5"
+}
