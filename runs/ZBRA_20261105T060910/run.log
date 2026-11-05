@@ -1,0 +1,16 @@
+2026-11-05T06:09:10  START  symbol=ZBRA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-05T06:09:10  CONFIG sha=dc1a65624670 git=3e6b343 gaps=0
+2026-11-05T06:09:59  DONE   macro_researcher  49.0s
+2026-11-05T06:10:03  DONE   fin_risk_analyst  52.6s
+2026-11-05T06:10:11  DONE   value_researcher  60.2s
+2026-11-05T06:10:38  DONE   growth_researcher  87.5s
+2026-11-05T06:10:49  DONE   quant_analyst  46.0s
+2026-11-05T06:10:56  DONE   sector_researcher  105.8s
+2026-11-05T06:11:07  DONE   geo_legal_researcher  116.9s
+2026-11-05T06:11:22  DONE   nonfin_risk_analyst  82.5s
+2026-11-05T06:11:46  DONE   short_analyst  95.2s
+2026-11-05T06:11:47  DONE   esg_analyst  68.7s
+2026-11-05T06:12:37  DONE   alt_data_analyst  107.9s
+2026-11-05T06:13:15  DONE   portfolio_strategist  38.3s
+2026-11-05T06:13:54  DONE   head_of_research  38.6s
+2026-11-05T06:13:54  END    elapsed=283.7s failures=none
