@@ -1,0 +1,16 @@
+2026-11-05T05:46:48  START  symbol=LSCC agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-05T05:46:48  CONFIG sha=dc1a65624670 git=3e6b343 gaps=0
+2026-11-05T05:47:37  DONE   sector_researcher  48.6s
+2026-11-05T05:47:53  DONE   growth_researcher  64.8s
+2026-11-05T05:48:11  DONE   fin_risk_analyst  83.0s
+2026-11-05T05:48:15  DONE   quant_analyst  22.4s
+2026-11-05T05:48:26  DONE   value_researcher  98.1s
+2026-11-05T05:48:43  DONE   macro_researcher  115.3s
+2026-11-05T05:48:51  DONE   geo_legal_researcher  122.7s
+2026-11-05T05:48:54  DONE   alt_data_analyst  27.5s
+2026-11-05T05:49:25  DONE   nonfin_risk_analyst  108.0s
+2026-11-05T05:49:49  DONE   esg_analyst  93.5s
+2026-11-05T05:50:39  DONE   short_analyst  147.8s
+2026-11-05T05:51:24  DONE   portfolio_strategist  44.5s
+2026-11-05T05:52:02  DONE   head_of_research  38.6s
+2026-11-05T05:52:02  END    elapsed=314.2s failures=none
