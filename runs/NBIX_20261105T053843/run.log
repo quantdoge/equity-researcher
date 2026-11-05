@@ -1,0 +1,16 @@
+2026-11-05T05:38:43  START  symbol=NBIX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-05T05:38:43  CONFIG sha=dc1a65624670 git=3e6b343 gaps=0
+2026-11-05T05:39:08  DONE   fin_risk_analyst  24.2s
+2026-11-05T05:39:36  DONE   sector_researcher  52.4s
+2026-11-05T05:39:59  DONE   growth_researcher  75.7s
+2026-11-05T05:40:06  DONE   geo_legal_researcher  82.4s
+2026-11-05T05:40:12  DONE   macro_researcher  88.2s
+2026-11-05T05:40:44  DONE   value_researcher  120.5s
+2026-11-05T05:40:52  DONE   esg_analyst  46.7s
+2026-11-05T05:40:52  DONE   quant_analyst  76.8s
+2026-11-05T05:41:10  DONE   alt_data_analyst  59.0s
+2026-11-05T05:41:14  DONE   short_analyst  75.0s
+2026-11-05T05:41:38  DONE   nonfin_risk_analyst  150.2s
+2026-11-05T05:42:29  DONE   portfolio_strategist  51.1s
+2026-11-05T05:42:51  DONE   head_of_research  22.1s
+2026-11-05T05:42:51  END    elapsed=247.8s failures=none
