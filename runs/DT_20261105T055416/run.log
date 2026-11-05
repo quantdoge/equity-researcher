@@ -1,0 +1,16 @@
+2026-11-05T05:54:16  START  symbol=DT agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-05T05:54:16  CONFIG sha=dc1a65624670 git=3e6b343 gaps=0
+2026-11-05T05:55:12  DONE   growth_researcher  54.8s
+2026-11-05T05:55:27  DONE   fin_risk_analyst  70.6s
+2026-11-05T05:55:57  DONE   sector_researcher  100.9s
+2026-11-05T05:56:04  DONE   macro_researcher  107.4s
+2026-11-05T05:56:39  DONE   geo_legal_researcher  142.1s
+2026-11-05T05:57:08  DONE   nonfin_risk_analyst  116.4s
+2026-11-05T05:57:13  DONE   quant_analyst  105.9s
+2026-11-05T05:57:14  DONE   alt_data_analyst  35.0s
+2026-11-05T05:57:35  DONE   esg_analyst  90.9s
+2026-11-05T05:57:59  DONE   short_analyst  122.0s
+2026-11-05T05:58:09  DONE   value_researcher  232.5s
+2026-11-05T05:59:12  DONE   portfolio_strategist  63.2s
+2026-11-05T05:59:40  DONE   head_of_research  27.3s
+2026-11-05T05:59:40  END    elapsed=323.3s failures=none
