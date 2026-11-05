@@ -1,0 +1,16 @@
+2026-11-05T05:51:49  START  symbol=GRAB agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-05T05:51:50  CONFIG sha=dc1a65624670 git=3e6b343 gaps=0
+2026-11-05T05:52:31  DONE   fin_risk_analyst  41.2s
+2026-11-05T05:52:38  DONE   growth_researcher  48.1s
+2026-11-05T05:52:44  DONE   macro_researcher  53.8s
+2026-11-05T05:52:47  DONE   sector_researcher  56.8s
+2026-11-05T05:53:17  DONE   geo_legal_researcher  86.8s
+2026-11-05T05:53:25  DONE   quant_analyst  47.0s
+2026-11-05T05:53:38  DONE   value_researcher  107.7s
+2026-11-05T05:53:38  DONE   esg_analyst  51.8s
+2026-11-05T05:53:57  DONE   short_analyst  73.4s
+2026-11-05T05:53:58  DONE   nonfin_risk_analyst  86.8s
+2026-11-05T05:56:43  DONE   alt_data_analyst  206.7s
+2026-11-05T05:57:51  DONE   portfolio_strategist  68.0s
+2026-11-05T05:59:23  DONE   head_of_research  91.2s
+2026-11-05T05:59:23  END    elapsed=452.8s failures=none
