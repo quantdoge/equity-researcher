@@ -1,0 +1,16 @@
+2026-11-08T17:26:58  START  symbol=MCHP agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-08T17:26:58  CONFIG sha=dc1a65624670 git=a5c0999 gaps=0
+2026-11-08T17:27:34  DONE   sector_researcher  36.6s
+2026-11-08T17:27:40  DONE   macro_researcher  42.3s
+2026-11-08T17:27:43  DONE   geo_legal_researcher  44.6s
+2026-11-08T17:27:47  DONE   fin_risk_analyst  49.3s
+2026-11-08T17:28:22  DONE   quant_analyst  42.1s
+2026-11-08T17:28:30  DONE   value_researcher  92.1s
+2026-11-08T17:28:33  DONE   short_analyst  50.6s
+2026-11-08T17:28:49  DONE   growth_researcher  110.6s
+2026-11-08T17:28:56  DONE   esg_analyst  68.5s
+2026-11-08T17:28:59  DONE   nonfin_risk_analyst  84.3s
+2026-11-08T17:29:19  DONE   alt_data_analyst  56.8s
+2026-11-08T17:29:52  DONE   portfolio_strategist  33.1s
+2026-11-08T17:30:22  DONE   head_of_research  29.7s
+2026-11-08T17:30:22  END    elapsed=204.0s failures=none
