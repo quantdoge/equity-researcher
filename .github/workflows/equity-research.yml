@@ -37,18 +37,18 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - BE
-          - FN
-          - NBIX
-          - FISV
-          - RRX
-          - LSCC
-          - GRAB
-          - DT
-          - IT
-          - TRI
-          - SYY
-          - ZBRA
+          - FROG
+          - IONQ
+          - SITM
+          - RKLB
+          - COHR
+          - AXON
+          - TEAM
+          - HALO
+          - NTRA
+          - MCHP
+          - ABNB
+          - AMD
 
     steps:
       - uses: actions/checkout@v4
