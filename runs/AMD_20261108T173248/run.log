@@ -1,0 +1,16 @@
+2026-11-08T17:32:48  START  symbol=AMD agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-08T17:32:49  CONFIG sha=dc1a65624670 git=a5c0999 gaps=0
+2026-11-08T17:33:15  DONE   sector_researcher  26.6s
+2026-11-08T17:33:25  DONE   macro_researcher  36.3s
+2026-11-08T17:33:40  DONE   value_researcher  50.8s
+2026-11-08T17:33:42  DONE   growth_researcher  53.5s
+2026-11-08T17:33:59  DONE   geo_legal_researcher  69.9s
+2026-11-08T17:34:00  DONE   fin_risk_analyst  70.6s
+2026-11-08T17:34:08  DONE   quant_analyst  42.7s
+2026-11-08T17:34:20  FAIL   esg_analyst  37.4s  ValueError: OpenRouter API returned an error during streaming: Upstream error from Alibaba: Output data may contain inappropriate content. (code: 502)
+2026-11-08T17:34:26  DONE   alt_data_analyst  27.7s
+2026-11-08T17:34:39  DONE   nonfin_risk_analyst  84.0s
+2026-11-08T17:34:57  DONE   short_analyst  77.9s
+2026-11-08T17:35:58  DONE   portfolio_strategist  60.1s
+2026-11-08T17:36:33  DONE   head_of_research  35.5s
+2026-11-08T17:36:33  END    elapsed=224.5s failures=esg_analyst
