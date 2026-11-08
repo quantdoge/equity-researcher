@@ -1,0 +1,16 @@
+2026-11-08T16:54:43  START  symbol=IONQ agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-08T16:54:43  CONFIG sha=dc1a65624670 git=a5c0999 gaps=0
+2026-11-08T16:55:25  DONE   growth_researcher  41.8s
+2026-11-08T16:55:31  DONE   fin_risk_analyst  47.3s
+2026-11-08T16:55:31  DONE   value_researcher  48.2s
+2026-11-08T16:55:34  DONE   macro_researcher  51.2s
+2026-11-08T16:55:37  DONE   sector_researcher  54.0s
+2026-11-08T16:56:11  DONE   alt_data_analyst  34.1s
+2026-11-08T16:56:23  DONE   quant_analyst  51.8s
+2026-11-08T16:56:24  DONE   esg_analyst  49.2s
+2026-11-08T16:56:33  DONE   geo_legal_researcher  109.8s
+2026-11-08T16:56:34  DONE   short_analyst  62.2s
+2026-11-08T16:59:52  DONE   nonfin_risk_analyst  266.7s
+2026-11-08T17:01:13  DONE   portfolio_strategist  81.4s
+2026-11-08T17:02:37  DONE   head_of_research  83.9s
+2026-11-08T17:02:37  END    elapsed=474.2s failures=none
