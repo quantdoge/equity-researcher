@@ -1,0 +1,16 @@
+2026-11-08T17:27:13  START  symbol=ABNB agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-08T17:27:13  CONFIG sha=dc1a65624670 git=a5c0999 gaps=0
+2026-11-08T17:27:59  DONE   fin_risk_analyst  45.2s
+2026-11-08T17:28:24  DONE   geo_legal_researcher  70.7s
+2026-11-08T17:28:27  DONE   growth_researcher  73.8s
+2026-11-08T17:28:32  DONE   macro_researcher  79.2s
+2026-11-08T17:28:37  DONE   sector_researcher  83.7s
+2026-11-08T17:28:55  DONE   quant_analyst  31.1s
+2026-11-08T17:28:58  DONE   value_researcher  104.5s
+2026-11-08T17:29:28  DONE   short_analyst  61.0s
+2026-11-08T17:29:30  DONE   nonfin_risk_analyst  91.5s
+2026-11-08T17:29:44  DONE   esg_analyst  71.4s
+2026-11-08T17:29:54  DONE   alt_data_analyst  77.3s
+2026-11-08T17:30:29  DONE   portfolio_strategist  34.4s
+2026-11-08T17:30:58  DONE   head_of_research  29.9s
+2026-11-08T17:30:58  END    elapsed=225.4s failures=none
