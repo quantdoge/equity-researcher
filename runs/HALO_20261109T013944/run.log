@@ -1,0 +1,16 @@
+2026-11-09T01:39:44  START  symbol=HALO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-09T01:39:44  CONFIG sha=dc1a65624670 git=1e000e3 gaps=0
+2026-11-09T01:40:23  DONE   sector_researcher  38.7s
+2026-11-09T01:40:36  DONE   growth_researcher  52.0s
+2026-11-09T01:40:37  DONE   fin_risk_analyst  52.7s
+2026-11-09T01:40:47  DONE   geo_legal_researcher  63.1s
+2026-11-09T01:41:09  DONE   quant_analyst  32.3s
+2026-11-09T01:41:18  DONE   value_researcher  93.6s
+2026-11-09T01:41:22  DONE   macro_researcher  98.2s
+2026-11-09T01:41:54  DONE   nonfin_risk_analyst  91.5s
+2026-11-09T01:42:02  DONE   alt_data_analyst  53.5s
+2026-11-09T01:42:38  DONE   esg_analyst  111.2s
+2026-11-09T01:43:09  DONE   short_analyst  151.6s
+2026-11-09T01:45:42  DONE   portfolio_strategist  153.7s
+2026-11-09T01:46:03  DONE   head_of_research  20.5s
+2026-11-09T01:46:03  END    elapsed=379.0s failures=none
