@@ -1,0 +1,16 @@
+2026-11-10T01:34:09  START  symbol=BABA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-10T01:34:09  CONFIG sha=dc1a65624670 git=4ddf9af gaps=0
+2026-11-10T01:34:59  DONE   macro_researcher  49.5s
+2026-11-10T01:35:01  DONE   sector_researcher  51.5s
+2026-11-10T01:35:03  DONE   geo_legal_researcher  54.3s
+2026-11-10T01:35:13  DONE   growth_researcher  63.9s
+2026-11-10T01:35:29  DONE   fin_risk_analyst  80.0s
+2026-11-10T01:35:58  DONE   short_analyst  54.6s
+2026-11-10T01:36:07  DONE   esg_analyst  53.7s
+2026-11-10T01:36:15  DONE   nonfin_risk_analyst  75.9s
+2026-11-10T01:36:23  DONE   alt_data_analyst  53.8s
+2026-11-10T01:36:34  DONE   value_researcher  144.4s
+2026-11-10T01:36:39  DONE   quant_analyst  98.0s
+2026-11-10T01:37:29  DONE   portfolio_strategist  50.1s
+2026-11-10T01:38:30  DONE   head_of_research  61.1s
+2026-11-10T01:38:30  END    elapsed=260.7s failures=none
