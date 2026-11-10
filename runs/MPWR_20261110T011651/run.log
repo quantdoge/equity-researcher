@@ -1,0 +1,16 @@
+2026-11-10T01:16:51  START  symbol=MPWR agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-10T01:16:52  CONFIG sha=dc1a65624670 git=4ddf9af gaps=0
+2026-11-10T01:17:31  DONE   growth_researcher  39.4s
+2026-11-10T01:17:41  DONE   fin_risk_analyst  48.6s
+2026-11-10T01:17:43  DONE   sector_researcher  51.9s
+2026-11-10T01:17:52  DONE   macro_researcher  60.7s
+2026-11-10T01:18:05  DONE   value_researcher  73.2s
+2026-11-10T01:18:25  DONE   nonfin_risk_analyst  53.9s
+2026-11-10T01:18:41  DONE   quant_analyst  60.4s
+2026-11-10T01:18:43  DONE   alt_data_analyst  37.8s
+2026-11-10T01:18:47  DONE   geo_legal_researcher  115.3s
+2026-11-10T01:19:11  DONE   esg_analyst  78.7s
+2026-11-10T01:19:14  DONE   short_analyst  90.4s
+2026-11-10T01:19:56  DONE   portfolio_strategist  41.8s
+2026-11-10T01:20:30  DONE   head_of_research  33.9s
+2026-11-10T01:20:30  END    elapsed=218.0s failures=none
