@@ -1,0 +1,16 @@
+2026-11-10T01:09:38  START  symbol=COHR agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-10T01:09:39  CONFIG sha=dc1a65624670 git=4ddf9af gaps=0
+2026-11-10T01:10:30  DONE   sector_researcher  50.7s
+2026-11-10T01:10:32  DONE   growth_researcher  52.3s
+2026-11-10T01:10:38  DONE   macro_researcher  59.0s
+2026-11-10T01:10:47  DONE   fin_risk_analyst  67.2s
+2026-11-10T01:11:04  DONE   geo_legal_researcher  84.6s
+2026-11-10T01:11:06  DONE   quant_analyst  34.4s
+2026-11-10T01:11:20  DONE   short_analyst  41.9s
+2026-11-10T01:11:42  DONE   nonfin_risk_analyst  72.8s
+2026-11-10T01:11:53  DONE   esg_analyst  66.8s
+2026-11-10T01:11:55  DONE   alt_data_analyst  51.1s
+2026-11-10T01:13:09  DONE   value_researcher  209.7s
+2026-11-10T01:14:02  DONE   portfolio_strategist  53.1s
+2026-11-10T01:14:42  DONE   head_of_research  40.0s
+2026-11-10T01:14:42  END    elapsed=303.0s failures=none
