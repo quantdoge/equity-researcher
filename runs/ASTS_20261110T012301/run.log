@@ -1,0 +1,16 @@
+2026-11-10T01:23:01  START  symbol=ASTS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-10T01:23:01  CONFIG sha=dc1a65624670 git=4ddf9af gaps=0
+2026-11-10T01:23:40  DONE   fin_risk_analyst  38.5s
+2026-11-10T01:23:53  DONE   value_researcher  51.0s
+2026-11-10T01:24:24  DONE   quant_analyst  31.1s
+2026-11-10T01:24:52  DONE   sector_researcher  110.2s
+2026-11-10T01:24:53  DONE   nonfin_risk_analyst  72.7s
+2026-11-10T01:24:58  DONE   macro_researcher  116.6s
+2026-11-10T01:25:08  DONE   growth_researcher  126.1s
+2026-11-10T01:25:30  DONE   short_analyst  66.4s
+2026-11-10T01:26:01  DONE   geo_legal_researcher  179.1s
+2026-11-10T01:26:05  DONE   esg_analyst  73.8s
+2026-11-10T01:26:49  DONE   alt_data_analyst  116.1s
+2026-11-10T01:27:29  DONE   portfolio_strategist  39.8s
+2026-11-10T01:27:53  DONE   head_of_research  24.1s
+2026-11-10T01:27:53  END    elapsed=291.7s failures=none
