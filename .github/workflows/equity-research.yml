@@ -37,17 +37,16 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - QXO
-          - COHR
-          - MPWR
-          - VSAT
+          - CHTR
+          - TTWO
+          - EMBJ
+          - RKLB
+          - CVS
           - ASTS
+          - GFL
+          - ONON
           - FSLR
           - NVDA
-          - BABA
-          - TTWO
-          - AKAM
-          - AMD
 
     steps:
       - uses: actions/checkout@v4
