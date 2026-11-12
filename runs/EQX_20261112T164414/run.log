@@ -1,0 +1,16 @@
+2026-11-12T16:44:14  START  symbol=EQX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-12T16:44:15  CONFIG sha=dc1a65624670 git=ca39ba3 gaps=0
+2026-11-12T16:45:09  DONE   sector_researcher  54.2s
+2026-11-12T16:45:27  DONE   value_researcher  72.2s
+2026-11-12T16:45:28  DONE   fin_risk_analyst  73.3s
+2026-11-12T16:45:29  DONE   geo_legal_researcher  74.7s
+2026-11-12T16:45:41  DONE   macro_researcher  86.4s
+2026-11-12T16:46:17  DONE   growth_researcher  122.5s
+2026-11-12T16:46:32  DONE   nonfin_risk_analyst  83.2s
+2026-11-12T16:46:48  DONE   quant_analyst  81.4s
+2026-11-12T16:47:08  DONE   alt_data_analyst  86.5s
+2026-11-12T16:47:26  DONE   esg_analyst  116.2s
+2026-11-12T16:47:56  DONE   short_analyst  147.9s
+2026-11-12T16:48:59  DONE   portfolio_strategist  62.8s
+2026-11-12T16:50:06  DONE   head_of_research  67.2s
+2026-11-12T16:50:06  END    elapsed=351.5s failures=none
