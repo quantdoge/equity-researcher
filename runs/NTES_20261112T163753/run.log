@@ -1,0 +1,16 @@
+2026-11-12T16:37:53  START  symbol=NTES agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-12T16:37:54  CONFIG sha=dc1a65624670 git=ca39ba3 gaps=0
+2026-11-12T16:38:44  DONE   fin_risk_analyst  49.7s
+2026-11-12T16:38:48  DONE   sector_researcher  54.7s
+2026-11-12T16:39:02  DONE   geo_legal_researcher  68.6s
+2026-11-12T16:39:08  DONE   macro_researcher  74.5s
+2026-11-12T16:39:16  DONE   growth_researcher  82.4s
+2026-11-12T16:39:30  DONE   value_researcher  95.7s
+2026-11-12T16:39:37  DONE   quant_analyst  48.7s
+2026-11-12T16:39:37  DONE   nonfin_risk_analyst  53.5s
+2026-11-12T16:39:48  DONE   alt_data_analyst  32.0s
+2026-11-12T16:40:14  DONE   short_analyst  71.5s
+2026-11-12T16:40:44  DONE   esg_analyst  95.3s
+2026-11-12T16:42:08  DONE   portfolio_strategist  84.0s
+2026-11-12T16:42:53  DONE   head_of_research  45.6s
+2026-11-12T16:42:53  END    elapsed=299.6s failures=none
