@@ -37,16 +37,18 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - CHTR
-          - TTWO
-          - EMBJ
-          - RKLB
-          - CVS
-          - ASTS
-          - GFL
-          - ONON
-          - FSLR
-          - NVDA
+          - CRWV
+          - NBIS
+          - SNDK
+          - BE
+          - ARM
+          - NTES
+          - EQX
+          - SE
+          - STLA
+          - ABNB
+          - MU
+          - DELL
 
     steps:
       - uses: actions/checkout@v4
