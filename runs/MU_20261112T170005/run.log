@@ -1,0 +1,16 @@
+2026-11-12T17:00:05  START  symbol=MU agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-12T17:00:05  CONFIG sha=dc1a65624670 git=ca39ba3 gaps=0
+2026-11-12T17:01:11  DONE   sector_researcher  65.4s
+2026-11-12T17:01:14  DONE   growth_researcher  67.9s
+2026-11-12T17:01:26  DONE   fin_risk_analyst  80.3s
+2026-11-12T17:01:34  DONE   value_researcher  87.9s
+2026-11-12T17:01:37  DONE   macro_researcher  91.3s
+2026-11-12T17:01:39  DONE   geo_legal_researcher  93.3s
+2026-11-12T17:02:09  DONE   quant_analyst  55.2s
+2026-11-12T17:02:29  DONE   alt_data_analyst  51.8s
+2026-11-12T17:02:36  DONE   nonfin_risk_analyst  84.8s
+2026-11-12T17:02:37  DONE   short_analyst  71.1s
+2026-11-12T17:03:15  DONE   esg_analyst  100.9s
+2026-11-12T17:05:45  DONE   portfolio_strategist  150.5s
+2026-11-12T17:07:05  DONE   head_of_research  80.3s
+2026-11-12T17:07:05  END    elapsed=420.0s failures=none
