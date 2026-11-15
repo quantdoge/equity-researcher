@@ -37,18 +37,16 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - CRWV
+          - NU
+          - CBRS
+          - ALNY
+          - U
+          - CHTR
           - NBIS
-          - SNDK
-          - BE
-          - ARM
-          - NTES
-          - EQX
-          - SE
-          - STLA
-          - ABNB
-          - MU
+          - AMD
+          - FN
           - DELL
+          - TSEM
 
     steps:
       - uses: actions/checkout@v4
