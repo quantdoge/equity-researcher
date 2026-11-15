@@ -1,0 +1,16 @@
+2026-11-15T01:49:51  START  symbol=DELL agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-15T01:49:51  CONFIG sha=dc1a65624670 git=d6aacc4 gaps=0
+2026-11-15T01:50:36  DONE   sector_researcher  45.1s
+2026-11-15T01:50:38  DONE   fin_risk_analyst  46.4s
+2026-11-15T01:50:38  DONE   macro_researcher  47.0s
+2026-11-15T01:50:45  DONE   growth_researcher  53.9s
+2026-11-15T01:51:00  DONE   geo_legal_researcher  69.2s
+2026-11-15T01:51:26  DONE   nonfin_risk_analyst  50.0s
+2026-11-15T01:51:32  DONE   quant_analyst  54.8s
+2026-11-15T01:51:34  DONE   alt_data_analyst  33.9s
+2026-11-15T01:51:39  DONE   short_analyst  61.2s
+2026-11-15T01:51:46  DONE   value_researcher  114.5s
+2026-11-15T01:51:57  DONE   esg_analyst  71.9s
+2026-11-15T01:53:07  DONE   portfolio_strategist  69.6s
+2026-11-15T01:53:47  DONE   head_of_research  40.0s
+2026-11-15T01:53:47  END    elapsed=235.7s failures=none
