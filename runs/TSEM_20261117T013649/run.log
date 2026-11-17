@@ -1,0 +1,16 @@
+2026-11-17T01:36:49  START  symbol=TSEM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-17T01:36:49  CONFIG sha=dc1a65624670 git=f782d11 gaps=0
+2026-11-17T01:37:59  DONE   growth_researcher  70.3s
+2026-11-17T01:38:00  DONE   sector_researcher  71.3s
+2026-11-17T01:38:06  DONE   macro_researcher  77.6s
+2026-11-17T01:38:35  DONE   geo_legal_researcher  106.4s
+2026-11-17T01:38:37  DONE   value_researcher  107.8s
+2026-11-17T01:38:38  DONE   fin_risk_analyst  108.9s
+2026-11-17T01:39:05  DONE   nonfin_risk_analyst  65.5s
+2026-11-17T01:39:20  DONE   alt_data_analyst  43.3s
+2026-11-17T01:39:25  DONE   short_analyst  78.6s
+2026-11-17T01:39:33  DONE   quant_analyst  92.8s
+2026-11-17T01:40:09  DONE   esg_analyst  93.7s
+2026-11-17T01:40:58  DONE   portfolio_strategist  49.7s
+2026-11-17T01:41:31  DONE   head_of_research  32.5s
+2026-11-17T01:41:31  END    elapsed=282.3s failures=none
