@@ -1,0 +1,16 @@
+2026-11-17T01:48:57  START  symbol=NTRA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-17T01:48:58  CONFIG sha=dc1a65624670 git=f782d11 gaps=0
+2026-11-17T01:49:40  DONE   sector_researcher  42.6s
+2026-11-17T01:50:10  DONE   fin_risk_analyst  71.4s
+2026-11-17T01:50:13  DONE   geo_legal_researcher  75.3s
+2026-11-17T01:50:16  DONE   growth_researcher  78.4s
+2026-11-17T01:50:23  DONE   value_researcher  85.4s
+2026-11-17T01:50:28  DONE   macro_researcher  89.7s
+2026-11-17T01:51:02  DONE   nonfin_risk_analyst  81.7s
+2026-11-17T01:51:09  DONE   quant_analyst  59.2s
+2026-11-17T01:51:43  DONE   esg_analyst  86.1s
+2026-11-17T01:51:50  DONE   alt_data_analyst  86.7s
+2026-11-17T01:52:12  DONE   short_analyst  118.8s
+2026-11-17T01:52:49  DONE   portfolio_strategist  37.1s
+2026-11-17T01:53:17  DONE   head_of_research  28.0s
+2026-11-17T01:53:17  END    elapsed=259.4s failures=none
