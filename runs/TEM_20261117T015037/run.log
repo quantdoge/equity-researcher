@@ -1,0 +1,16 @@
+2026-11-17T01:50:37  START  symbol=TEM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-17T01:50:37  CONFIG sha=dc1a65624670 git=f782d11 gaps=0
+2026-11-17T01:51:32  DONE   macro_researcher  54.9s
+2026-11-17T01:51:33  DONE   sector_researcher  55.9s
+2026-11-17T01:52:00  DONE   geo_legal_researcher  82.1s
+2026-11-17T01:52:01  DONE   growth_researcher  82.9s
+2026-11-17T01:52:05  DONE   fin_risk_analyst  87.6s
+2026-11-17T01:52:18  DONE   value_researcher  100.3s
+2026-11-17T01:52:42  DONE   quant_analyst  69.0s
+2026-11-17T01:52:47  DONE   nonfin_risk_analyst  74.1s
+2026-11-17T01:52:48  DONE   alt_data_analyst  42.5s
+2026-11-17T01:52:48  DONE   esg_analyst  47.4s
+2026-11-17T01:53:50  DONE   short_analyst  110.6s
+2026-11-17T01:54:36  DONE   portfolio_strategist  45.7s
+2026-11-17T01:55:11  DONE   head_of_research  35.4s
+2026-11-17T01:55:11  END    elapsed=273.9s failures=none
