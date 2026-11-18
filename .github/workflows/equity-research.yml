@@ -37,17 +37,21 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - MOH
-          - TSN
-          - CNC
-          - TSCO
-          - ELV
-          - TSEM
+          - ACM
+          - ARM
           - ALAB
-          - ASTS
-          - NTRA
-          - TEM
-          - SNDK
+          - VIK
+          - AS
+          - NXT
+          - CRM
+          - WCN
+          - INTU
+          - FIX
+          - COHR
+          - SPCX
+          - HUBS
+          - NOW
+          - MSTR
 
     steps:
       - uses: actions/checkout@v4
