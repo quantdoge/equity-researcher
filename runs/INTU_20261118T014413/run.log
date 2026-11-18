@@ -1,0 +1,16 @@
+2026-11-18T01:44:13  START  symbol=INTU agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-18T01:44:14  CONFIG sha=dc1a65624670 git=3243c64 gaps=0
+2026-11-18T01:45:09  DONE   sector_researcher  55.5s
+2026-11-18T01:45:15  DONE   geo_legal_researcher  60.7s
+2026-11-18T01:45:15  DONE   macro_researcher  60.9s
+2026-11-18T01:45:24  DONE   growth_researcher  70.1s
+2026-11-18T01:45:41  DONE   fin_risk_analyst  86.6s
+2026-11-18T01:46:12  DONE   nonfin_risk_analyst  62.4s
+2026-11-18T01:46:12  DONE   quant_analyst  57.3s
+2026-11-18T01:46:14  DONE   value_researcher  120.1s
+2026-11-18T01:46:50  DONE   alt_data_analyst  69.5s
+2026-11-18T01:47:06  DONE   short_analyst  111.3s
+2026-11-18T01:47:24  DONE   esg_analyst  119.8s
+2026-11-18T01:47:50  DONE   portfolio_strategist  26.1s
+2026-11-18T01:48:17  DONE   head_of_research  26.8s
+2026-11-18T01:48:17  END    elapsed=243.1s failures=none
