@@ -1,0 +1,16 @@
+2026-11-18T01:17:17  START  symbol=ARM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-18T01:17:18  CONFIG sha=dc1a65624670 git=3243c64 gaps=0
+2026-11-18T01:18:02  DONE   growth_researcher  44.1s
+2026-11-18T01:18:06  DONE   sector_researcher  47.9s
+2026-11-18T01:18:20  DONE   fin_risk_analyst  61.9s
+2026-11-18T01:18:31  DONE   quant_analyst  25.1s
+2026-11-18T01:18:42  DONE   geo_legal_researcher  84.3s
+2026-11-18T01:19:05  DONE   value_researcher  107.1s
+2026-11-18T01:19:31  DONE   alt_data_analyst  49.3s
+2026-11-18T01:19:34  DONE   macro_researcher  136.3s
+2026-11-18T01:20:15  DONE   nonfin_risk_analyst  133.2s
+2026-11-18T01:20:22  DONE   short_analyst  122.5s
+2026-11-18T01:21:07  FAIL   esg_analyst  156.7s  ValueError: OpenRouter API returned an error during streaming: Upstream error from Ambient: Stream processing error (code: 502)
+2026-11-18T01:21:59  DONE   portfolio_strategist  51.7s
+2026-11-18T01:22:29  DONE   head_of_research  29.7s
+2026-11-18T01:22:29  END    elapsed=311.2s failures=esg_analyst
