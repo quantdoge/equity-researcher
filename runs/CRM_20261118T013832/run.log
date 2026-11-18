@@ -1,0 +1,16 @@
+2026-11-18T01:38:32  START  symbol=CRM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-18T01:38:33  CONFIG sha=dc1a65624670 git=3243c64 gaps=0
+2026-11-18T01:39:10  DONE   geo_legal_researcher  37.4s
+2026-11-18T01:39:25  DONE   macro_researcher  52.0s
+2026-11-18T01:39:47  DONE   sector_researcher  74.3s
+2026-11-18T01:39:47  DONE   value_researcher  74.7s
+2026-11-18T01:39:56  DONE   growth_researcher  83.0s
+2026-11-18T01:40:07  DONE   nonfin_risk_analyst  57.1s
+2026-11-18T01:40:19  DONE   fin_risk_analyst  106.7s
+2026-11-18T01:40:21  DONE   quant_analyst  56.7s
+2026-11-18T01:40:48  DONE   esg_analyst  60.2s
+2026-11-18T01:40:51  DONE   alt_data_analyst  55.0s
+2026-11-18T01:40:51  DONE   short_analyst  64.5s
+2026-11-18T01:41:40  DONE   portfolio_strategist  48.2s
+2026-11-18T01:42:03  DONE   head_of_research  23.8s
+2026-11-18T01:42:03  END    elapsed=210.8s failures=none
