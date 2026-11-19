@@ -1,0 +1,16 @@
+2026-11-19T01:23:21  START  symbol=OKTA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-19T01:23:21  CONFIG sha=dc1a65624670 git=e0b3e59 gaps=0
+2026-11-19T01:23:42  FAIL   geo_legal_researcher  20.8s  ValueError: OpenRouter API returned an error during streaming: Upstream error from GMICloud: The upstream model closed the stream before the response was complete; the output delivered so far is partial. (code: 502)
+2026-11-19T01:23:55  DONE   macro_researcher  33.6s
+2026-11-19T01:24:01  DONE   growth_researcher  39.7s
+2026-11-19T01:24:13  DONE   sector_researcher  51.4s
+2026-11-19T01:24:15  DONE   fin_risk_analyst  53.2s
+2026-11-19T01:24:20  DONE   quant_analyst  25.1s
+2026-11-19T01:24:23  DONE   value_researcher  61.1s
+2026-11-19T01:24:39  DONE   nonfin_risk_analyst  57.1s
+2026-11-19T01:24:46  DONE   alt_data_analyst  31.5s
+2026-11-19T01:24:50  DONE   short_analyst  49.3s
+2026-11-19T01:25:11  DONE   esg_analyst  58.7s
+2026-11-19T01:26:10  DONE   portfolio_strategist  58.2s
+2026-11-19T01:26:28  DONE   head_of_research  18.2s
+2026-11-19T01:26:28  END    elapsed=186.5s failures=geo_legal_researcher
