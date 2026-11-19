@@ -1,0 +1,16 @@
+2026-11-19T01:28:26  START  symbol=PANW agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-19T01:28:27  CONFIG sha=dc1a65624670 git=e0b3e59 gaps=0
+2026-11-19T01:29:09  DONE   sector_researcher  42.3s
+2026-11-19T01:29:13  DONE   fin_risk_analyst  45.8s
+2026-11-19T01:29:18  DONE   geo_legal_researcher  50.7s
+2026-11-19T01:29:22  DONE   macro_researcher  55.0s
+2026-11-19T01:29:36  DONE   value_researcher  69.1s
+2026-11-19T01:29:41  DONE   growth_researcher  74.0s
+2026-11-19T01:30:10  DONE   alt_data_analyst  34.2s
+2026-11-19T01:30:13  DONE   quant_analyst  60.5s
+2026-11-19T01:30:17  DONE   short_analyst  59.0s
+2026-11-19T01:30:18  DONE   nonfin_risk_analyst  68.6s
+2026-11-19T01:30:25  DONE   esg_analyst  62.9s
+2026-11-19T01:31:03  DONE   portfolio_strategist  37.8s
+2026-11-19T01:31:28  DONE   head_of_research  24.7s
+2026-11-19T01:31:28  END    elapsed=180.6s failures=none
