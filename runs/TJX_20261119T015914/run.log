@@ -1,0 +1,16 @@
+2026-11-19T01:59:14  START  symbol=TJX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-19T01:59:14  CONFIG sha=dc1a65624670 git=e0b3e59 gaps=0
+2026-11-19T02:00:10  DONE   fin_risk_analyst  55.5s
+2026-11-19T02:00:16  DONE   value_researcher  62.0s
+2026-11-19T02:00:17  DONE   sector_researcher  62.7s
+2026-11-19T02:00:28  DONE   geo_legal_researcher  73.2s
+2026-11-19T02:00:39  DONE   growth_researcher  84.3s
+2026-11-19T02:00:59  DONE   nonfin_risk_analyst  48.5s
+2026-11-19T02:01:04  DONE   macro_researcher  109.5s
+2026-11-19T02:01:24  DONE   quant_analyst  67.7s
+2026-11-19T02:01:33  DONE   esg_analyst  65.7s
+2026-11-19T02:01:36  DONE   alt_data_analyst  57.3s
+2026-11-19T02:01:40  DONE   short_analyst  83.2s
+2026-11-19T02:03:23  DONE   portfolio_strategist  102.4s
+2026-11-19T02:03:46  DONE   head_of_research  23.7s
+2026-11-19T02:03:46  END    elapsed=272.0s failures=none
