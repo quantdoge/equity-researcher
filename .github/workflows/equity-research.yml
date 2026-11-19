@@ -37,21 +37,19 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - ACM
-          - ARM
-          - ALAB
-          - VIK
-          - AS
-          - NXT
-          - CRM
-          - WCN
-          - INTU
-          - FIX
-          - COHR
-          - SPCX
-          - HUBS
-          - NOW
-          - MSTR
+          - OKTA
+          - SAIL
+          - PANW
+          - GNRC
+          - RBRK
+          - HUM
+          - UNH
+          - CBRS
+          - ELV
+          - ASTS
+          - FROG
+          - AKAM
+          - TJX
 
     steps:
       - uses: actions/checkout@v4
