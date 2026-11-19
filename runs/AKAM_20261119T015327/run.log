@@ -1,0 +1,16 @@
+2026-11-19T01:53:27  START  symbol=AKAM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-19T01:53:27  CONFIG sha=dc1a65624670 git=e0b3e59 gaps=0
+2026-11-19T01:54:02  DONE   macro_researcher  35.0s
+2026-11-19T01:54:17  DONE   geo_legal_researcher  49.5s
+2026-11-19T01:54:17  DONE   sector_researcher  49.8s
+2026-11-19T01:54:19  DONE   fin_risk_analyst  51.6s
+2026-11-19T01:54:20  DONE   growth_researcher  52.9s
+2026-11-19T01:54:46  DONE   value_researcher  78.9s
+2026-11-19T01:55:07  DONE   nonfin_risk_analyst  64.7s
+2026-11-19T01:55:10  DONE   alt_data_analyst  49.6s
+2026-11-19T01:55:30  DONE   esg_analyst  70.7s
+2026-11-19T01:55:32  DONE   short_analyst  75.4s
+2026-11-19T01:57:14  DONE   quant_analyst  177.4s
+2026-11-19T01:57:53  DONE   portfolio_strategist  38.8s
+2026-11-19T01:58:25  DONE   head_of_research  31.6s
+2026-11-19T01:58:25  END    elapsed=297.4s failures=none
