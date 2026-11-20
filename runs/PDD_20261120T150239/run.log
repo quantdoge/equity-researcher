@@ -1,0 +1,16 @@
+2026-11-20T15:02:39  START  symbol=PDD agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:02:39  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:03:35  DONE   macro_researcher  55.6s
+2026-11-20T15:03:49  DONE   growth_researcher  69.6s
+2026-11-20T15:03:53  DONE   sector_researcher  73.9s
+2026-11-20T15:03:54  DONE   geo_legal_researcher  75.1s
+2026-11-20T15:04:01  DONE   value_researcher  81.6s
+2026-11-20T15:04:21  DONE   fin_risk_analyst  101.7s
+2026-11-20T15:04:30  DONE   quant_analyst  40.8s
+2026-11-20T15:04:33  DONE   nonfin_risk_analyst  57.6s
+2026-11-20T15:04:48  DONE   alt_data_analyst  46.6s
+2026-11-20T15:04:57  DONE   esg_analyst  62.4s
+2026-11-20T15:05:45  DONE   short_analyst  112.2s
+2026-11-20T15:06:46  DONE   portfolio_strategist  60.9s
+2026-11-20T15:07:34  DONE   head_of_research  47.5s
+2026-11-20T15:07:34  END    elapsed=294.5s failures=none
