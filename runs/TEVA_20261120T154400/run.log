@@ -1,0 +1,16 @@
+2026-11-20T15:44:00  START  symbol=TEVA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:44:00  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:45:01  DONE   geo_legal_researcher  60.1s
+2026-11-20T15:45:01  DONE   growth_researcher  61.0s
+2026-11-20T15:45:02  DONE   macro_researcher  61.1s
+2026-11-20T15:45:19  DONE   value_researcher  78.6s
+2026-11-20T15:45:29  DONE   sector_researcher  88.5s
+2026-11-20T15:45:50  DONE   fin_risk_analyst  109.5s
+2026-11-20T15:45:59  DONE   quant_analyst  58.0s
+2026-11-20T15:46:22  DONE   alt_data_analyst  53.6s
+2026-11-20T15:46:33  DONE   esg_analyst  73.5s
+2026-11-20T15:46:34  DONE   nonfin_risk_analyst  93.3s
+2026-11-20T15:46:39  DONE   short_analyst  97.4s
+2026-11-20T15:47:38  DONE   portfolio_strategist  59.2s
+2026-11-20T15:48:38  DONE   head_of_research  60.2s
+2026-11-20T15:48:38  END    elapsed=278.1s failures=none
