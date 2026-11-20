@@ -1,0 +1,16 @@
+2026-11-20T15:50:54  START  symbol=AMD agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:50:54  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:51:53  DONE   sector_researcher  59.2s
+2026-11-20T15:51:54  DONE   growth_researcher  60.0s
+2026-11-20T15:51:57  DONE   macro_researcher  63.3s
+2026-11-20T15:52:04  DONE   fin_risk_analyst  69.5s
+2026-11-20T15:52:11  DONE   value_researcher  76.9s
+2026-11-20T15:52:20  DONE   quant_analyst  26.2s
+2026-11-20T15:52:23  DONE   geo_legal_researcher  88.5s
+2026-11-20T15:52:44  DONE   nonfin_risk_analyst  51.3s
+2026-11-20T15:52:51  DONE   alt_data_analyst  39.9s
+2026-11-20T15:53:16  DONE   short_analyst  78.7s
+2026-11-20T15:53:23  DONE   esg_analyst  79.6s
+2026-11-20T15:54:16  DONE   portfolio_strategist  52.5s
+2026-11-20T15:54:33  DONE   head_of_research  17.0s
+2026-11-20T15:54:33  END    elapsed=218.8s failures=none
