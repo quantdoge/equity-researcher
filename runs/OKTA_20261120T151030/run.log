@@ -1,0 +1,16 @@
+2026-11-20T15:10:30  START  symbol=OKTA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:10:31  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:11:26  DONE   sector_researcher  55.3s
+2026-11-20T15:11:31  DONE   fin_risk_analyst  59.9s
+2026-11-20T15:11:33  DONE   growth_researcher  62.5s
+2026-11-20T15:11:37  DONE   macro_researcher  66.2s
+2026-11-20T15:12:16  DONE   value_researcher  105.1s
+2026-11-20T15:12:27  DONE   geo_legal_researcher  116.3s
+2026-11-20T15:12:39  DONE   short_analyst  66.1s
+2026-11-20T15:12:40  DONE   nonfin_risk_analyst  74.2s
+2026-11-20T15:12:45  DONE   esg_analyst  68.3s
+2026-11-20T15:12:54  DONE   quant_analyst  83.7s
+2026-11-20T15:13:01  DONE   alt_data_analyst  45.3s
+2026-11-20T15:14:13  DONE   portfolio_strategist  71.4s
+2026-11-20T15:14:50  DONE   head_of_research  36.9s
+2026-11-20T15:14:50  END    elapsed=259.0s failures=none
