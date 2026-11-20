@@ -1,0 +1,16 @@
+2026-11-20T15:30:52  START  symbol=RIVN agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:30:53  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:31:40  DONE   fin_risk_analyst  47.2s
+2026-11-20T15:31:41  DONE   value_researcher  47.5s
+2026-11-20T15:31:42  DONE   macro_researcher  49.3s
+2026-11-20T15:31:51  DONE   sector_researcher  58.6s
+2026-11-20T15:32:04  DONE   growth_researcher  71.2s
+2026-11-20T15:32:06  DONE   geo_legal_researcher  72.7s
+2026-11-20T15:32:11  DONE   quant_analyst  30.3s
+2026-11-20T15:32:18  DONE   nonfin_risk_analyst  37.5s
+2026-11-20T15:32:30  DONE   alt_data_analyst  26.3s
+2026-11-20T15:33:03  DONE   short_analyst  80.9s
+2026-11-20T15:33:23  DONE   esg_analyst  91.7s
+2026-11-20T15:34:38  DONE   portfolio_strategist  74.6s
+2026-11-20T15:35:08  DONE   head_of_research  30.1s
+2026-11-20T15:35:08  END    elapsed=255.0s failures=none
