@@ -1,0 +1,16 @@
+2026-11-20T15:36:47  START  symbol=WSM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:36:47  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:37:30  DONE   fin_risk_analyst  42.0s
+2026-11-20T15:37:42  DONE   sector_researcher  55.2s
+2026-11-20T15:38:06  DONE   value_researcher  78.6s
+2026-11-20T15:38:09  DONE   macro_researcher  81.9s
+2026-11-20T15:38:28  DONE   nonfin_risk_analyst  58.2s
+2026-11-20T15:38:31  DONE   quant_analyst  49.0s
+2026-11-20T15:38:57  DONE   growth_researcher  129.0s
+2026-11-20T15:38:58  DONE   geo_legal_researcher  130.6s
+2026-11-20T15:39:35  DONE   short_analyst  89.1s
+2026-11-20T15:39:54  DONE   esg_analyst  104.6s
+2026-11-20T15:40:10  DONE   alt_data_analyst  102.2s
+2026-11-20T15:41:04  DONE   portfolio_strategist  53.9s
+2026-11-20T15:41:37  DONE   head_of_research  32.9s
+2026-11-20T15:41:37  END    elapsed=289.4s failures=none
