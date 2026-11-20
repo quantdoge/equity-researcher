@@ -1,0 +1,16 @@
+2026-11-20T15:16:50  START  symbol=NTSK agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:16:51  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:17:21  DONE   value_researcher  30.0s
+2026-11-20T15:17:43  DONE   sector_researcher  52.3s
+2026-11-20T15:17:54  DONE   macro_researcher  63.4s
+2026-11-20T15:18:04  DONE   growth_researcher  73.3s
+2026-11-20T15:18:08  DONE   nonfin_risk_analyst  46.6s
+2026-11-20T15:18:15  DONE   fin_risk_analyst  84.0s
+2026-11-20T15:18:16  DONE   geo_legal_researcher  84.9s
+2026-11-20T15:18:52  DONE   alt_data_analyst  44.1s
+2026-11-20T15:18:56  DONE   quant_analyst  73.1s
+2026-11-20T15:19:51  DONE   esg_analyst  106.9s
+2026-11-20T15:20:16  DONE   short_analyst  141.9s
+2026-11-20T15:21:20  DONE   portfolio_strategist  63.5s
+2026-11-20T15:21:37  DONE   head_of_research  17.3s
+2026-11-20T15:21:37  END    elapsed=286.3s failures=none
