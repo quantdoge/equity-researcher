@@ -1,0 +1,16 @@
+2026-11-20T15:23:48  START  symbol=ALNY agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:23:48  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:24:41  DONE   sector_researcher  52.7s
+2026-11-20T15:24:52  DONE   fin_risk_analyst  64.1s
+2026-11-20T15:25:17  DONE   value_researcher  88.4s
+2026-11-20T15:25:17  DONE   growth_researcher  88.6s
+2026-11-20T15:25:23  DONE   geo_legal_researcher  94.7s
+2026-11-20T15:26:01  DONE   alt_data_analyst  38.3s
+2026-11-20T15:26:01  DONE   nonfin_risk_analyst  80.5s
+2026-11-20T15:26:10  DONE   quant_analyst  77.9s
+2026-11-20T15:26:12  DONE   macro_researcher  143.6s
+2026-11-20T15:26:25  DONE   esg_analyst  68.2s
+2026-11-20T15:26:47  DONE   short_analyst  90.6s
+2026-11-20T15:27:41  DONE   portfolio_strategist  53.7s
+2026-11-20T15:28:31  DONE   head_of_research  49.8s
+2026-11-20T15:28:31  END    elapsed=282.7s failures=none
