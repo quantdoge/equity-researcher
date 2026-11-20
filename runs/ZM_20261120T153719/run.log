@@ -1,0 +1,16 @@
+2026-11-20T15:37:19  START  symbol=ZM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-20T15:37:20  CONFIG sha=dc1a65624670 git=27516a4 gaps=0
+2026-11-20T15:38:07  DONE   sector_researcher  47.0s
+2026-11-20T15:38:17  DONE   fin_risk_analyst  57.0s
+2026-11-20T15:38:18  DONE   geo_legal_researcher  58.5s
+2026-11-20T15:38:21  DONE   growth_researcher  61.1s
+2026-11-20T15:38:24  DONE   macro_researcher  64.0s
+2026-11-20T15:38:35  DONE   value_researcher  75.2s
+2026-11-20T15:39:06  DONE   quant_analyst  48.8s
+2026-11-20T15:39:22  DONE   alt_data_analyst  58.6s
+2026-11-20T15:39:31  DONE   nonfin_risk_analyst  84.8s
+2026-11-20T15:39:43  DONE   short_analyst  84.9s
+2026-11-20T15:39:45  DONE   esg_analyst  84.1s
+2026-11-20T15:40:29  DONE   portfolio_strategist  44.2s
+2026-11-20T15:41:32  DONE   head_of_research  62.8s
+2026-11-20T15:41:32  END    elapsed=252.5s failures=none
