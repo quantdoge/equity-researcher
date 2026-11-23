@@ -37,21 +37,17 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - INSM
-          - PDD
-          - PANW
-          - OKTA
-          - NTSK
-          - NVDA
-          - ALNY
-          - ANT
-          - RIVN
-          - TEM
-          - WSM
-          - ZM
+          - GPN
+          - HDB
+          - GIS
+          - MKC
+          - INFY
           - NBIS
-          - TEVA
-          - AMD
+          - CLS
+          - SNDK
+          - BE
+          - MU
+          - CRDO
 
     steps:
       - uses: actions/checkout@v4
