@@ -1,0 +1,16 @@
+2026-11-23T01:07:33  START  symbol=MKC agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-23T01:07:33  CONFIG sha=dc1a65624670 git=47209c4 gaps=0
+2026-11-23T01:08:13  DONE   sector_researcher  39.9s
+2026-11-23T01:08:16  DONE   macro_researcher  42.5s
+2026-11-23T01:08:24  DONE   growth_researcher  50.9s
+2026-11-23T01:08:27  DONE   geo_legal_researcher  53.5s
+2026-11-23T01:08:49  DONE   value_researcher  76.1s
+2026-11-23T01:09:16  DONE   esg_analyst  48.9s
+2026-11-23T01:09:17  DONE   alt_data_analyst  28.2s
+2026-11-23T01:09:21  DONE   nonfin_risk_analyst  67.8s
+2026-11-23T01:09:27  DONE   fin_risk_analyst  114.1s
+2026-11-23T01:09:30  DONE   short_analyst  65.7s
+2026-11-23T01:09:45  DONE   quant_analyst  89.2s
+2026-11-23T01:10:51  DONE   portfolio_strategist  66.2s
+2026-11-23T01:11:18  DONE   head_of_research  27.3s
+2026-11-23T01:11:18  END    elapsed=225.4s failures=none
