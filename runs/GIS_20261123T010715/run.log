@@ -1,0 +1,16 @@
+2026-11-23T01:07:15  START  symbol=GIS agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-23T01:07:16  CONFIG sha=dc1a65624670 git=47209c4 gaps=0
+2026-11-23T01:07:46  DONE   growth_researcher  30.3s
+2026-11-23T01:07:57  DONE   macro_researcher  40.9s
+2026-11-23T01:08:00  DONE   sector_researcher  44.1s
+2026-11-23T01:08:07  DONE   fin_risk_analyst  50.4s
+2026-11-23T01:08:30  DONE   geo_legal_researcher  74.3s
+2026-11-23T01:08:34  DONE   value_researcher  78.1s
+2026-11-23T01:08:39  DONE   quant_analyst  42.0s
+2026-11-23T01:08:57  DONE   nonfin_risk_analyst  70.8s
+2026-11-23T01:08:59  DONE   short_analyst  59.4s
+2026-11-23T01:09:07  DONE   esg_analyst  60.6s
+2026-11-23T01:09:20  DONE   alt_data_analyst  50.0s
+2026-11-23T01:09:57  DONE   portfolio_strategist  36.7s
+2026-11-23T01:11:32  DONE   head_of_research  94.9s
+2026-11-23T01:11:32  END    elapsed=256.1s failures=none
