@@ -1,0 +1,16 @@
+2026-11-23T01:13:38  START  symbol=INFY agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-23T01:13:39  CONFIG sha=dc1a65624670 git=47209c4 gaps=0
+2026-11-23T01:14:08  DONE   sector_researcher  29.4s
+2026-11-23T01:14:25  DONE   geo_legal_researcher  45.6s
+2026-11-23T01:14:34  DONE   macro_researcher  55.2s
+2026-11-23T01:14:34  DONE   fin_risk_analyst  55.1s
+2026-11-23T01:14:42  DONE   value_researcher  62.9s
+2026-11-23T01:14:47  DONE   growth_researcher  67.9s
+2026-11-23T01:15:15  DONE   nonfin_risk_analyst  66.6s
+2026-11-23T01:15:23  DONE   alt_data_analyst  40.5s
+2026-11-23T01:15:25  DONE   quant_analyst  59.7s
+2026-11-23T01:15:37  DONE   esg_analyst  62.3s
+2026-11-23T01:16:36  DONE   short_analyst  121.4s
+2026-11-23T01:17:29  DONE   portfolio_strategist  53.6s
+2026-11-23T01:17:59  DONE   head_of_research  29.2s
+2026-11-23T01:17:59  END    elapsed=259.6s failures=none
