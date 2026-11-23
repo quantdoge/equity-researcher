@@ -1,0 +1,16 @@
+2026-11-23T01:33:35  START  symbol=CRDO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-23T01:33:36  CONFIG sha=dc1a65624670 git=47209c4 gaps=0
+2026-11-23T01:34:12  DONE   geo_legal_researcher  36.0s
+2026-11-23T01:34:16  DONE   fin_risk_analyst  39.9s
+2026-11-23T01:34:24  DONE   growth_researcher  47.7s
+2026-11-23T01:34:36  DONE   macro_researcher  60.1s
+2026-11-23T01:34:47  DONE   sector_researcher  70.7s
+2026-11-23T01:35:06  DONE   value_researcher  89.7s
+2026-11-23T01:35:20  DONE   nonfin_risk_analyst  67.8s
+2026-11-23T01:35:22  DONE   quant_analyst  65.6s
+2026-11-23T01:35:22  DONE   alt_data_analyst  35.7s
+2026-11-23T01:35:31  DONE   short_analyst  66.9s
+2026-11-23T01:36:06  DONE   esg_analyst  90.3s
+2026-11-23T01:36:54  DONE   portfolio_strategist  47.5s
+2026-11-23T01:37:10  DONE   head_of_research  16.0s
+2026-11-23T01:37:10  END    elapsed=214.1s failures=none
