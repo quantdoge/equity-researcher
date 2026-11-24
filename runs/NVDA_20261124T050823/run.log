@@ -1,0 +1,16 @@
+2026-11-24T05:08:23  START  symbol=NVDA agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-24T05:08:23  CONFIG sha=dc1a65624670 git=62e931e gaps=0
+2026-11-24T05:08:57  DONE   growth_researcher  33.8s
+2026-11-24T05:09:09  DONE   geo_legal_researcher  45.7s
+2026-11-24T05:09:31  DONE   fin_risk_analyst  67.4s
+2026-11-24T05:09:34  DONE   value_researcher  70.9s
+2026-11-24T05:09:44  DONE   sector_researcher  81.1s
+2026-11-24T05:09:45  DONE   macro_researcher  82.0s
+2026-11-24T05:09:52  DONE   nonfin_risk_analyst  54.6s
+2026-11-24T05:10:08  DONE   quant_analyst  58.9s
+2026-11-24T05:10:38  DONE   alt_data_analyst  53.5s
+2026-11-24T05:10:56  DONE   esg_analyst  81.4s
+2026-11-24T05:11:14  DONE   short_analyst  103.0s
+2026-11-24T05:12:12  DONE   portfolio_strategist  58.3s
+2026-11-24T05:12:47  DONE   head_of_research  35.3s
+2026-11-24T05:12:47  END    elapsed=264.2s failures=none
