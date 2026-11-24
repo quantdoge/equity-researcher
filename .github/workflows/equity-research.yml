@@ -38,15 +38,7 @@ jobs:
       matrix:
         ticker:
           - NVDA
-          - CRDO
-          - ALAB
-          - CRWV
-          - KYMR
           - CRWD
-          - IP
-          - BURL
-          - ELV
-          - TSN
 
     steps:
       - uses: actions/checkout@v4
