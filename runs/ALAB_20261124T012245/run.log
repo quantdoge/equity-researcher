@@ -1,0 +1,16 @@
+2026-11-24T01:22:45  START  symbol=ALAB agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-24T01:22:45  CONFIG sha=dc1a65624670 git=db72654 gaps=0
+2026-11-24T01:23:23  DONE   fin_risk_analyst  37.7s
+2026-11-24T01:23:43  DONE   sector_researcher  57.6s
+2026-11-24T01:23:48  DONE   macro_researcher  62.3s
+2026-11-24T01:24:00  DONE   growth_researcher  74.7s
+2026-11-24T01:24:06  DONE   nonfin_risk_analyst  43.0s
+2026-11-24T01:24:19  DONE   geo_legal_researcher  93.9s
+2026-11-24T01:24:24  DONE   quant_analyst  41.6s
+2026-11-24T01:24:43  DONE   value_researcher  117.1s
+2026-11-24T01:24:50  DONE   alt_data_analyst  44.0s
+2026-11-24T01:25:13  DONE   short_analyst  84.8s
+2026-11-24T01:25:14  DONE   esg_analyst  73.7s
+2026-11-24T01:26:03  DONE   portfolio_strategist  49.1s
+2026-11-24T01:27:03  DONE   head_of_research  59.4s
+2026-11-24T01:27:03  END    elapsed=257.2s failures=none
