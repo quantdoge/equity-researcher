@@ -37,17 +37,16 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - GPN
-          - HDB
-          - GIS
-          - MKC
-          - INFY
-          - NBIS
-          - CLS
-          - SNDK
-          - BE
-          - MU
+          - NVDA
           - CRDO
+          - ALAB
+          - CRWV
+          - KYMR
+          - CRWD
+          - IP
+          - BURL
+          - ELV
+          - TSN
 
     steps:
       - uses: actions/checkout@v4
