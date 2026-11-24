@@ -1,0 +1,16 @@
+2026-11-24T01:37:51  START  symbol=BURL agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-24T01:37:51  CONFIG sha=dc1a65624670 git=db72654 gaps=0
+2026-11-24T01:38:46  DONE   macro_researcher  55.5s
+2026-11-24T01:38:50  DONE   geo_legal_researcher  58.9s
+2026-11-24T01:38:51  DONE   fin_risk_analyst  60.3s
+2026-11-24T01:38:54  DONE   sector_researcher  63.5s
+2026-11-24T01:38:58  DONE   growth_researcher  66.9s
+2026-11-24T01:39:28  DONE   value_researcher  97.5s
+2026-11-24T01:39:31  DONE   quant_analyst  40.7s
+2026-11-24T01:39:32  DONE   alt_data_analyst  34.4s
+2026-11-24T01:39:52  DONE   nonfin_risk_analyst  65.5s
+2026-11-24T01:40:04  DONE   short_analyst  73.0s
+2026-11-24T01:40:25  DONE   esg_analyst  90.2s
+2026-11-24T01:40:42  DONE   portfolio_strategist  17.3s
+2026-11-24T01:42:10  DONE   head_of_research  87.8s
+2026-11-24T01:42:10  END    elapsed=258.8s failures=none
