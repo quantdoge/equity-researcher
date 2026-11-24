@@ -1,0 +1,16 @@
+2026-11-24T05:08:19  START  symbol=CRWD agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-24T05:08:20  CONFIG sha=dc1a65624670 git=62e931e gaps=0
+2026-11-24T05:09:17  DONE   fin_risk_analyst  57.5s
+2026-11-24T05:09:29  DONE   sector_researcher  69.7s
+2026-11-24T05:09:30  DONE   macro_researcher  70.6s
+2026-11-24T05:09:46  DONE   value_researcher  85.9s
+2026-11-24T05:09:46  DONE   geo_legal_researcher  86.2s
+2026-11-24T05:10:08  DONE   growth_researcher  107.9s
+2026-11-24T05:10:08  DONE   nonfin_risk_analyst  50.5s
+2026-11-24T05:10:33  DONE   alt_data_analyst  47.3s
+2026-11-24T05:10:37  DONE   short_analyst  66.6s
+2026-11-24T05:10:40  DONE   quant_analyst  70.6s
+2026-11-24T05:10:56  DONE   esg_analyst  70.4s
+2026-11-24T05:11:14  DONE   portfolio_strategist  18.2s
+2026-11-24T05:12:21  DONE   head_of_research  66.9s
+2026-11-24T05:12:21  END    elapsed=241.6s failures=none
