@@ -1,0 +1,16 @@
+2026-11-25T03:47:57  START  symbol=INSM agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-25T03:47:57  CONFIG sha=dc1a65624670 git=5d901d6 gaps=0
+2026-11-25T03:48:57  DONE   macro_researcher  59.5s
+2026-11-25T03:49:01  DONE   value_researcher  63.9s
+2026-11-25T03:49:08  DONE   growth_researcher  70.6s
+2026-11-25T03:49:18  DONE   sector_researcher  81.0s
+2026-11-25T03:49:24  DONE   fin_risk_analyst  87.0s
+2026-11-25T03:49:24  DONE   geo_legal_researcher  87.2s
+2026-11-25T03:50:06  DONE   alt_data_analyst  41.6s
+2026-11-25T03:50:22  DONE   quant_analyst  80.7s
+2026-11-25T03:50:27  DONE   nonfin_risk_analyst  89.9s
+2026-11-25T03:50:34  DONE   esg_analyst  75.5s
+2026-11-25T03:51:07  DONE   short_analyst  118.8s
+2026-11-25T03:52:12  DONE   portfolio_strategist  65.1s
+2026-11-25T03:52:32  DONE   head_of_research  20.2s
+2026-11-25T03:52:32  END    elapsed=274.9s failures=none
