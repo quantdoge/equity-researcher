@@ -1,0 +1,16 @@
+2026-11-25T04:02:00  START  symbol=HPE agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-25T04:02:01  CONFIG sha=dc1a65624670 git=5d901d6 gaps=0
+2026-11-25T04:02:46  DONE   sector_researcher  44.7s
+2026-11-25T04:03:12  DONE   macro_researcher  71.0s
+2026-11-25T04:03:20  DONE   growth_researcher  78.5s
+2026-11-25T04:03:20  DONE   geo_legal_researcher  78.7s
+2026-11-25T04:03:35  DONE   short_analyst  15.8s
+2026-11-25T04:03:38  DONE   fin_risk_analyst  97.0s
+2026-11-25T04:03:55  DONE   quant_analyst  43.5s
+2026-11-25T04:04:11  DONE   alt_data_analyst  35.9s
+2026-11-25T04:04:20  DONE   value_researcher  138.6s
+2026-11-25T04:04:32  DONE   nonfin_risk_analyst  106.2s
+2026-11-25T04:04:49  DONE   esg_analyst  89.3s
+2026-11-25T04:06:12  DONE   portfolio_strategist  83.0s
+2026-11-25T04:07:09  DONE   head_of_research  56.8s
+2026-11-25T04:07:09  END    elapsed=308.0s failures=none
