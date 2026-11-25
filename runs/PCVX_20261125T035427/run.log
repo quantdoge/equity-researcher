@@ -1,0 +1,16 @@
+2026-11-25T03:54:27  START  symbol=PCVX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-25T03:54:28  CONFIG sha=dc1a65624670 git=5d901d6 gaps=0
+2026-11-25T03:55:00  DONE   value_researcher  32.3s
+2026-11-25T03:55:01  DONE   fin_risk_analyst  32.8s
+2026-11-25T03:55:27  DONE   sector_researcher  59.7s
+2026-11-25T03:55:32  DONE   geo_legal_researcher  64.6s
+2026-11-25T03:56:21  DONE   quant_analyst  79.8s
+2026-11-25T03:56:26  DONE   growth_researcher  118.5s
+2026-11-25T03:56:28  DONE   nonfin_risk_analyst  88.3s
+2026-11-25T03:56:42  DONE   macro_researcher  134.0s
+2026-11-25T03:57:00  DONE   short_analyst  92.7s
+2026-11-25T03:57:09  DONE   alt_data_analyst  47.9s
+2026-11-25T03:57:15  DONE   esg_analyst  102.8s
+2026-11-25T03:58:42  DONE   portfolio_strategist  86.4s
+2026-11-25T03:59:56  DONE   head_of_research  74.4s
+2026-11-25T03:59:56  END    elapsed=328.3s failures=none
