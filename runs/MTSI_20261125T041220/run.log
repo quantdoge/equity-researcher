@@ -1,0 +1,16 @@
+2026-11-25T04:12:20  START  symbol=MTSI agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-25T04:12:21  CONFIG sha=dc1a65624670 git=5d901d6 gaps=0
+2026-11-25T04:12:55  DONE   macro_researcher  34.6s
+2026-11-25T04:13:30  DONE   growth_researcher  69.2s
+2026-11-25T04:13:38  DONE   geo_legal_researcher  77.1s
+2026-11-25T04:13:43  DONE   value_researcher  82.3s
+2026-11-25T04:14:05  DONE   fin_risk_analyst  104.2s
+2026-11-25T04:14:19  DONE   nonfin_risk_analyst  83.2s
+2026-11-25T04:14:25  DONE   sector_researcher  124.4s
+2026-11-25T04:14:53  DONE   quant_analyst  82.7s
+2026-11-25T04:14:54  DONE   alt_data_analyst  48.8s
+2026-11-25T04:15:31  DONE   esg_analyst  108.1s
+2026-11-25T04:15:38  DONE   short_analyst  120.6s
+2026-11-25T04:17:03  DONE   portfolio_strategist  84.0s
+2026-11-25T04:17:42  DONE   head_of_research  39.5s
+2026-11-25T04:17:42  END    elapsed=321.5s failures=none
