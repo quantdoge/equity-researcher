@@ -1,0 +1,16 @@
+2026-11-26T01:07:04  START  symbol=HPQ agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-26T01:07:05  CONFIG sha=dc1a65624670 git=24090b4 gaps=0
+2026-11-26T01:08:13  DONE   growth_researcher  68.6s
+2026-11-26T01:08:14  DONE   fin_risk_analyst  69.4s
+2026-11-26T01:08:22  DONE   sector_researcher  77.4s
+2026-11-26T01:08:31  DONE   geo_legal_researcher  86.1s
+2026-11-26T01:08:41  DONE   macro_researcher  96.4s
+2026-11-26T01:08:49  DONE   quant_analyst  34.3s
+2026-11-26T01:08:50  DONE   value_researcher  105.6s
+2026-11-26T01:08:57  DONE   nonfin_risk_analyst  43.4s
+2026-11-26T01:09:26  DONE   short_analyst  63.5s
+2026-11-26T01:09:32  DONE   alt_data_analyst  50.3s
+2026-11-26T01:09:35  DONE   esg_analyst  64.1s
+2026-11-26T01:10:15  DONE   portfolio_strategist  39.9s
+2026-11-26T01:10:37  DONE   head_of_research  21.8s
+2026-11-26T01:10:37  END    elapsed=212.1s failures=none
