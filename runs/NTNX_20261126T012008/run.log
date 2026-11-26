@@ -1,0 +1,16 @@
+2026-11-26T01:20:08  START  symbol=NTNX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-26T01:20:08  CONFIG sha=dc1a65624670 git=24090b4 gaps=0
+2026-11-26T01:20:56  DONE   geo_legal_researcher  47.7s
+2026-11-26T01:20:59  DONE   macro_researcher  51.0s
+2026-11-26T01:21:13  DONE   growth_researcher  64.6s
+2026-11-26T01:21:16  DONE   sector_researcher  67.6s
+2026-11-26T01:21:17  DONE   fin_risk_analyst  69.2s
+2026-11-26T01:21:23  DONE   quant_analyst  24.0s
+2026-11-26T01:21:50  DONE   alt_data_analyst  32.6s
+2026-11-26T01:21:53  DONE   nonfin_risk_analyst  56.8s
+2026-11-26T01:22:15  DONE   esg_analyst  59.8s
+2026-11-26T01:22:27  DONE   value_researcher  138.6s
+2026-11-26T01:22:55  DONE   short_analyst  101.7s
+2026-11-26T01:23:42  DONE   portfolio_strategist  47.5s
+2026-11-26T01:24:22  DONE   head_of_research  40.2s
+2026-11-26T01:24:22  END    elapsed=254.3s failures=none
