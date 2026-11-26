@@ -37,16 +37,16 @@ jobs:
       max-parallel: 2         # sequential — also keeps OpenRouter rate limits in check
       matrix:
         ticker:
-          - KYMR
-          - DKS
-          - INSM
-          - DLTR
-          - PCVX
-          - ADI
-          - HPE
-          - ALAB
-          - SITM
-          - MTSI
+          - HPQ
+          - ASTS
+          - CHTR
+          - BSP
+          - AXON
+          - NTNX
+          - LRCX
+          - SNDK
+          - ORCL
+          - MU
        
 
     steps:
