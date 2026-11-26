@@ -1,0 +1,16 @@
+2026-11-26T01:19:58  START  symbol=AXON agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-26T01:19:58  CONFIG sha=dc1a65624670 git=24090b4 gaps=0
+2026-11-26T01:20:39  DONE   sector_researcher  41.5s
+2026-11-26T01:20:51  DONE   geo_legal_researcher  52.8s
+2026-11-26T01:20:53  DONE   macro_researcher  54.7s
+2026-11-26T01:20:59  DONE   growth_researcher  61.1s
+2026-11-26T01:21:00  DONE   value_researcher  61.9s
+2026-11-26T01:21:06  DONE   fin_risk_analyst  67.5s
+2026-11-26T01:21:31  DONE   nonfin_risk_analyst  52.1s
+2026-11-26T01:21:32  DONE   quant_analyst  40.7s
+2026-11-26T01:21:45  DONE   alt_data_analyst  45.1s
+2026-11-26T01:22:13  DONE   esg_analyst  73.7s
+2026-11-26T01:22:24  DONE   short_analyst  90.9s
+2026-11-26T01:23:01  DONE   portfolio_strategist  36.9s
+2026-11-26T01:23:31  DONE   head_of_research  30.4s
+2026-11-26T01:23:31  END    elapsed=213.1s failures=none
