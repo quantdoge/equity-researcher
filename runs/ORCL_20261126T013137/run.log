@@ -1,0 +1,16 @@
+2026-11-26T01:31:37  START  symbol=ORCL agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-26T01:31:37  CONFIG sha=dc1a65624670 git=24090b4 gaps=0
+2026-11-26T01:32:23  DONE   sector_researcher  46.0s
+2026-11-26T01:32:32  DONE   growth_researcher  54.6s
+2026-11-26T01:32:33  DONE   macro_researcher  55.1s
+2026-11-26T01:32:42  DONE   geo_legal_researcher  64.3s
+2026-11-26T01:32:49  DONE   fin_risk_analyst  71.7s
+2026-11-26T01:32:59  DONE   quant_analyst  27.2s
+2026-11-26T01:33:23  DONE   nonfin_risk_analyst  59.6s
+2026-11-26T01:33:30  DONE   alt_data_analyst  40.4s
+2026-11-26T01:33:41  DONE   esg_analyst  58.8s
+2026-11-26T01:33:58  DONE   short_analyst  85.7s
+2026-11-26T01:34:04  DONE   value_researcher  146.4s
+2026-11-26T01:34:36  DONE   portfolio_strategist  31.9s
+2026-11-26T01:35:07  DONE   head_of_research  31.7s
+2026-11-26T01:35:07  END    elapsed=210.2s failures=none
