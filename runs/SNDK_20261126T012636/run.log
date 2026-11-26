@@ -1,0 +1,16 @@
+2026-11-26T01:26:36  START  symbol=SNDK agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-26T01:26:37  CONFIG sha=dc1a65624670 git=24090b4 gaps=0
+2026-11-26T01:26:56  DONE   fin_risk_analyst  19.3s
+2026-11-26T01:27:06  DONE   value_researcher  29.1s
+2026-11-26T01:27:12  DONE   macro_researcher  35.3s
+2026-11-26T01:27:19  DONE   geo_legal_researcher  42.1s
+2026-11-26T01:27:20  DONE   sector_researcher  43.2s
+2026-11-26T01:27:42  DONE   quant_analyst  36.5s
+2026-11-26T01:27:47  DONE   alt_data_analyst  27.6s
+2026-11-26T01:27:50  DONE   growth_researcher  73.6s
+2026-11-26T01:27:59  DONE   nonfin_risk_analyst  63.2s
+2026-11-26T01:28:05  DONE   short_analyst  53.1s
+2026-11-26T01:28:25  DONE   esg_analyst  66.1s
+2026-11-26T01:29:05  DONE   portfolio_strategist  40.6s
+2026-11-26T01:29:37  DONE   head_of_research  31.6s
+2026-11-26T01:29:37  END    elapsed=180.5s failures=none
