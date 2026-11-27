@@ -1,0 +1,16 @@
+2026-11-27T08:15:40  START  symbol=CHTR agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-27T08:15:41  CONFIG sha=dc1a65624670 git=89ea431 gaps=0
+2026-11-27T08:16:30  DONE   macro_researcher  48.6s
+2026-11-27T08:16:51  DONE   growth_researcher  69.8s
+2026-11-27T08:16:55  DONE   sector_researcher  74.2s
+2026-11-27T08:17:21  DONE   fin_risk_analyst  99.9s
+2026-11-27T08:17:36  DONE   geo_legal_researcher  115.2s
+2026-11-27T08:18:08  DONE   short_analyst  72.4s
+2026-11-27T08:18:12  DONE   quant_analyst  81.1s
+2026-11-27T08:18:26  DONE   nonfin_risk_analyst  116.4s
+2026-11-27T08:18:26  DONE   value_researcher  164.9s
+2026-11-27T08:18:47  DONE   alt_data_analyst  70.2s
+2026-11-27T08:19:26  DONE   esg_analyst  124.6s
+2026-11-27T08:20:15  DONE   portfolio_strategist  49.4s
+2026-11-27T08:20:44  DONE   head_of_research  29.1s
+2026-11-27T08:20:44  END    elapsed=303.3s failures=none
