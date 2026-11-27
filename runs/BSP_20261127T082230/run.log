@@ -1,0 +1,16 @@
+2026-11-27T08:22:30  START  symbol=BSP agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-27T08:22:31  CONFIG sha=dc1a65624670 git=89ea431 gaps=0
+2026-11-27T08:23:23  DONE   fin_risk_analyst  51.7s
+2026-11-27T08:23:48  DONE   growth_researcher  76.8s
+2026-11-27T08:23:52  DONE   sector_researcher  81.2s
+2026-11-27T08:24:16  DONE   geo_legal_researcher  105.3s
+2026-11-27T08:24:27  DONE   macro_researcher  115.8s
+2026-11-27T08:24:36  DONE   quant_analyst  47.9s
+2026-11-27T08:25:07  DONE   nonfin_risk_analyst  104.7s
+2026-11-27T08:25:22  DONE   esg_analyst  65.9s
+2026-11-27T08:25:26  DONE   value_researcher  175.3s
+2026-11-27T08:26:19  DONE   short_analyst  146.8s
+2026-11-27T08:26:34  DONE   alt_data_analyst  126.9s
+2026-11-27T08:27:31  DONE   portfolio_strategist  57.3s
+2026-11-27T08:27:47  DONE   head_of_research  16.7s
+2026-11-27T08:27:48  END    elapsed=316.9s failures=none
