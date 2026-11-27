@@ -1,0 +1,16 @@
+2026-11-27T08:30:02  START  symbol=LRCX agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-27T08:30:02  CONFIG sha=dc1a65624670 git=89ea431 gaps=0
+2026-11-27T08:30:40  DONE   fin_risk_analyst  37.7s
+2026-11-27T08:30:59  DONE   macro_researcher  56.5s
+2026-11-27T08:31:17  DONE   value_researcher  74.7s
+2026-11-27T08:31:21  DONE   growth_researcher  78.5s
+2026-11-27T08:31:28  DONE   geo_legal_researcher  85.2s
+2026-11-27T08:31:42  DONE   nonfin_risk_analyst  61.9s
+2026-11-27T08:31:50  DONE   sector_researcher  107.2s
+2026-11-27T08:32:15  DONE   quant_analyst  76.2s
+2026-11-27T08:32:18  DONE   short_analyst  60.4s
+2026-11-27T08:32:33  DONE   alt_data_analyst  64.9s
+2026-11-27T08:32:56  DONE   esg_analyst  94.4s
+2026-11-27T08:33:44  DONE   portfolio_strategist  48.4s
+2026-11-27T08:34:55  DONE   head_of_research  71.5s
+2026-11-27T08:34:55  END    elapsed=293.1s failures=none
