@@ -1,0 +1,16 @@
+2026-11-27T08:15:34  START  symbol=QXO agents=all concurrency=6 skip_synthesis=False timeout=None
+2026-11-27T08:15:35  CONFIG sha=dc1a65624670 git=89ea431 gaps=0
+2026-11-27T08:16:32  DONE   fin_risk_analyst  56.3s
+2026-11-27T08:16:46  DONE   sector_researcher  70.7s
+2026-11-27T08:17:05  DONE   macro_researcher  89.6s
+2026-11-27T08:17:07  DONE   growth_researcher  91.8s
+2026-11-27T08:17:24  DONE   geo_legal_researcher  108.6s
+2026-11-27T08:17:32  DONE   nonfin_risk_analyst  60.5s
+2026-11-27T08:18:06  DONE   alt_data_analyst  42.1s
+2026-11-27T08:18:12  DONE   value_researcher  157.0s
+2026-11-27T08:18:38  DONE   quant_analyst  112.0s
+2026-11-27T08:18:49  DONE   esg_analyst  101.8s
+2026-11-27T08:19:08  DONE   short_analyst  123.1s
+2026-11-27T08:19:38  DONE   portfolio_strategist  30.1s
+2026-11-27T08:20:09  DONE   head_of_research  30.8s
+2026-11-27T08:20:09  END    elapsed=273.9s failures=none
